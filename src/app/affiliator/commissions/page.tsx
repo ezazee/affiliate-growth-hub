@@ -102,26 +102,54 @@ export default function AffiliatorCommissions() {
             <>
               <StatCard
                 title="Total Earned"
-                value={`$${stats.total.toFixed(2)}`}
+                value={
+                  stats.total.toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })
+                }
                 icon={DollarSign}
                 variant="primary"
                 delay={0}
               />
               <StatCard
                 title="Pending"
-                value={`$${stats.pending.toFixed(2)}`}
+                value={
+                  stats.pending.toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })
+                }
                 icon={Clock}
                 delay={0.1}
               />
               <StatCard
                 title="Approved"
-                value={`$${stats.approved.toFixed(2)}`}
+                value={
+                  stats.approved.toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })
+                }
                 icon={Check}
                 delay={0.2}
               />
               <StatCard
                 title="Paid Out"
-                value={`$${stats.paid.toFixed(2)}`}
+                value={
+                  stats.paid.toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })
+                }
                 icon={CreditCard}
                 delay={0.3}
               />
@@ -176,7 +204,12 @@ export default function AffiliatorCommissions() {
                       </div>
                       <div className="text-right flex items-center gap-4">
                         <p className="text-xl font-display font-bold text-success">
-                          +${commission.amount.toFixed(2)}
+                          +{commission.amount.toLocaleString('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          })}
                         </p>
                         <Badge className={`${getStatusBadge(commission.status)} flex items-center gap-1`}>
                           {getStatusIcon(commission.status)}

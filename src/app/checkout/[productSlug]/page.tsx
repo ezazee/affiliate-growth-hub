@@ -154,7 +154,14 @@ export default function Checkout() {
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Price</span>
-                <span className="font-medium">${product.price}</span>
+                <span className="font-medium">
+                  {product.price.toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Shipping</span>
@@ -351,17 +358,30 @@ export default function Checkout() {
 
                 {/* Price Breakdown */}
                 <div className="space-y-3 pt-4 border-t border-border">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-medium">${product.price}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Subtotal</span>
+                                    <span className="font-medium">
+                                      {product.price.toLocaleString('id-ID', {
+                                        style: 'currency',
+                                        currency: 'IDR',
+                                        minimumFractionDigits: 0,
+                                        maximumFractionDigits: 0,
+                                      })}
+                                    </span>
+                                  </div>                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Shipping</span>
                     <span className="font-medium text-accent-foreground">Calculated later</span>
                   </div>
                   <div className="flex justify-between text-lg pt-3 border-t border-border">
                     <span className="font-semibold">Total</span>
-                    <span className="font-display font-bold text-primary">${product.price}+</span>
+                    <span className="font-display font-bold text-primary">
+                      {product.price.toLocaleString('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 0,
+                      })}
+                    </span>
                   </div>
                 </div>
 

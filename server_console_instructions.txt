@@ -1,0 +1,6 @@
+
+I have added some logging on the server to understand the issue.
+Please try to load the `/affiliator/links` page again.
+Then, please check the terminal where your Next.js application is running (where you ran `npm run dev` or a similar command).
+You should see new log messages starting with `[API /user/[id]]`. Please copy and paste those logs here.
+This will tell us what `id` the server is receiving and why it might be invalid.

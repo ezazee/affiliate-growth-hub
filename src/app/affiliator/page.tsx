@@ -107,7 +107,14 @@ export default function AffiliatorDashboard() {
             <>
               <StatCard
                 title="Total Earnings"
-                value={`$${stats?.totalCommissions.toLocaleString() || '0'}`}
+                value={
+                  stats?.totalCommissions.toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }) || 'Rp0'
+                }
                 icon={DollarSign}
                 variant="primary"
                 delay={0}
@@ -232,7 +239,14 @@ export default function AffiliatorDashboard() {
                           <p className="text-sm text-muted-foreground">{new Date(commission.date).toLocaleDateString()}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-semibold text-foreground">${commission.amount}</p>
+                          <p className="font-semibold text-foreground">
+                            {commission.amount.toLocaleString('id-ID', {
+                              style: 'currency',
+                              currency: 'IDR',
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 0,
+                            })}
+                          </p>
                           <Badge 
                             variant="secondary"
                             className={getCommissionStatusBadge(commission.status)}

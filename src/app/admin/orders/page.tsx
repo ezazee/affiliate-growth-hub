@@ -126,7 +126,16 @@ export default function AdminOrders() {
             { label: 'Total Orders', value: stats.total, color: 'bg-primary/10 text-primary' },
             { label: 'Pending', value: stats.pending, color: 'bg-accent/10 text-accent-foreground' },
             { label: 'Paid', value: stats.paid, color: 'bg-success/10 text-success' },
-            { label: 'Revenue', value: `$${stats.revenue}`, color: 'gradient-primary text-primary-foreground' },
+            {
+              label: 'Revenue',
+              value: stats.revenue.toLocaleString('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              }),
+              color: 'gradient-primary text-primary-foreground'
+            },
           ].map((stat) => (
             <div key={stat.label} className={`rounded-xl p-4 ${stat.color}`}>
               <p className="text-2xl font-display font-bold">{stat.value}</p>
@@ -202,11 +211,21 @@ export default function AdminOrders() {
                         <div className="flex items-center gap-4">
                           <div className="text-right">
                             <p className="text-2xl font-display font-bold text-primary">
-                              ${product?.price || 0}
+                            {product?.price.toLocaleString('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          }) || 'Rp0'}
                             </p>
                             {order.shippingCost && (
                               <p className="text-xs text-muted-foreground">
-                                + ${order.shippingCost} shipping
+                                + {order.shippingCost.toLocaleString('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          })} shipping
                               </p>
                             )}
                           </div>
@@ -272,7 +291,7 @@ export default function AdminOrders() {
                 {/* Shipping Cost Input */}
                 <div className="flex gap-3 items-end p-4 bg-secondary rounded-lg">
                   <div className="flex-1 space-y-2">
-                    <Label htmlFor="shipping">Shipping Cost ($)</Label>
+                    <Label htmlFor="shipping">Shipping Cost (Rp)</Label>
                     <Input
                       id="shipping"
                       type="number"

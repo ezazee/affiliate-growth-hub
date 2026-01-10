@@ -15,7 +15,15 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    const userLinks = (await db.collection<AffiliateLink>('affiliateLinks').find({ affiliatorId }).toArray()).map(link => ({ ...link, id: link._id.toString() }));
+    const userLinksRaw = await db.collection<AffiliateLink>('affiliateLinks').find({ affiliatorId }).toArray();
+    const uniqueProductLinks = new Map<string, AffiliateLink>();
+    userLinksRaw.forEach(link => {
+      // Prioritize the first occurrence found, or could add logic to prioritize by _id for example
+      if (!uniqueProductLinks.has(link.productId)) {
+        uniqueProductLinks.set(link.productId, link);
+      }
+    });
+    const userLinks = Array.from(uniqueProductLinks.values()).map(link => ({ ...link, id: link._id.toString() }));
     const productIds = userLinks.map(link => link.productId);
     const products = await db.collection<Product>('products').find({ _id: { $in: productIds } }).toArray();
 
@@ -45,6 +53,13 @@ export async function POST(req: NextRequest) {
 
     const client = await clientPromise;
     const db = client.db();
+
+    // Check if an affiliate link already exists for this affiliator and product
+    const existingLink = await db.collection<AffiliateLink>('affiliateLinks').findOne({ affiliatorId, productId });
+
+    if (existingLink) {
+      return NextResponse.json({ error: 'Affiliate link for this product already exists for this affiliator' }, { status: 409 });
+    }
 
     const newLink = {
       affiliatorId,

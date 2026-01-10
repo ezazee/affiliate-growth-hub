@@ -99,7 +99,12 @@ export default function AdminCommissions() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${commissions.reduce((acc, c) => acc + c.amount, 0).toFixed(2)}
+                {commissions.reduce((acc, c) => acc + c.amount, 0).toLocaleString('id-ID', {
+              style: 'currency',
+              currency: 'IDR',
+              minimumFractionDigits: 0,
+              maximumFractionDigits: 0,
+            })}
               </div>
             </CardContent>
           </Card>
@@ -187,7 +192,14 @@ export default function AdminCommissions() {
                           <TableCell className="font-medium">{commission.affiliateName}</TableCell>
                           <TableCell>{commission.productName}</TableCell>
                           <TableCell>{commission.orderId}</TableCell>
-                          <TableCell>${commission.amount.toFixed(2)}</TableCell>
+                          <TableCell>
+  {commission.amount.toLocaleString('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })}
+</TableCell>
                           <TableCell>
                             <Badge className={getStatusBadge(commission.status)}>
                               {commission.status}

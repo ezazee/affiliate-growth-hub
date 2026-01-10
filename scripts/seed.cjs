@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '.env.local' });
 const { MongoClient } = require('mongodb');
-const { products, users } = require('./data.cjs');
+const { products, users, affiliateLinks } = require('./data.cjs');
 
 const uri = process.env.MONGODB_URI;
 console.log('MONGODB_URI from process.env:', uri);
@@ -46,6 +46,12 @@ const seed = async () => {
     await db.collection('products').insertMany(products.map(product => {
       const { id, ...rest } = product;
       return rest;
+    }));
+
+    // Seed affiliate links
+    await db.collection('affiliateLinks').insertMany(affiliateLinks.map(link => {
+        const { id, ...rest } = link;
+        return rest;
     }));
 
     console.log('Database seeded successfully!');

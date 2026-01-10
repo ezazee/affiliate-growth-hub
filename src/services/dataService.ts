@@ -1,5 +1,5 @@
 import clientPromise from '@/lib/mongodb';
-import { Collection, MongoClient } from 'mongodb';
+import { Collection, MongoClient, Db, ObjectId } from 'mongodb';
 
 interface Product {
   id: string;
@@ -31,21 +31,16 @@ interface User {
   createdAt: Date;
 }
 
-let client: MongoClient;
-let productsCollection: Collection<Product>;
-let affiliateLinksCollection: Collection<AffiliateLink>;
-let usersCollection: Collection<User>;
+let _client: MongoClient;
+let _db: Db;
 
 async function init() {
-  if (client && client.isConnected()) {
+  if (_client && _db) {
     return;
   }
   try {
-    client = await clientPromise;
-    const db = client.db('affiliate_hub'); // Assuming database name is 'affiliate_hub'
-    productsCollection = db.collection<Product>('products');
-    affiliateLinksCollection = db.collection<AffiliateLink>('affiliateLinks');
-    usersCollection = db.collection<User>('users');
+    _client = await clientPromise;
+    _db = _client.db(); // This assumes the database name is already configured in clientPromise in lib/mongodb.ts
   } catch (error) {
     console.error('Failed to connect to DB or get collections:', error);
     throw new Error('Database initialization failed');
@@ -54,30 +49,45 @@ async function init() {
 
 export async function getProducts(): Promise<Product[]> {
   await init();
-  return productsCollection.find({}).toArray();
+  const productsCollection = _db.collection<Product>('products');
+  const products = await productsCollection.find({}).toArray();
+  return products.map(product => ({ ...product, id: product._id.toString() }));
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   await init();
-  return productsCollection.findOne({ slug });
+  const productsCollection = _db.collection<Product>('products');
+  const product = await productsCollection.findOne({ slug });
+  return product ? { ...product, id: product._id.toString() } : null;
 }
 
 export async function getAffiliateLinks(): Promise<AffiliateLink[]> {
   await init();
-  return affiliateLinksCollection.find({}).toArray();
+  const affiliateLinksCollection = _db.collection<AffiliateLink>('affiliateLinks');
+  const links = await affiliateLinksCollection.find({}).toArray();
+  return links.map(link => ({ ...link, id: link._id.toString() }));
 }
 
 export async function getAffiliateLinkByCode(code: string): Promise<AffiliateLink | null> {
   await init();
-  return affiliateLinksCollection.findOne({ code });
+  const affiliateLinksCollection = _db.collection<AffiliateLink>('affiliateLinks');
+  const link = await affiliateLinksCollection.findOne({ code });
+  return link ? { ...link, id: link._id.toString() } : null;
 }
 
 export async function getUsers(): Promise<User[]> {
   await init();
+  const usersCollection = _db.collection<User>('users');
   return usersCollection.find({}).toArray();
 }
 
 export async function getUserById(id: string): Promise<User | null> {
   await init();
-  return usersCollection.findOne({ id });
+  const usersCollection = _db.collection<User>('users');
+  // Check if id is a valid ObjectId before creating a new ObjectId
+  if (!ObjectId.isValid(id)) {
+    return null;
+  }
+  const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+  return user ? { ...user, id: user._id.toString() } : null;
 }

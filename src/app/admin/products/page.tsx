@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, Edit, Trash2, Package, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Search, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -32,6 +32,8 @@ export default function AdminProducts() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -40,6 +42,7 @@ export default function AdminProducts() {
     description: '',
     commissionType: 'percentage' as CommissionType,
     commissionValue: '',
+    imageUrl: '', // Added imageUrl to formData
   });
 
   useEffect(() => {
@@ -60,6 +63,19 @@ export default function AdminProducts() {
     fetchProducts();
   }, []);
 
+  // Effect for image preview
+  useEffect(() => {
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(selectedFile);
+    } else {
+      setImagePreview(editingProduct?.imageUrl || null);
+    }
+  }, [selectedFile, editingProduct]);
+
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -72,8 +88,11 @@ export default function AdminProducts() {
       description: '',
       commissionType: 'percentage',
       commissionValue: '',
+      imageUrl: '',
     });
     setEditingProduct(null);
+    setSelectedFile(null);
+    setImagePreview(null);
   };
 
   const handleOpenDialog = (product?: Product) => {
@@ -86,57 +105,170 @@ export default function AdminProducts() {
         description: product.description || '',
         commissionType: product.commissionType,
         commissionValue: String(product.commissionValue),
+        imageUrl: product.imageUrl || '', // Set existing imageUrl
       });
+      setImagePreview(product.imageUrl || null); // Set preview for existing image
     } else {
       resetForm();
     }
     setIsDialogOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    } else {
+      setSelectedFile(null);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (editingProduct) {
-      setProducts(prev => prev.map(p => 
-        p.id === editingProduct.id 
-          ? { 
-              ...p, 
-              ...formData, 
-              price: Number(formData.price),
-              commissionValue: Number(formData.commissionValue),
-            }
-          : p
-      ));
-      toast.success('Product updated successfully');
-    } else {
-      const newProduct: Product = {
-        id: String(Date.now()),
-        name: formData.name,
-        slug: formData.slug,
-        price: Number(formData.price),
-        description: formData.description,
-        commissionType: formData.commissionType,
-        commissionValue: Number(formData.commissionValue),
-        isActive: true,
-      };
-      setProducts(prev => [...prev, newProduct]);
-      toast.success('Product created successfully');
+    let uploadedImageUrl = formData.imageUrl; // Use existing image by default
+
+    // If a new file is selected, upload it
+    if (selectedFile) {
+      try {
+        const uploadResponse = await fetch(`/api/upload?filename=${selectedFile.name}`, {
+          method: 'POST',
+          body: selectedFile,
+          headers: {
+            'content-type': selectedFile.type,
+          },
+        });
+
+        if (uploadResponse.ok) {
+          const blobData = await uploadResponse.json();
+          uploadedImageUrl = blobData.url;
+          toast.success('Image uploaded successfully!');
+        } else {
+          const errorData = await uploadResponse.json();
+          toast.error(errorData.error || 'Failed to upload image.');
+          return; // Stop submission if image upload fails
+        }
+      } catch (uploadError) {
+        console.error('Image upload failed:', uploadError);
+        toast.error('An error occurred during image upload.');
+        return; // Stop submission if image upload fails
+      }
     }
-    
-    setIsDialogOpen(false);
-    resetForm();
+
+    try {
+      if (editingProduct) {
+        // Update existing product
+        const response = await fetch(`/api/products/${editingProduct.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...formData,
+            price: Number(formData.price),
+            commissionValue: Number(formData.commissionValue),
+            isActive: editingProduct.isActive,
+            imageUrl: uploadedImageUrl, // Use the new or existing image URL
+          }),
+        });
+
+        if (response.ok) {
+          const updatedProduct = await response.json();
+          setProducts(prev => prev.map(p => 
+            p.id === updatedProduct.id ? updatedProduct : p
+          ));
+          toast.success('Product updated successfully');
+        } else if (response.status === 409) {
+          const errorData = await response.json();
+          toast.error(errorData.error || 'Product with this slug already exists.');
+        }
+        else {
+          const errorData = await response.json();
+          toast.error(errorData.error || 'Failed to update product.');
+        }
+      } else {
+        // Create new product
+        const response = await fetch('/api/admin/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...formData,
+            price: Number(formData.price),
+            commissionValue: Number(formData.commissionValue),
+            isActive: true,
+            imageUrl: uploadedImageUrl, // Use the new or existing image URL
+          }),
+        });
+
+        if (response.ok) {
+          const createdProduct = await response.json();
+          setProducts(prev => [...prev, createdProduct]);
+          toast.success('Product created successfully');
+        } else if (response.status === 409) {
+          const errorData = await response.json();
+          toast.error(errorData.error || 'Product with this slug already exists.');
+        } else {
+          const errorData = await response.json();
+          toast.error(errorData.error || 'Failed to create product.');
+        }
+      }
+    } catch (error) {
+      console.error('Failed to submit product:', error);
+      toast.error('An error occurred while submitting product.');
+    } finally {
+      setIsDialogOpen(false);
+      resetForm();
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setProducts(prev => prev.filter(p => p.id !== id));
-    toast.success('Product deleted');
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setProducts(prev => prev.filter(p => p.id !== id));
+        toast.success('Product deleted successfully');
+      } else {
+        toast.error('Failed to delete product.');
+      }
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      toast.error('An error occurred while deleting product.');
+    }
   };
 
-  const toggleActive = (id: string) => {
-    setProducts(prev => prev.map(p => 
-      p.id === id ? { ...p, isActive: !p.isActive } : p
-    ));
+  const toggleActive = async (id: string) => {
+    const productToToggle = products.find(p => p.id === id);
+    if (!productToToggle) return;
+
+    const newIsActive = !productToToggle.isActive;
+
+    try {
+      const response = await fetch(`/api/products/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...productToToggle, isActive: newIsActive }),
+      });
+
+      if (response.ok) {
+        setProducts(prev => prev.map(p => 
+          p.id === id ? { ...p, isActive: newIsActive } : p
+        ));
+        toast.success(`Product marked as ${newIsActive ? 'active' : 'inactive'}`);
+      } else {
+        toast.error('Failed to update product status.');
+      }
+    } catch (error) {
+      console.error('Failed to toggle product status:', error);
+      toast.error('An error occurred while updating product status.');
+    }
   };
+
 
   return (
       <div className="space-y-6">
@@ -183,7 +315,7 @@ export default function AdminProducts() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="price">Price (Rp)</Label>
                   <Input
                     id="price"
                     type="number"
@@ -202,6 +334,24 @@ export default function AdminProducts() {
                     placeholder="Product description..."
                   />
                 </div>
+                {/* Image Upload Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="image">Product Image</Label>
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                  />
+                  {imagePreview && (
+                    <div className="mt-2 relative w-32 h-32 rounded-lg border border-border overflow-hidden">
+                      <img src={imagePreview} alt="Image Preview" className="w-full h-full object-contain" />
+                      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-xs">
+                        <ImageIcon className="w-5 h-5 mr-1" /> Preview
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Commission Type</Label>
@@ -214,13 +364,13 @@ export default function AdminProducts() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="percentage">Percentage (%)</SelectItem>
-                        <SelectItem value="fixed">Fixed ($)</SelectItem>
+                        <SelectItem value="fixed">Fixed (Rp)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="commissionValue">
-                      Commission {formData.commissionType === 'percentage' ? '(%)' : '($)'}
+                      Commission {formData.commissionType === 'percentage' ? '(%)' : '(Rp)'}
                     </Label>
                     <Input
                       id="commissionValue"
@@ -278,7 +428,7 @@ export default function AdminProducts() {
                       <img 
                         src={product.imageUrl} 
                         alt={product.name}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                       />
                     </div>
                   )}
@@ -286,7 +436,14 @@ export default function AdminProducts() {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h3 className="font-semibold text-foreground">{product.name}</h3>
-                        <p className="text-2xl font-display font-bold text-primary">${product.price}</p>
+                        <p className="text-2xl font-display font-bold text-primary">
+  {product.price.toLocaleString('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })}
+</p>
                       </div>
                       <Badge 
                         variant={product.isActive ? 'default' : 'secondary'}
@@ -302,7 +459,7 @@ export default function AdminProducts() {
                     </p>
                     <div className="flex items-center justify-between pt-3 border-t border-border">
                       <span className="text-sm text-muted-foreground">
-                        Commission: {product.commissionValue}{product.commissionType === 'percentage' ? '%' : '$'}
+                        Commission: {product.commissionValue}{product.commissionType === 'percentage' ? '%' : 'Rp'}
                       </span>
                       <div className="flex gap-2">
                         <Button size="sm" variant="ghost" onClick={() => handleOpenDialog(product)}>

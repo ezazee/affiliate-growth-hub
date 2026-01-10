@@ -4,6 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { 
   LayoutDashboard, 
   Package, 
@@ -42,17 +43,27 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     logout();
     router.push('/login');
   };
+  
+  const Logo = () => (
+    <div className="flex items-center gap-2">
+      <Image 
+        src="/Logo.png" 
+        alt="Affiliate PE Skinpro Logo"
+        width={32} 
+        height={32} 
+        priority
+      />
+      <span className="font-display font-bold text-lg text-foreground">Affiliate</span>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background">
       {/* Mobile Header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b border-border shadow-card">
         <div className="flex items-center justify-between px-4 h-16">
-          <Link href='/admin' className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg gradient-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">A</span>
-            </div>
-            <span className="font-display font-bold text-foreground">AffiliateHub</span>
+          <Link href='/admin' className="flex items-center">
+            <Logo />
           </Link>
           <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -67,11 +78,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
       )}>
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="hidden lg:flex items-center gap-3 px-6 h-16 border-b border-border">
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-button">
-              <span className="text-primary-foreground font-bold text-lg">A</span>
-            </div>
-            <span className="font-display font-bold text-xl text-foreground">AffiliateHub</span>
+          <div className="hidden lg:flex items-center px-6 h-16 border-b border-border">
+             <Link href='/admin'>
+              <Logo />
+            </Link>
           </div>
 
           {/* Navigation */}

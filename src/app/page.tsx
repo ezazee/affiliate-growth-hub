@@ -29,7 +29,7 @@ export default function Index() {
   ];
 
   const stats = [
-    { value: '$2.5M+', label: 'Paid to Affiliators' },
+    { value: 'Rp2.5M+', label: 'Paid to Affiliators' },
     { value: '10K+', label: 'Active Affiliators' },
     { value: '98%', label: 'Satisfaction Rate' },
   ];

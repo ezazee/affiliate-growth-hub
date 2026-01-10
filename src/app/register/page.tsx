@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle } from 'lucide-react';
+import { User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle, Phone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +15,7 @@ export default function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState(''); // Added phone state
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
@@ -25,7 +26,7 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      const success = await register(name, email, password);
+      const success = await register(name, email, password, phone);
       
       if (success) {
         toast.success('Registration successful!');
@@ -130,6 +131,22 @@ export default function Register() {
                   placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10 h-12"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  id="phone"
+                  type="tel" // Use type="tel" for phone numbers
+                  placeholder="+6281234567890"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
                   className="pl-10 h-12"
                   required
                 />

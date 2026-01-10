@@ -88,7 +88,14 @@ export default function AdminDashboard() {
               />
               <StatCard
                 title="Total Revenue"
-                value={`$${stats?.totalRevenue.toLocaleString() || '0'}`}
+                value={
+                  stats?.totalRevenue.toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }) || 'Rp0'
+                }
                 icon={DollarSign}
                 variant="primary"
                 delay={0.1}
@@ -101,7 +108,14 @@ export default function AdminDashboard() {
               />
               <StatCard
                 title="Total Commissions"
-                value={`$${stats?.totalCommissions.toLocaleString() || '0'}`}
+                value={
+                  stats?.totalCommissions.toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  }) || 'Rp0'
+                }
                 icon={Package}
                 delay={0.3}
               />
@@ -134,7 +148,14 @@ export default function AdminDashboard() {
                         <p className="text-sm text-muted-foreground">{order.product}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-foreground">${order.amount}</p>
+                        <p className="font-semibold text-foreground">
+                          {order.amount.toLocaleString('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                            maximumFractionDigits: 0,
+                          })}
+                        </p>
                         <Badge 
                           variant={order.status === 'paid' ? 'default' : 'secondary'}
                           className={order.status === 'paid' ? 'bg-success text-success-foreground' : ''}

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image'; // Import Image component
 import { motion } from 'framer-motion';
 import { Plus, Copy, ExternalLink, Link as LinkIcon, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -27,62 +28,78 @@ import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AffiliatorLinks() {
-  const { user } = useAuth();
+  const { user, isAuthenticated, loading: authLoading } = useAuth();
   const [links, setLinks] = useState<AffiliateLink[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]); // To store all products
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState('');
 
   useEffect(() => {
     const fetchInitialData = async () => {
-      if (!user?.id) {
-        setLoading(false);
+      console.log('AffiliatorLinks: authLoading:', authLoading, 'isAuthenticated:', isAuthenticated, 'user:', user);
+
+      if (authLoading) {
+        // AuthContext is still loading the user state from localStorage
+        setLoading(true); // Keep local loading state true
         return;
       }
+
+      if (!isAuthenticated || !user?.id) {
+        // User is not authenticated or user.id is missing after auth loading is complete
+        setLoading(false);
+        console.log('AffiliatorLinks: User not authenticated or ID missing, stopping data fetch.');
+        // Optionally, redirect to login page if not authenticated and not already handled by AuthProvider
+        // router.push('/login'); 
+        return;
+      }
+
       try {
+        console.log('AffiliatorLinks: Fetching links and products...');
         const [linksResponse, productsResponse] = await Promise.all([
-          fetch(`/api/affiliator/links?affiliatorId=${user.id}`),
-          fetch('/api/admin/products'), // Fetch all products
+          fetch(`/api/affiliator/links?affiliatorId=${user.id}`, { cache: 'no-store' }),
+          fetch('/api/affiliator/products'),
         ]);
+        console.log('AffiliatorLinks: Products response status:', productsResponse.status, productsResponse.statusText);
+
 
         if (linksResponse.ok && productsResponse.ok) {
           const linksData = await linksResponse.json();
+          console.log('AffiliatorLinks: Fetched links data:', linksData);
+          
           const productsData = await productsResponse.json();
+          console.log('AffiliatorLinks: Fetched products data:', productsData);
+
           setLinks(linksData);
           setAllProducts(productsData);
         } else {
+          console.error("AffiliatorLinks: Failed to load data:", {
+            linksStatus: linksResponse.status,
+            linksText: linksResponse.statusText,
+            productsStatus: productsResponse.status,
+            productsText: productsResponse.statusText,
+          });
           toast.error('Failed to load data.');
         }
       } catch (error) {
-        console.error('Failed to fetch initial data:', error);
+        console.error('AffiliatorLinks: An error occurred while fetching initial data:', error);
         toast.error('An error occurred while loading data.');
       } finally {
         setLoading(false);
+        // console.log('AffiliatorLinks: Data fetching finished.');
       }
     };
     fetchInitialData();
-  }, [user]);
+  }, [user, isAuthenticated, authLoading]); // Dependencies for re-running effect
 
   const getProductById = (productId: string) => allProducts.find(p => p._id?.toString() === productId);
 
   // Get products that don't have links yet
-  const availableProducts = allProducts.filter(
-    p => p.isActive && !links.some(l => l.productId === p._id?.toString())
-  );
-
-  const generateCode = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i < 8; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return code;
-  };
+  const availableProducts = allProducts;
 
   const createLink = async () => {
-    if (!selectedProductId || !user) return;
-    
+    if (!selectedProductId || !user || !user.referralCode) return;
+
     try {
       const response = await fetch('/api/affiliator/links', {
         method: 'POST',
@@ -92,7 +109,7 @@ export default function AffiliatorLinks() {
         body: JSON.stringify({
           affiliatorId: user.id,
           productId: selectedProductId,
-          code: generateCode(),
+          code: user.referralCode,
           isActive: true,
         }),
       });
@@ -112,10 +129,22 @@ export default function AffiliatorLinks() {
     }
   };
 
-  const deleteLink = (linkId: string) => {
-    console.log('Frontend Delete Link ID:', linkId);
-    setLinks(prev => prev.filter(l => l.id !== linkId));
-    toast.success('Link deleted');
+  const deleteLink = async (linkId: string) => {
+    try {
+      const response = await fetch(`/api/affiliator/links/${linkId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setLinks(prev => prev.filter(l => l.id !== linkId));
+        toast.success('Link deleted');
+      } else {
+        toast.error('Failed to delete link.');
+      }
+    } catch (error) {
+      console.error('Failed to delete link:', error);
+      toast.error('An error occurred while deleting link.');
+    }
   };
 
   const copyLink = (code: string, productSlug: string) => {
@@ -125,7 +154,7 @@ export default function AffiliatorLinks() {
   };
 
   const toggleActive = (linkId: string) => {
-    console.log('Frontend Toggle Active Link ID:', linkId);
+    // console.log('Frontend Toggle Active Link ID:', linkId);
     setLinks(prev => prev.map(l => 
       l.id === linkId ? { ...l, isActive: !l.isActive } : l
     ));
@@ -161,8 +190,24 @@ export default function AffiliatorLinks() {
                       {availableProducts.map(product => (
                         <SelectItem key={product._id?.toString()} value={product._id?.toString()}>
                           <div className="flex items-center justify-between w-full">
+                            {product.imageUrl && (
+                              <Image 
+                                src={product.imageUrl} 
+                                alt={product.name} 
+                                width={24} 
+                                height={24} 
+                                className="rounded-md mr-2 object-contain"
+                              />
+                            )}
                             <span>{product.name}</span>
-                            <span className="text-muted-foreground ml-2">${product.price}</span>
+                            <span className="text-muted-foreground ml-2">
+                  {product.price.toLocaleString('id-ID', {
+                    style: 'currency',
+                    currency: 'IDR',
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                </span>
                           </div>
                         </SelectItem>
                       ))}
@@ -179,7 +224,12 @@ export default function AffiliatorLinks() {
                         if (!product) return '';
                         return product.commissionType === 'percentage' 
                           ? `${product.commissionValue}% per sale`
-                          : `$${product.commissionValue} per sale`;
+                          : `${product.commissionValue.toLocaleString('id-ID', {
+                                style: 'currency',
+                                currency: 'IDR',
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0,
+                              })} per sale`;
                       })()}
                     </p>
                   </div>
@@ -224,7 +274,16 @@ export default function AffiliatorLinks() {
                     <CardContent className="p-5">
                       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
+                          <div className="flex items-center gap-3 mb-2"> {/* New div for image and product name */}
+                            {product.imageUrl && (
+                              <Image 
+                                src={product.imageUrl} 
+                                alt={product.name} 
+                                width={40} 
+                                height={40} 
+                                className="rounded-md object-contain"
+                              />
+                            )}
                             <h3 className="font-semibold text-foreground">{product.name}</h3>
                             <Badge 
                               variant={link.isActive ? 'default' : 'secondary'}
@@ -244,7 +303,12 @@ export default function AffiliatorLinks() {
                             <span>
                               Commission: {product.commissionType === 'percentage' 
                                 ? `${product.commissionValue}%` 
-                                : `$${product.commissionValue}`}
+                                : `${product.commissionValue.toLocaleString('id-ID', {
+  style: 'currency',
+  currency: 'IDR',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})}`}
                             </span>
                           </div>
                         </div>

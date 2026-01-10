@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Check, X, Ban, UserCheck, Clock, Users } from 'lucide-react';
+import { Search, Check, X, Ban, UserCheck, Clock, Users, Trash2, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -14,17 +14,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { User, UserStatus } from '@/types/user';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import ClientOnly from '@/components/ClientOnly';
+import { Label } from '@/components/ui/label';
 
 export default function AdminAffiliators() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    status: 'pending' as UserStatus,
+  });
 
   useEffect(() => {
     const fetchAffiliators = async () => {
@@ -76,6 +92,73 @@ export default function AdminAffiliators() {
     }
   };
 
+  const deleteUser = async (userId: string) => {
+    if (!window.confirm('Are you sure you want to delete this affiliator? This action cannot be undone.')) {
+      return;
+    }
+    try {
+      const response = await fetch(`/api/admin/affiliators/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        setUsers(prev => prev.filter(u => u.id !== userId));
+        toast.success('Affiliator deleted successfully');
+      } else {
+        toast.error('Failed to delete affiliator.');
+      }
+    } catch (error) {
+      console.error('Failed to delete user:', error);
+      toast.error('An error occurred while deleting affiliator.');
+    }
+  };
+
+  const handleOpenEditDialog = (user: User) => {
+    setEditingUser(user);
+    setEditFormData({
+      name: user.name,
+      email: user.email,
+      phone: user.phone || '',
+      status: user.status,
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setEditFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    try {
+      const response = await fetch(`/api/admin/affiliators/${editingUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(editFormData),
+      });
+
+      if (response.ok) {
+        const updatedUser = await response.json(); // API should return the updated user
+        setUsers(prev => prev.map(u => 
+          u.id === updatedUser.id ? updatedUser : u
+        ));
+        toast.success('Affiliator profile updated successfully');
+        setIsEditDialogOpen(false);
+        setEditingUser(null);
+      } else {
+        toast.error('Failed to update affiliator profile.');
+      }
+    } catch (error) {
+      console.error('Failed to update user profile:', error);
+      toast.error('An error occurred while updating profile.');
+    }
+  };
+
   const getStatusBadge = (status: UserStatus) => {
     const styles: Record<UserStatus, string> = {
       pending: 'bg-accent/20 text-accent-foreground',
@@ -110,6 +193,92 @@ export default function AdminAffiliators() {
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">Affiliators</h1>
           <p className="text-muted-foreground">Manage affiliator registrations and status</p>
         </div>
+
+        {/* Edit User Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="font-display">Edit Affiliator Profile</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleEditSubmit} className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Full Name</Label>
+                <Input
+                  id="name"
+                  value={editFormData.name}
+                  onChange={handleEditFormChange}
+                  placeholder="Full Name"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={editFormData.email}
+                  onChange={handleEditFormChange}
+                  placeholder="Email"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  value={editFormData.phone}
+                  onChange={handleEditFormChange}
+                  placeholder="Phone Number"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="referralCode">Referral Code</Label>
+                <Input
+                  id="referralCode"
+                  value={editingUser?.referralCode || ''}
+                  readOnly
+                  className="bg-muted"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="registrationNumber">Registration Number</Label>
+                <Input
+                  id="registrationNumber"
+                  value={editingUser?.registrationNumber || ''}
+                  readOnly
+                  className="bg-muted"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={editFormData.status}
+                  onValueChange={(value: UserStatus) => setEditFormData(prev => ({ ...prev, status: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                    <SelectItem value="suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">
+                  Save Changes
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -235,6 +404,22 @@ export default function AdminAffiliators() {
                               Reactivate
                             </Button>
                           )}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleOpenEditDialog(user)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          {/* Always show delete button */}
+                          <Button 
+                            size="sm" 
+                            variant="ghost"
+                            className="text-destructive"
+                            onClick={() => deleteUser(user.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
                       </div>
                     </div>

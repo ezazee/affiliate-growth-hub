@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -20,7 +20,6 @@ export default function WaitingApproval() {
   const steps = [
     { icon: CheckCircle, label: 'Account Created', completed: true },
     { icon: Clock, label: 'Under Review', completed: false, active: true },
-    { icon: Mail, label: 'Approval Email', completed: false },
   ];
 
   return (
@@ -52,10 +51,15 @@ export default function WaitingApproval() {
         <h1 className="text-3xl font-display font-bold text-foreground mb-4">
           Waiting for Approval
         </h1>
-        <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+        <p className="text-muted-foreground mb-2 max-w-md mx-auto">
           Hi <span className="font-medium text-foreground">{user?.name || 'there'}</span>! 
           Your registration is being reviewed by our team. We'll notify you once your account is approved.
         </p>
+        {user?.registrationNumber && (
+          <p className="text-sm font-medium text-foreground mb-8">
+            Your Registration Number: <span className="text-primary">{user.registrationNumber}</span>
+          </p>
+        )}
 
         {/* Progress Steps */}
         <div className="flex items-center justify-center gap-4 mb-12">
@@ -91,13 +95,43 @@ export default function WaitingApproval() {
           ))}
         </div>
 
+        {/* New Contact Admin CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+          className="mb-8"
+        >
+          
+          <Button size="lg" className="w-full sm:w-auto" asChild>
+            <a 
+              href={`https://wa.me/6281313711180?text=${encodeURIComponent(
+                `-----------------------------------\n` +
+                `*Permintaan Registrasi Affiliate Baru*\n` +
+                `-----------------------------------\n` +
+                `*Nama Lengkap:* ${user?.name || 'N/A'}\n` +
+                `*Email:* ${user?.email || 'N/A'}\n` +
+                `*No Handphone:* ${user?.phone || 'N/A'}\n` +
+                `*Nomor Registrasi:* ${user?.registrationNumber || 'N/A'}\n` +
+                `*Kode Referral:* ${user?.referralCode || 'N/A'}\n` +
+                `-----------------------------------\n` +
+                `Mohon segera ditindaklanjuti. Terima kasih.`
+              )}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              Contact Admin on WhatsApp
+            </a>
+          </Button>
+        </motion.div>
+
         {/* Info Card */}
         <div className="bg-card rounded-xl p-6 shadow-card border border-border mb-8">
           <h3 className="font-semibold text-foreground mb-2">What happens next?</h3>
           <p className="text-sm text-muted-foreground">
-            Our admin team typically reviews applications within 24-48 hours. 
-            Once approved, you'll receive an email and can start creating affiliate links.
-          </p>
+                      Our admin team typically reviews applications within 24-48 hours. 
+                      Once approved, you'll be able to log in and start creating affiliate links.
+                      If you have any questions, please contact an administrator.          </p>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center">

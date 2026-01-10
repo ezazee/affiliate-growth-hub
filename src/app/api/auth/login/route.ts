@@ -1,6 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { User } from '@/types';
+import { ObjectId } from 'mongodb';
+
+// Function to generate a unique referral code
+const generateReferralCode = (length: number = 8): string => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+};
 
 export async function POST(req: NextRequest) {
   try {
@@ -11,6 +22,17 @@ export async function POST(req: NextRequest) {
     const user = await db.collection<User>('users').findOne({ email, password });
 
     if (user) {
+      if (!user.referralCode) {
+        const referralCode = generateReferralCode();
+        const registrationNumber = `REG-${referralCode}`;
+        await db.collection('users').updateOne(
+          { _id: user._id },
+          { $set: { referralCode: referralCode, registrationNumber: registrationNumber } }
+        );
+        user.referralCode = referralCode;
+        user.registrationNumber = registrationNumber;
+      }
+
       const userWithPassword = user as Required<User>;
       const { password: _, ...userWithoutPassword } = userWithPassword;
       return NextResponse.json({ user: userWithoutPassword });
