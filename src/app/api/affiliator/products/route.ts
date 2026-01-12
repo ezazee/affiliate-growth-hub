@@ -9,7 +9,6 @@ export async function GET(req: NextRequest) {
 
     // Fetch only active products for affiliators
     const products = await db.collection<Product>('products').find({ isActive: true }).toArray();
-    console.log(`Found ${products.length} products for affiliator products API.`);
 
     return NextResponse.json(products);
   } catch (error) {

@@ -17,9 +17,6 @@ export async function GET(req: NextRequest) {
   try {
     const pathParts = req.nextUrl.pathname.split('/').filter(p => p);
     const id = pathParts[pathParts.length - 1];
-    console.log(`[API /user/[id]] Pathname: ${req.nextUrl.pathname}`);
-    console.log(`[API /user/[id]] Parsed id: ${id}`);
-    console.log(`[API /user/[id]] ObjectId.isValid(id): ${ObjectId.isValid(id)}`);
 
     const client = await clientPromise;
     const db = client.db();

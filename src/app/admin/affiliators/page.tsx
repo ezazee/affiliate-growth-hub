@@ -68,7 +68,6 @@ export default function AdminAffiliators() {
   });
 
   const updateStatus = async (userId: string, newStatus: UserStatus) => {
-    console.log('Frontend User ID being sent:', userId);
     try {
       const response = await fetch(`/api/admin/affiliators/${userId}`, {
         method: 'PUT',

@@ -31,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const isExpired = new Date().getTime() - sessionData.timestamp > oneDay;
 
           if (isExpired) {
-            console.log('AuthContext: Session expired, logging out.');
             localStorage.removeItem('affiliate_user_session');
             setUser(null);
             return;
@@ -44,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
 
           if (!parsedUser.referralCode && parsedUser.id) {
-            console.log('AuthContext: User in localStorage is missing referralCode, fetching from server...');
             const response = await fetch(`/api/user/${parsedUser.id}`);
             if (response.ok) {
               const { user: freshUser } = await response.json();
@@ -52,13 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 parsedUser = freshUser;
                 const newSessionData = { user: freshUser, timestamp: new Date().getTime() };
                 localStorage.setItem('affiliate_user_session', JSON.stringify(newSessionData));
-                console.log('AuthContext: Fetched fresh user data with referralCode:', freshUser);
               }
             }
           }
 
           setUser(parsedUser);
-          console.log('AuthContext: User data loaded:', parsedUser);
 
           // Handle redirects
           if (parsedUser.status === 'pending' && pathname !== '/waiting-approval') {
@@ -71,7 +67,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }
         } else {
-          console.log('AuthContext: No user data in localStorage.');
         }
       } catch (error) {
         console.error("AuthContext: Failed to load or refresh user from localStorage", error);
@@ -79,7 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
       } finally {
         setLoading(false);
-        console.log('AuthContext: Loading finished.');
       }
     };
     loadUserFromLocalStorage();
@@ -109,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         setUser(loggedInUser);
         localStorage.setItem('affiliate_user_session', JSON.stringify(sessionData));
-        console.log('AuthContext: User logged in:', loggedInUser);
 
         if (loggedInUser.status === 'pending') {
           router.push('/waiting-approval');
@@ -152,7 +145,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
         setUser(registeredUser);
         localStorage.setItem('affiliate_user', JSON.stringify(registeredUser));
-        console.log('AuthContext: User registered:', registeredUser);
         return true;
       }
       return false;
@@ -174,7 +166,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       localStorage.removeItem('affiliate_user');
       setLoading(false); // Set loading to false after logout
-      console.log('AuthContext: User logged out.');
     }
   }, []);
 

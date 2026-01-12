@@ -48,7 +48,6 @@ export default function AffiliatorCommissions() {
     
                   if (commissionsResponse.ok) {
                     const commissionsData = await commissionsResponse.json();
-                    console.log('[DEBUG] Fetched commissions on client:', commissionsData);
                     setCommissions(commissionsData);
                   } else {
                     toast.error('Gagal memuat riwayat komisi.');
