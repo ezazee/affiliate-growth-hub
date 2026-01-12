@@ -3,6 +3,8 @@ import clientPromise from '@/lib/mongodb';
 import { User } from '@/types';
 import { ObjectId } from 'mongodb';
 
+export const runtime = 'nodejs'; 
+
 // Function to generate a unique referral code
 const generateReferralCode = (length: number = 8): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
