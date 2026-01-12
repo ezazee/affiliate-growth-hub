@@ -123,7 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [router]);
 
   const register = useCallback(async (name: string, email: string, password: string, phone: string): Promise<boolean> => {
-    setLoading(true); // Set loading true on register attempt
+    setLoading(true);
     try {
       const response = await fetch('/api/auth/register', {
         method: 'POST',
@@ -135,16 +135,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const { user: registeredUser } = await response.json();
-        // Ensure 'id' is set from '_id' for consistency with User interface
         if (registeredUser._id && !registeredUser.id) {
           registeredUser.id = registeredUser._id.toString();
         }
-        // Ensure 'id' is set from '_id' for consistency with User interface
-        if (registeredUser._id && !registeredUser.id) {
-          registeredUser.id = registeredUser._id.toString();
-        }
+
+        const sessionData = {
+            user: registeredUser,
+            timestamp: new Date().getTime(),
+        };
+
         setUser(registeredUser);
-        localStorage.setItem('affiliate_user', JSON.stringify(registeredUser));
+        localStorage.setItem('affiliate_user_session', JSON.stringify(sessionData));
+        console.log('AuthContext: User registered:', registeredUser);
         return true;
       }
       return false;
@@ -152,20 +154,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error('AuthContext: Registration failed:', error);
       return false;
     } finally {
-      setLoading(false); // Set loading to false after register attempt
+      setLoading(false);
     }
   }, []);
 
   const logout = useCallback(async () => {
-    setLoading(true); // Set loading true on logout attempt
+    setLoading(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (error) {
       console.error('AuthContext: Logout failed:', error);
     } finally {
       setUser(null);
-      localStorage.removeItem('affiliate_user');
-      setLoading(false); // Set loading to false after logout
+      localStorage.removeItem('affiliate_user_session');
+      setLoading(false);
+      console.log('AuthContext: User logged out.');
     }
   }, []);
 
