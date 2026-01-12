@@ -6,7 +6,6 @@ export interface AffiliateLink {
   id?: string;
   affiliatorId: string;
   productId: string;
-  code: string;
   isActive: boolean;
   clicks?: number;
   product?: Product;

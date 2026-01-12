@@ -18,37 +18,49 @@ export async function GET(req: NextRequest) {
     const pathParts = req.nextUrl.pathname.split('/').filter(p => p);
     const id = pathParts[pathParts.length - 1];
 
+    console.log(`[DEBUG /api/user/[id]] Request received for user ID: ${id}`);
+
     const client = await clientPromise;
     const db = client.db();
 
-    if (!id || !ObjectId.isValid(id)) {
+    if (!id) {
+      console.log(`[DEBUG /api/user/[id]] Invalid user ID: ${id}`);
       return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
     }
 
-    const user = await db.collection<User>('users').findOne({ _id: new ObjectId(id) });
+    const user = await db.collection<User>('users').findOne({ id: id });
+    console.log(`[DEBUG /api/user/[id]] User found in DB: ${JSON.stringify(user)}`);
 
     if (!user) {
+      console.log(`[DEBUG /api/user/[id]] User not found for ID: ${id}`);
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (!user.referralCode) {
+    if (!user.referralCode || user.referralCode === '') {
+      console.log(`[DEBUG /api/user/[id]] referralCode missing or empty for user ${user.id}. Generating new one.`);
       const referralCode = generateReferralCode();
       const registrationNumber = `REG-${referralCode}`;
-      await db.collection('users').updateOne(
+      
+      const updateResult = await db.collection('users').updateOne(
         { _id: user._id },
         { $set: { referralCode: referralCode, registrationNumber: registrationNumber } }
       );
+      console.log(`[DEBUG /api/user/[id]] Update result for user ${user.id}: ${JSON.stringify(updateResult)}`);
+      
+      // Update the user object in memory to return the new codes
       user.referralCode = referralCode;
       user.registrationNumber = registrationNumber;
+    } else {
+        console.log(`[DEBUG /api/user/[id]] referralCode already present for user ${user.id}: ${user.referralCode}`);
     }
     
-    // It's good practice to not send the password to the client
     const { password, ...userWithoutPassword } = user;
+    console.log(`[DEBUG /api/user/[id]] Returning user: ${JSON.stringify(userWithoutPassword)}`);
 
     return NextResponse.json({ user: userWithoutPassword });
 
   } catch (error) {
-    console.error('Error fetching user:', error);
+    console.error(`[DEBUG /api/user/[id]] Error fetching user: ${error.message}`, error);
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

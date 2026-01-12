@@ -235,7 +235,7 @@ export default function AffiliatorLinks() {
               const product = link.product; // Use the embedded product object
               if (!product) return null;
               
-              const fullUrl = `${window.location.origin}/checkout/${product.slug}?ref=${link.code}`;
+              const fullUrl = `${window.location.origin}/checkout/${product.slug}?ref=${user.referralCode}`;
               
               return (
                 <motion.div
@@ -272,7 +272,7 @@ export default function AffiliatorLinks() {
                             <span className="truncate text-muted-foreground">{fullUrl}</span>
                           </div>
                           <div className="flex items-center gap-4 mt-3 text-sm text-muted-foreground">
-                            <span>Kode: <code className="text-primary font-semibold">{link.code}</code></span>
+                            <span>Kode: <code className="text-primary font-semibold">{user?.referralCode}</code></span>
                             <span>•</span>
                             <span>
                               Komisi: {product.commissionType === 'percentage' 
@@ -291,7 +291,7 @@ export default function AffiliatorLinks() {
                           <Button 
                             size="sm" 
                             variant="default"
-                            onClick={() => copyLink(link.code, product.slug)}
+                            onClick={() => user?.referralCode && copyLink(user.referralCode, product.slug)}
                           >
                             <Copy className="w-4 h-4 mr-1" />
                             Salin

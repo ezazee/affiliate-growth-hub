@@ -42,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             parsedUser.id = parsedUser._id.toString();
           }
 
-          if (!parsedUser.referralCode && parsedUser.id) {
+          if (!parsedUser.referralCode || parsedUser.referralCode === '') {
             const response = await fetch(`/api/user/${parsedUser.id}`);
             if (response.ok) {
               const { user: freshUser } = await response.json();

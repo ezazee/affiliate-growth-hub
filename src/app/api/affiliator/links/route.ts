@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { AffiliateLink, Product } from '@/types';
-import { v4 as uuidv4 } from 'uuid';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -40,15 +39,6 @@ export async function GET(req: NextRequest) {
   }
 }
 
-const generateLinkCode = (length: number = 8): string => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < length; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-};
-
 export async function POST(req: NextRequest) {
   try {
     const { affiliatorId, productId, isActive } = await req.json();
@@ -62,8 +52,7 @@ export async function POST(req: NextRequest) {
     
     const affiliateLinksCollection = db.collection('affiliateLinks');
     
-    // In our previous refactor, the frontend now sends the canonical string ID ("product1")
-    // The database schema is also using this canonical ID. So, no conversion is needed.
+    // The frontend now sends the canonical string ID ("product1")
     const canonicalProductId = productId;
 
     // Check if an affiliate link already exists for this affiliator and product
@@ -73,21 +62,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Affiliate link for this product already exists' }, { status: 409 });
     }
 
-    // Generate a unique code for the link
-    let code;
-    let isCodeUnique = false;
-    while (!isCodeUnique) {
-      code = generateLinkCode();
-      const linkWithSameCode = await affiliateLinksCollection.findOne({ code });
-      if (!linkWithSameCode) {
-        isCodeUnique = true;
-      }
-    }
-
     const newLink = {
       affiliatorId,
       productId: canonicalProductId,
-      code,
       isActive: isActive ?? true,
       createdAt: new Date(),
     };

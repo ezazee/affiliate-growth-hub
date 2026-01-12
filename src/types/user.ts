@@ -22,7 +22,7 @@ export interface User {
 
   phone?: string; 
 
-  referralCode?: string;
+  referralCode: string;
 
   registrationNumber?: string;
 

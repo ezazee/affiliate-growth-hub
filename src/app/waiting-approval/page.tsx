@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Clock, ArrowLeft, CheckCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function WaitingApproval() {
   const { user, logout } = useAuth();
@@ -134,16 +135,7 @@ export default function WaitingApproval() {
           <Button size="lg" className="w-full sm:w-auto" asChild>
             <a 
               href={`https://wa.me/6281313711180?text=${encodeURIComponent(
-                `-----------------------------------\n` +
-                `*Permintaan Registrasi Affiliate Baru*\n` +
-                `-----------------------------------\n` +
-                `*Nama Lengkap:* ${user?.name || 'N/A'}\n` +
-                `*Email:* ${user?.email || 'N/A'}\n` +
-                `*No Handphone:* ${user?.phone || 'N/A'}\n` +
-                `*Nomor Registrasi:* ${user?.registrationNumber || 'N/A'}\n` +
-                `*Kode Referral:* ${user?.referralCode || 'N/A'}\n` +
-                `-----------------------------------\n` +
-                `Mohon segera ditindaklanjuti. Terima kasih.`
+                `*Permintaan Registrasi Affiliate Baru*\nNama Lengkap: ${user?.name || 'N/A'}\nEmail: ${user?.email || 'N/A'}\nNo Handphone: ${user?.phone || 'N/A'}\nNomor Registrasi: ${user?.registrationNumber || 'N/A'}\nKode Referral: ${user?.referralCode || 'N/A'}\nMohon segera ditindaklanjuti. Terima kasih.`
               )}`} 
               target="_blank" 
               rel="noopener noreferrer"
