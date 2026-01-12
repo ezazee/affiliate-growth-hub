@@ -1,4 +1,0 @@
-
-Please open your browser's developer console (usually by pressing F12) and go to the "Console" tab.
-Then, navigate to the `/affiliator/links` page and look for messages that start with "AffiliatorLinks:".
-Please copy and paste any errors or relevant logs you see. This will help me diagnose why the product list is not appearing.

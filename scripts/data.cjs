@@ -123,19 +123,7 @@ const users = [
   },
 ];
 
-const affiliateLinks = [
-  {
-    id: "link1",
-    affiliatorId: "affiliator1",
-    productId: "product1",
-    code: "ALICE123",
-    isActive: true,
-    createdAt: new Date(),
-  },
-];
-
 module.exports = {
   products,
   users,
-  affiliateLinks,
 };

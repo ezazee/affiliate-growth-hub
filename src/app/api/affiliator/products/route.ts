@@ -11,15 +11,7 @@ export async function GET(req: NextRequest) {
     const products = await db.collection<Product>('products').find({ isActive: true }).toArray();
     console.log(`Found ${products.length} products for affiliator products API.`);
 
-    // Map _id to id for consistency with frontend
-    const formattedProducts = products.map(product => {
-      return {
-        ...product,
-        id: product._id.toString(), // Convert ObjectId to string
-      };
-    });
-
-    return NextResponse.json(formattedProducts);
+    return NextResponse.json(products);
   } catch (error) {
     console.error('Error fetching affiliator products:', error);
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });

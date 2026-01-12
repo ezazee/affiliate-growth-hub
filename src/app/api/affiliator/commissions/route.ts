@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { Commission } from '@/types';
+import { ObjectId } from 'mongodb';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -14,18 +15,34 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    const userCommissions = await db.collection<Commission>('commissions').find({ affiliatorId }).toArray();
-    // Map _id to id for consistency with frontend
+    const userCommissions = await db.collection('commissions').aggregate([
+      { $match: { affiliatorId } },
+      {
+        $lookup: {
+          from: 'orders',
+          localField: 'orderId',
+          foreignField: 'id',
+          as: 'order'
+        }
+      },
+      {
+        $unwind: {
+          path: '$order',
+          preserveNullAndEmptyArrays: true
+        }
+      }
+    ]).sort({ createdAt: -1 }).toArray();
+
     const formattedCommissions = userCommissions.map(commission => {
-      const { id, ...rest } = commission; // Remove the original 'id' field
       return {
-        ...rest,
-        id: commission._id.toString(), // Convert ObjectId to string
+        ...commission,
+        id: commission._id.toString(),
       };
     });
 
     return NextResponse.json(formattedCommissions);
   } catch (error) {
+    console.error('Error fetching commissions:', error)
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 import { ShoppingCart, User, Phone, MapPin, CreditCard, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Product, AffiliateLink, User as UserType } from '@/types';
 import { toast } from 'sonner';
+
+const Logo = () => (
+    <div className="flex items-center gap-2">
+      <Image 
+        src="/Logo.png" 
+        alt="Affiliate PE Skinpro Logo"
+        width={32} 
+        height={32} 
+        priority
+      />
+      <span className="font-display font-bold text-lg text-foreground">Affiliate</span>
+    </div>
+  );
 
 export default function Checkout() {
   const params = useParams();
@@ -51,7 +65,7 @@ export default function Checkout() {
         const data = await response.json();
 
         if (!response.ok) {
-          toast.error(data.error || 'Failed to load checkout data.');
+          toast.error(data.error || 'Gagal memuat data pembayaran.');
           router.push('/invalid-affiliate');
           return;
         }
@@ -61,7 +75,7 @@ export default function Checkout() {
         setAffiliator(data.affiliator);
       } catch (error) {
         console.error('Error fetching checkout data:', error);
-        toast.error('Failed to load checkout data due to a network error.');
+        toast.error('Gagal memuat data pembayaran karena kesalahan jaringan.');
         router.push('/invalid-affiliate');
       } finally {
         setIsLoading(false);
@@ -71,50 +85,60 @@ export default function Checkout() {
     fetchData();
   }, [productSlug, refCode, router]);
 
+  useEffect(() => {
+    if (refCode) {
+      fetch('/api/track-click', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ref: refCode }),
+      }).catch(error => {
+        console.error('Failed to track click:', error);
+      });
+    }
+  }, [refCode]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call to create order in MongoDB
-    // In a real app, this would be an API call to your backend
-    console.log('Order submitted:', {
+    const orderData = {
       ...formData,
       productId: product?.id,
       affiliatorId: affiliator?.id,
       affiliateCode: refCode,
       affiliateName: affiliator?.name,
-    });
+    };
 
-    // Example of how you would send this to an API route:
-    // const orderResponse = await fetch('/api/orders', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({
-    //     ...formData,
-    //     productId: product?.id,
-    //     affiliatorId: affiliator?.id,
-    //     affiliateCode: refCode,
-    //   }),
-    // });
-    // if (orderResponse.ok) {
-    //   setIsSuccess(true);
-    //   toast.success('Order placed successfully!');
-    // } else {
-    //   const errorData = await orderResponse.json();
-    //   toast.error(errorData.error || 'Failed to place order.');
-    // }
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData),
+      });
 
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API delay
-
-    setIsSubmitting(false);
-    setIsSuccess(true);
-    toast.success('Order placed successfully!');
+      if (response.ok) {
+        setIsSuccess(true);
+        toast.success('Pesanan berhasil ditempatkan!');
+      } else {
+        const errorData = await response.json();
+        toast.error(`Gagal menempatkan pesanan: ${errorData.error || 'Silakan coba lagi.'}`);
+      }
+    } catch (error) {
+      console.error('Failed to submit order:', error);
+      toast.error('Gagal menempatkan pesanan karena kesalahan jaringan.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading || !product || !affiliator) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse-soft text-muted-foreground">Loading...</div>
+        <div className="animate-pulse-soft text-muted-foreground">Memuat...</div>
       </div>
     );
   }
@@ -138,22 +162,22 @@ export default function Checkout() {
           </motion.div>
 
           <h1 className="text-3xl font-display font-bold text-foreground mb-4">
-            Order Placed!
+            Pesanan Ditempatkan!
           </h1>
           <p className="text-muted-foreground mb-8">
-            Thank you for your order. Our team will contact you shortly for payment confirmation 
-            and shipping details.
+            Terima kasih atas pesanan Anda. Tim kami akan segera menghubungi Anda untuk konfirmasi pembayaran 
+            dan detail pengiriman.
           </p>
 
           <div className="bg-card rounded-xl p-6 shadow-card border border-border text-left mb-8">
-            <h3 className="font-semibold text-foreground mb-3">Order Summary</h3>
+            <h3 className="font-semibold text-foreground mb-3">Ringkasan Pesanan</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Product</span>
+                <span className="text-muted-foreground">Produk</span>
                 <span className="font-medium">{product.name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Price</span>
+                <span className="text-muted-foreground">Harga</span>
                 <span className="font-medium">
                   {product.price.toLocaleString('id-ID', {
                     style: 'currency',
@@ -164,14 +188,14 @@ export default function Checkout() {
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Shipping</span>
-                <span className="font-medium">TBD</span>
+                <span className="text-muted-foreground">Pengiriman</span>
+                <span className="font-medium">Akan ditentukan</span>
               </div>
             </div>
           </div>
 
           <Button asChild className="w-full">
-            <Link href="/">Back to Home</Link>
+            <Link href="/">Kembali ke Beranda</Link>
           </Button>
         </motion.div>
       </div>
@@ -188,13 +212,10 @@ export default function Checkout() {
           className="text-center mb-8"
         >
           <Link href="/" className="inline-flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center shadow-button">
-              <span className="text-primary-foreground font-bold text-lg">A</span>
-            </div>
-            <span className="font-display font-bold text-xl text-foreground">AffiliateHub</span>
+            <Logo />
           </Link>
-          <h1 className="text-3xl font-display font-bold text-foreground mb-2">Checkout</h1>
-          <p className="text-muted-foreground">Complete your order</p>
+          <h1 className="text-3xl font-display font-bold text-foreground mb-2">Pembayaran</h1>
+          <p className="text-muted-foreground">Selesaikan pesanan Anda</p>
         </motion.div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -209,7 +230,7 @@ export default function Checkout() {
               <CardHeader>
                 <CardTitle className="font-display flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5 text-primary" />
-                  Order Details
+                  Detail Pesanan
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -217,11 +238,11 @@ export default function Checkout() {
                   {/* Personal Info */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <User className="w-4 h-4" /> Personal Information
+                      <User className="w-4 h-4" /> Informasi Pribadi
                     </h3>
                     <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="buyerName">Full Name *</Label>
+                        <Label htmlFor="buyerName">Nama Lengkap *</Label>
                         <Input
                           id="buyerName"
                           value={formData.buyerName}
@@ -231,14 +252,14 @@ export default function Checkout() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="buyerPhone">Phone Number *</Label>
+                        <Label htmlFor="buyerPhone">Nomor Telepon *</Label>
                         <div className="relative">
                           <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                           <Input
                             id="buyerPhone"
                             value={formData.buyerPhone}
                             onChange={(e) => setFormData(prev => ({ ...prev, buyerPhone: e.target.value }))}
-                            placeholder="+1234567890"
+                            placeholder="+62..."
                             className="pl-10"
                             required
                           />
@@ -250,46 +271,46 @@ export default function Checkout() {
                   {/* Shipping Info */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                      <MapPin className="w-4 h-4" /> Shipping Address
+                      <MapPin className="w-4 h-4" /> Alamat Pengiriman
                     </h3>
                     <div className="space-y-2">
-                      <Label htmlFor="shippingAddress">Street Address *</Label>
+                      <Label htmlFor="shippingAddress">Alamat Jalan *</Label>
                       <Input
                         id="shippingAddress"
                         value={formData.shippingAddress}
                         onChange={(e) => setFormData(prev => ({ ...prev, shippingAddress: e.target.value }))}
-                        placeholder="123 Main Street, Apt 4B"
+                        placeholder="Jalan, nomor rumah, RT/RW..."
                         required
                       />
                     </div>
                     <div className="grid sm:grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="city">City *</Label>
+                        <Label htmlFor="city">Kota *</Label>
                         <Input
                           id="city"
                           value={formData.city}
                           onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                          placeholder="New York"
+                          placeholder="Jakarta"
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="province">Province/State *</Label>
+                        <Label htmlFor="province">Provinsi *</Label>
                         <Input
                           id="province"
                           value={formData.province}
                           onChange={(e) => setFormData(prev => ({ ...prev, province: e.target.value }))}
-                          placeholder="NY"
+                          placeholder="DKI Jakarta"
                           required
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="postalCode">Postal Code *</Label>
+                        <Label htmlFor="postalCode">Kode Pos *</Label>
                         <Input
                           id="postalCode"
                           value={formData.postalCode}
                           onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
-                          placeholder="10001"
+                          placeholder="12345"
                           required
                         />
                       </div>
@@ -298,30 +319,30 @@ export default function Checkout() {
 
                   {/* Order Notes */}
                   <div className="space-y-2">
-                    <Label htmlFor="orderNote">Order Notes (Optional)</Label>
+                    <Label htmlFor="orderNote">Catatan Pesanan (Opsional)</Label>
                     <Textarea
                       id="orderNote"
                       value={formData.orderNote}
                       onChange={(e) => setFormData(prev => ({ ...prev, orderNote: e.target.value }))}
-                      placeholder="Any special instructions..."
+                      placeholder="Instruksi khusus..."
                       rows={3}
                     />
                   </div>
 
                   <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? (
-                      <span className="animate-pulse-soft">Processing...</span>
+                      <span className="animate-pulse-soft">Memproses...</span>
                     ) : (
                       <>
                         <CreditCard className="w-4 h-4 mr-2" />
-                        Place Order
+                        Tempatkan Pesanan
                       </>
                     )}
                   </Button>
 
                   <p className="text-xs text-center text-muted-foreground">
-                    By placing this order, you agree to our terms and conditions. 
-                    Payment details will be sent via WhatsApp/Email.
+                    Dengan menempatkan pesanan ini, Anda menyetujui syarat dan ketentuan kami. 
+                    Detail pembayaran akan dikirim melalui WhatsApp/Email.
                   </p>
                 </form>
               </CardContent>
@@ -336,7 +357,7 @@ export default function Checkout() {
           >
             <Card className="shadow-card sticky top-8">
               <CardHeader>
-                <CardTitle className="font-display">Order Summary</CardTitle>
+                <CardTitle className="font-display">Ringkasan Pesanan</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Product */}
@@ -369,8 +390,8 @@ export default function Checkout() {
                                       })}
                                     </span>
                                   </div>                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span className="font-medium text-accent-foreground">Calculated later</span>
+                    <span className="text-muted-foreground">Pengiriman</span>
+                    <span className="font-medium">Dihitung nanti</span>
                   </div>
                   <div className="flex justify-between text-lg pt-3 border-t border-border">
                     <span className="font-semibold">Total</span>
@@ -387,9 +408,9 @@ export default function Checkout() {
 
                 {/* Referred By */}
                 <div className="p-4 rounded-lg bg-secondary">
-                  <p className="text-xs text-muted-foreground mb-1">Referred by</p>
+                  <p className="text-xs text-muted-foreground mb-1">Direferensikan oleh</p>
                   <p className="font-medium text-foreground">{affiliator.name}</p>
-                  <p className="text-xs text-muted-foreground">Code: {refCode}</p>
+                  <p className="text-xs text-muted-foreground">Kode: {refCode}</p>
                 </div>
               </CardContent>
             </Card>

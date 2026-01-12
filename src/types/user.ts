@@ -1,4 +1,5 @@
 import { ObjectId } from 'mongodb';
+import { BankDetails } from './withdrawal';
 
 export type UserRole = 'admin' | 'affiliator';
 export type UserStatus = 'pending' | 'approved' | 'rejected' | 'suspended';
@@ -19,12 +20,14 @@ export interface User {
 
   status: UserStatus;
 
-  phone?: string; // Added phone number field
+  phone?: string; 
 
-    referralCode?: string;
+  referralCode?: string;
 
-    registrationNumber?: string;
+  registrationNumber?: string;
 
-    createdAt: Date;
+  bankDetails?: BankDetails;
+
+  createdAt: Date;
 
 }

@@ -18,13 +18,12 @@ export async function GET(req: NextRequest) {
     const userCommissions = (await db.collection<Commission>('commissions').find({ affiliatorId }).toArray()).map(commission => ({ ...commission, id: commission._id.toString() }));
     const userLinks = (await db.collection<AffiliateLink>('affiliateLinks').find({ affiliatorId }).toArray()).map(link => ({ ...link, id: link._id.toString() }));
 
-    const totalRevenue = userOrders.reduce((sum, order) => sum + (order.shippingCost || 0), 0);
+    const totalRevenue = userCommissions.reduce((sum, commission) => sum + commission.amount, 0); // Corrected to sum commissions
     const totalCommissions = userCommissions.reduce((sum, commission) => sum + commission.amount, 0);
     const conversionRate = userOrders.length > 0 && userLinks.length > 0 ? (userOrders.length / userLinks.length) * 100 : 0;
     
     return NextResponse.json({
       totalRevenue,
-      totalCommissions,
       totalOrders: userOrders.length,
       conversionRate: conversionRate.toFixed(2),
     });

@@ -1,11 +1,12 @@
 import { ObjectId } from 'mongodb';
 import { Product } from './product';
 
-export type OrderStatus = 'pending' | 'paid' | 'cancelled';
+export type OrderStatus = 'pending' | 'paid' | 'cancelled' | 'shipping';
 
 export interface Order {
   _id?: ObjectId | string;
   id?: string;
+  orderNumber?: string;
   buyerName: string;
   buyerPhone: string;
   shippingAddress: string;
@@ -22,4 +23,6 @@ export interface Order {
   paymentProof?: string;
   createdAt: Date;
   product?: Product;
+  productName?: string;
+  productPrice?: number;
 }

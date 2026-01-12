@@ -7,11 +7,13 @@ import { motion } from 'framer-motion';
 import Image from 'next/image';
 import { 
   LayoutDashboard, 
-  DollarSign,
+  Landmark,
   Link as LinkIcon,
+  Users,
   LogOut,
   Menu,
-  X
+  X,
+  Banknote
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,9 +24,10 @@ interface DashboardLayoutProps {
 }
 
 const affiliatorNavItems = [
-  { path: '/affiliator', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/affiliator/links', label: 'My Links', icon: LinkIcon },
-  { path: '/affiliator/commissions', label: 'Commissions', icon: DollarSign },
+  { path: '/affiliator', label: 'Dasbor', icon: LayoutDashboard },
+  { path: '/affiliator/links', label: 'Link Saya', icon: LinkIcon },
+  { path: '/affiliator/commissions', label: 'Komisi', icon: Landmark },
+  { path: '/affiliator/customers', label: 'Pelanggan', icon: Users },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -122,7 +125,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              Keluar
             </Button>
           </div>
         </div>

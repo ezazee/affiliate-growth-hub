@@ -10,10 +10,11 @@ import {
   Package, 
   Users, 
   ShoppingCart, 
-  DollarSign,
+  Landmark,
   LogOut,
   Menu,
-  X
+  X,
+  Bug
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -24,11 +25,12 @@ interface DashboardLayoutProps {
 }
 
 const adminNavItems = [
-  { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/admin/products', label: 'Products', icon: Package },
-  { path: '/admin/affiliators', label: 'Affiliators', icon: Users },
-  { path: '/admin/orders', label: 'Orders', icon: ShoppingCart },
-  { path: '/admin/commissions', label: 'Commissions', icon: DollarSign },
+  { path: '/admin', label: 'Dasbor', icon: LayoutDashboard },
+  { path: '/admin/products', label: 'Produk', icon: Package },
+  { path: '/admin/affiliators', label: 'Afiliasi', icon: Users },
+  { path: '/admin/orders', label: 'Pesanan', icon: ShoppingCart },
+  { path: '/admin/commissions', label: 'Komisi', icon: Landmark },
+  { path: '/admin/debug', label: 'Debug', icon: Bug },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
@@ -126,7 +128,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               onClick={handleLogout}
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Logout
+              Keluar
             </Button>
           </div>
         </div>

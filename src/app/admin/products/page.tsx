@@ -275,31 +275,31 @@ export default function AdminProducts() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-display font-bold text-foreground mb-2">Products</h1>
-            <p className="text-muted-foreground">Manage your affiliate products</p>
+            <h1 className="text-3xl font-display font-bold text-foreground mb-2">Produk</h1>
+            <p className="text-muted-foreground">Kelola produk afiliasi Anda</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="hero" onClick={() => handleOpenDialog()}>
                 <Plus className="w-4 h-4 mr-2" />
-                Add Product
+                Tambah Produk
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
                 <DialogTitle className="font-display">
-                  {editingProduct ? 'Edit Product' : 'Add New Product'}
+                  {editingProduct ? 'Ubah Produk' : 'Tambah Produk Baru'}
                 </DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4 mt-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Product Name</Label>
+                    <Label htmlFor="name">Nama Produk</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Premium Course"
+                      placeholder="Kursus Premium"
                       required
                     />
                   </div>
@@ -309,34 +309,34 @@ export default function AdminProducts() {
                       id="slug"
                       value={formData.slug}
                       onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                      placeholder="premium-course"
+                      placeholder="kursus-premium"
                       required
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price (Rp)</Label>
+                  <Label htmlFor="price">Harga (Rp)</Label>
                   <Input
                     id="price"
                     type="number"
                     value={formData.price}
                     onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="99"
+                    placeholder="99000"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description">Deskripsi</Label>
                   <Input
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Product description..."
+                    placeholder="Deskripsi produk..."
                   />
                 </div>
                 {/* Image Upload Field */}
                 <div className="space-y-2">
-                  <Label htmlFor="image">Product Image</Label>
+                  <Label htmlFor="image">Gambar Produk</Label>
                   <Input
                     id="image"
                     type="file"
@@ -345,16 +345,16 @@ export default function AdminProducts() {
                   />
                   {imagePreview && (
                     <div className="mt-2 relative w-32 h-32 rounded-lg border border-border overflow-hidden">
-                      <img src={imagePreview} alt="Image Preview" className="w-full h-full object-contain" />
+                      <img src={imagePreview} alt="Pratinjau Gambar" className="w-full h-full object-contain" />
                       <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-xs">
-                        <ImageIcon className="w-5 h-5 mr-1" /> Preview
+                        <ImageIcon className="w-5 h-5 mr-1" /> Pratinjau
                       </div>
                     </div>
                   )}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label>Commission Type</Label>
+                    <Label>Tipe Komisi</Label>
                     <Select
                       value={formData.commissionType}
                       onValueChange={(value: CommissionType) => setFormData(prev => ({ ...prev, commissionType: value }))}
@@ -363,14 +363,14 @@ export default function AdminProducts() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="percentage">Percentage (%)</SelectItem>
-                        <SelectItem value="fixed">Fixed (Rp)</SelectItem>
+                        <SelectItem value="percentage">Persentase (%)</SelectItem>
+                        <SelectItem value="fixed">Tetap (Rp)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="commissionValue">
-                      Commission {formData.commissionType === 'percentage' ? '(%)' : '(Rp)'}
+                      Komisi {formData.commissionType === 'percentage' ? '(%)' : '(Rp)'}
                     </Label>
                     <Input
                       id="commissionValue"
@@ -384,10 +384,10 @@ export default function AdminProducts() {
                 </div>
                 <div className="flex justify-end gap-3 pt-4">
                   <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Cancel
+                    Batal
                   </Button>
                   <Button type="submit">
-                    {editingProduct ? 'Update' : 'Create'} Product
+                    {editingProduct ? 'Perbarui' : 'Buat'} Produk
                   </Button>
                 </div>
               </form>
@@ -399,7 +399,7 @@ export default function AdminProducts() {
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search products..."
+            placeholder="Cari produk..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -451,7 +451,7 @@ export default function AdminProducts() {
                         onClick={() => toggleActive(product.id)}
                         style={{ cursor: 'pointer' }}
                       >
-                        {product.isActive ? 'Active' : 'Inactive'}
+                        {product.isActive ? 'Aktif' : 'Tidak Aktif'}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
@@ -459,7 +459,7 @@ export default function AdminProducts() {
                     </p>
                     <div className="flex items-center justify-between pt-3 border-t border-border">
                       <span className="text-sm text-muted-foreground">
-                        Commission: {product.commissionValue}{product.commissionType === 'percentage' ? '%' : 'Rp'}
+                        Komisi: {product.commissionValue}{product.commissionType === 'percentage' ? '%' : 'Rp'}
                       </span>
                       <div className="flex gap-2">
                         <Button size="sm" variant="ghost" onClick={() => handleOpenDialog(product)}>
@@ -480,7 +480,7 @@ export default function AdminProducts() {
         {!loading && filteredProducts.length === 0 && (
           <div className="text-center py-12">
             <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No products found</p>
+            <p className="text-muted-foreground">Tidak ada produk ditemukan</p>
           </div>
         )}
       </div>

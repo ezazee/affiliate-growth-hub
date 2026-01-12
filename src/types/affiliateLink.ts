@@ -8,5 +8,6 @@ export interface AffiliateLink {
   productId: string;
   code: string;
   isActive: boolean;
+  clicks?: number;
   product?: Product;
 }

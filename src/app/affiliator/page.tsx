@@ -4,24 +4,47 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Link as LinkIcon, 
-  DollarSign, 
+  Landmark, 
   ShoppingCart, 
   TrendingUp,
-  ExternalLink,
-  Copy
+  Users,
+  BarChart as BarChartIcon,
+  Calendar as CalendarIcon,
 } from 'lucide-react';
+import { 
+  BarChart,
+  Bar,
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
+import { DateRange } from 'react-day-picker';
+import { startOfWeek, startOfMonth, startOfYear, format, startOfDay } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AffiliateLink, Commission } from '@/types';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from '@/components/ui/table';
+import { AffiliateLink, Commission, Order, OrderStatus } from '@/types';
+import { cn } from '@/lib/utils';
 
 interface AffiliatorStats {
   totalRevenue: number;
-  totalCommissions: number;
   totalOrders: number;
   conversionRate: string;
 }
@@ -31,7 +54,78 @@ export default function AffiliatorDashboard() {
   const [stats, setStats] = useState<AffiliatorStats | null>(null);
   const [affiliateLinks, setAffiliateLinks] = useState<AffiliateLink[]>([]);
   const [recentCommissions, setRecentCommissions] = useState<Commission[]>([]);
+  const [recentOrders, setRecentOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [chartData, setChartData] = useState([]);
+  const [productKeys, setProductKeys] = useState<string[]>([]);
+  const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: startOfDay(new Date()),
+    to: new Date(),
+  });
+
+  const handleFilterClick = (filter: 'weekly' | 'monthly' | 'yearly') => {
+    if (activeFilter === filter) {
+      setActiveFilter(null);
+      setDateRange({ from: startOfDay(new Date()), to: new Date() });
+    } else {
+      setActiveFilter(filter);
+      let fromDate;
+      if (filter === 'weekly') fromDate = startOfWeek(new Date());
+      if (filter === 'monthly') fromDate = startOfMonth(new Date());
+      if (filter === 'yearly') fromDate = startOfYear(new Date());
+      setDateRange({ from: fromDate, to: new Date() });
+    }
+  };
+
+  const processChartData = (data: any[], links: AffiliateLink[]) => {
+    if (!data || !links) return;
+
+    const linkMap = new Map(links.map(l => [l._id.toString(), l.product?.name || 'Unknown']));
+    const productNames = Array.from(new Set(links.map(l => l.product?.name || 'Unknown')));
+    setProductKeys(productNames);
+    
+    const pivotedData = data.reduce((acc, item) => {
+      const date = item.date;
+      const productName = linkMap.get(item.linkId.toString());
+      
+      if (!acc[date]) {
+        acc[date] = { date };
+        productNames.forEach(name => {
+          acc[date][name] = 0;
+        });
+      }
+      acc[date][productName] = item.clicks;
+      
+      return acc;
+    }, {});
+
+    setChartData(Object.values(pivotedData));
+  };
+
+  useEffect(() => {
+    const fetchLinkPerformance = async () => {
+      if (!user?.id || !dateRange?.from || !dateRange?.to || affiliateLinks.length === 0) {
+        return;
+      }
+      try {
+        const response = await fetch(
+          `/api/affiliator/link-performance?affiliatorId=${user.id}&startDate=${format(dateRange.from, 'yyyy-MM-dd')}&endDate=${format(dateRange.to, 'yyyy-MM-dd')}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          processChartData(data, affiliateLinks);
+        } else {
+          toast.error('Gagal memuat data chart.');
+        }
+      } catch (error) {
+        console.error('Gagal mengambil data chart:', error);
+        toast.error('Terjadi kesalahan saat memuat data chart.');
+      }
+    };
+
+    if(affiliateLinks.length > 0) fetchLinkPerformance();
+  }, [user, dateRange, affiliateLinks]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -40,25 +134,40 @@ export default function AffiliatorDashboard() {
         return;
       }
       try {
-        const [statsResponse, linksResponse, commissionsResponse] = await Promise.all([
+        const [
+          statsResponse,
+          linksResponse,
+          commissionsResponse,
+          ordersResponse,
+        ] = await Promise.all([
           fetch(`/api/affiliator/stats?affiliatorId=${user.id}`),
-          fetch(`/api/affiliator/links?affiliatorId=${user.id}`),
+          fetch(`/api/affiliator/links?affiliatorId=${user.id}`, {
+            cache: "no-store",
+          }),
           fetch(`/api/affiliator/commissions?affiliatorId=${user.id}`),
+          fetch(`/api/affiliator/customers?affiliatorId=${user.id}`),
         ]);
 
-        if (statsResponse.ok && linksResponse.ok && commissionsResponse.ok) {
+        if (
+          statsResponse.ok &&
+          linksResponse.ok &&
+          commissionsResponse.ok &&
+          ordersResponse.ok
+        ) {
           const statsData = await statsResponse.json();
           const linksData = await linksResponse.json();
           const commissionsData = await commissionsResponse.json();
+          const ordersData = await ordersResponse.json();
           setStats(statsData);
           setAffiliateLinks(linksData);
-          setRecentCommissions(commissionsData.slice(0, 3)); // Get top 3 recent commissions
+          setRecentCommissions(commissionsData.slice(0, 5));
+          setRecentOrders(ordersData.slice(0, 5));
         } else {
-          toast.error('Failed to load dashboard data.');
+          toast.error("Gagal memuat data dasbor.");
         }
       } catch (error) {
-        console.error('Failed to fetch initial data:', error);
-        toast.error('An error occurred while loading data.');
+        console.error("Gagal mengambil data awal:", error);
+        toast.error("Terjadi kesalahan saat memuat data.");
       } finally {
         setLoading(false);
       }
@@ -66,230 +175,364 @@ export default function AffiliatorDashboard() {
     fetchInitialData();
   }, [user]);
 
-  const copyLink = (code: string, productSlug: string) => {
-    const link = `${window.location.origin}/checkout/${productSlug}?ref=${code}`;
-    navigator.clipboard.writeText(link);
-    toast.success('Link copied to clipboard!');
-  };
-
-  const getCommissionStatusBadge = (status: Commission['status']) => {
-    const styles: Record<Commission['status'], string> = {
-      pending: 'bg-accent/20 text-accent-foreground',
-      approved: 'bg-primary/20 text-primary',
-      paid: 'bg-success/20 text-success',
-      cancelled: 'bg-destructive/20 text-destructive', // Commissions from API can have 'cancelled'
+  const getCommissionStatusBadge = (status: Commission["status"]) => {
+    const styles: Record<Commission["status"], string> = {
+      pending: "bg-accent/20 text-accent-foreground",
+      approved: "bg-primary/20 text-primary",
+      paid: "bg-success/20 text-success",
+      cancelled: "bg-destructive/20 text-destructive",
     };
-    return styles[status] || 'bg-gray-100 text-gray-800';
+    return styles[status] || "bg-gray-100 text-gray-800";
+  };
+  
+  const getOrderStatusBadge = (status: OrderStatus) => {
+    const styles: Record<OrderStatus, string> = {
+      pending: "bg-accent/20 text-accent-foreground",
+      paid: "bg-success/20 text-success",
+      cancelled: "bg-destructive/20 text-destructive",
+      shipping: "bg-blue-500/20 text-blue-500",
+    };
+    return styles[status];
   };
 
+  const chartColors = [
+    "hsl(var(--primary))",
+    "hsl(var(--success))",
+    "hsl(var(--warning))",
+    "#8884d8",
+    "#82ca9d",
+    "#ffc658",
+  ];
+  
   return (
-      <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-            Welcome back, {user?.name?.split(' ')[0]}! 👋
-          </h1>
-          <p className="text-muted-foreground">
-            Here's an overview of your affiliate performance
-          </p>
-        </div>
+    <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-display font-bold text-foreground mb-2">
+          Selamat datang kembali, {user?.name?.split(" ")[0]}! 👋
+        </h1>
+        <p className="text-muted-foreground">
+          Berikut adalah ringkasan performa afiliasi Anda
+        </p>
+      </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {loading ? (
-            <>
-              <Skeleton className="h-32" />
-              <Skeleton className="h-32" />
-              <Skeleton className="h-32" />
-              <Skeleton className="h-32" />
-            </>
-          ) : (
-            <>
-              <StatCard
-                title="Total Earnings"
-                value={
-                  stats?.totalCommissions.toLocaleString('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }) || 'Rp0'
-                }
-                icon={DollarSign}
-                variant="primary"
-                delay={0}
-              />
-              <StatCard
-                title="Active Links"
-                value={affiliateLinks.length.toString()}
-                icon={LinkIcon}
-                delay={0.1}
-              />
-              <StatCard
-                title="Total Conversions"
-                value={stats?.totalOrders.toString() || '0'}
-                icon={ShoppingCart}
-                delay={0.2}
-              />
-              <StatCard
-                title="Conversion Rate"
-                value={`${stats?.conversionRate || '0.00'}%`}
-                icon={TrendingUp}
-                delay={0.3}
-              />
-            </>
-          )}
-        </div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {loading ? (
+          <>
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+            <Skeleton className="h-32" />
+          </>
+        ) : (
+          <>
+            <StatCard
+              title="Total Pendapatan"
+              value={
+                stats?.totalRevenue.toLocaleString("id-ID", {
+                  style: "currency",
+                  currency: "IDR",
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 0,
+                }) || "Rp0"
+              }
+              icon={Landmark}
+              variant="primary"
+              delay={0}
+            />
+            <StatCard
+              title="Link Aktif"
+              value={affiliateLinks.length.toString()}
+              icon={LinkIcon}
+              delay={0.1}
+            />
+            <StatCard
+              title="Total Konversi"
+              value={stats?.totalOrders.toString() || "0"}
+              icon={ShoppingCart}
+              delay={0.2}
+            />
+            <StatCard
+              title="Total Klik (Rentang Tanggal)"
+              value={chartData.reduce((acc, item) => acc + Object.values(item).reduce((a: any, b: any) => (typeof b === 'number' ? a + b : a), 0), 0).toString()}
+              icon={BarChartIcon}
+              delay={0.3}
+            />
+          </>
+        )}
+      </div>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Affiliate Links */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.4 }}
           >
             <Card className="shadow-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-display flex items-center gap-2">
-                  <LinkIcon className="w-5 h-5 text-primary" />
-                  Your Affiliate Links
-                </CardTitle>
+              <CardHeader>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <CardTitle className="text-lg font-display flex items-center gap-2">
+                    <BarChartIcon className="w-5 h-5 text-primary" />
+                    Performa Link (Klik per Hari)
+                  </CardTitle>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Button variant={activeFilter === 'weekly' ? 'default' : 'outline'} size="sm" onClick={() => handleFilterClick('weekly')}>Mingguan</Button>
+                    <Button variant={activeFilter === 'monthly' ? 'default' : 'outline'} size="sm" onClick={() => handleFilterClick('monthly')}>Bulanan</Button>
+                    <Button variant={activeFilter === 'yearly' ? 'default' : 'outline'} size="sm" onClick={() => handleFilterClick('yearly')}>Tahunan</Button>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="date"
+                          variant={"outline"}
+                          className={cn(
+                            "w-[240px] justify-start text-left font-normal",
+                            !dateRange && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {dateRange?.from ? (
+                            dateRange.to ? (
+                              <>
+                                {format(dateRange.from, "LLL dd, y")} -{" "}
+                                {format(dateRange.to, "LLL dd, y")}
+                              </>
+                            ) : (
+                              format(dateRange.from, "LLL dd, y")
+                            )
+                          ) : (
+                            <span>Pilih tanggal</span>
+                          )}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar
+                          initialFocus
+                          mode="range"
+                          defaultMonth={dateRange?.from}
+                          selected={dateRange}
+                          onSelect={(range) => {
+                            setDateRange(range);
+                            setActiveFilter(null);
+                          }}
+                          numberOfMonths={2}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
               </CardHeader>
               <CardContent>
                 {loading ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-20" />
-                    <Skeleton className="h-20" />
-                  </div>
-                ) : affiliateLinks.length > 0 ? (
-                  <div className="space-y-4">
-                    {affiliateLinks.map((link, index) => (
-                      <div key={link.id} className="p-4 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-medium text-foreground">{link.product?.name || 'Unknown Product'}</h3>
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="ghost"
-                              onClick={() => copyLink(link.code, link.product?.slug || 'unknown')}
-                            >
-                              <Copy className="w-4 h-4" />
-                            </Button>
-                            <Button size="sm" variant="ghost">
-                              <ExternalLink className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Code</p>
-                            <p className="font-semibold text-foreground">{link.code}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Commission</p>
-                            <p className="font-semibold text-foreground">
-                              {link.product?.commissionValue && link.product?.commissionType
-                                ? `${link.product.commissionValue}${link.product.commissionType === 'percentage' ? '%' : ''}`
-                                : 'N/A'}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Status</p>
-                            <Badge variant={link.isActive ? 'default' : 'secondary'}>
-                              {link.isActive ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                  <Skeleton className="h-72" />
+                ) : chartData.length > 0 ? (
+                  <div style={{ width: '100%' }}>
+                    <ResponsiveContainer width="100%" aspect={4 / 3}>
+                      <BarChart
+                        data={chartData}
+                        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                        <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="hsl(var(--foreground))" interval={0} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 12 }} stroke="hsl(var(--foreground))"/>
+                        <Tooltip 
+                          cursor={{ fill: 'hsl(var(--primary) / 0.1)' }}
+                          contentStyle={{
+                            background: 'hsl(var(--card))',
+                            borderColor: 'hsl(var(--border))',
+                            borderRadius: 'var(--radius)',
+                          }}
+                        />
+                        <Legend />
+                        {productKeys.map((key, index) => (
+                          <Bar 
+                            key={key} 
+                            dataKey={key} 
+                            fill={chartColors[index % chartColors.length]} 
+                            radius={[4, 4, 0, 0]}
+                          />
+                        ))}
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
                 ) : (
-                  <p className="text-muted-foreground text-center py-8">No affiliate links yet.</p>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Recent Commissions */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-          >
-            <Card className="shadow-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-display flex items-center gap-2">
-                  <DollarSign className="w-5 h-5 text-success" />
-                  Recent Commissions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {loading ? (
-                  <div className="space-y-4">
-                    <Skeleton className="h-20" />
-                    <Skeleton className="h-20" />
-                  </div>
-                ) : recentCommissions.length > 0 ? (
-                  <div className="space-y-4">
-                    {recentCommissions.map((commission) => (
-                      <div key={commission.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
-                        <div>
-                          <p className="font-medium text-foreground">{commission.productName}</p>
-                          <p className="text-sm text-muted-foreground">{new Date(commission.date).toLocaleDateString()}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-foreground">
-                            {commission.amount.toLocaleString('id-ID', {
-                              style: 'currency',
-                              currency: 'IDR',
-                              minimumFractionDigits: 0,
-                              maximumFractionDigits: 0,
-                            })}
-                          </p>
-                          <Badge 
-                            variant="secondary"
-                            className={getCommissionStatusBadge(commission.status)}
-                          >
-                            {commission.status}
-                          </Badge>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">No recent commissions.</p>
+                  <p className="text-muted-foreground text-center py-8">Tidak ada data klik untuk ditampilkan pada rentang tanggal ini.</p>
                 )}
               </CardContent>
             </Card>
           </motion.div>
         </div>
+        <div className="lg:col-span-1 flex flex-col gap-6">
+            {/* Recent Commissions */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.5 }}
+            >
+              <Card className="shadow-card">
+                <CardHeader>
+                  <CardTitle className="text-lg font-display flex items-center gap-2">
+                    <Landmark className="w-5 h-5 text-success" />
+                    Komisi Terbaru
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loading ? (
+                    <div className="space-y-4">
+                      <Skeleton className="h-16" />
+                      <Skeleton className="h-16" />
+                      <Skeleton className="h-16" />
+                    </div>
+                  ) : recentCommissions.length > 0 ? (
+                    <div className="space-y-2">
+                      {recentCommissions.map((commission) => (
+                        <div
+                          key={commission.id}
+                          className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary transition-colors"
+                        >
+                          <div>
+                            <p className="font-medium text-foreground">
+                              {commission.productName}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {new Date(commission.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold text-foreground">
+                              {commission.amount.toLocaleString("id-ID", {
+                                style: "currency",
+                                currency: "IDR",
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0,
+                              })}
+                            </p>
+                            <Badge
+                              variant="secondary"
+                              className={getCommissionStatusBadge(
+                                commission.status
+                              )}
+                            >
+                              {commission.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground text-center py-8">
+                      Belum ada komisi terbaru.
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+            {/* Quick Tip */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.8 }}
+            >
+              <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 shadow-card">
+                <CardContent className="py-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      <TrendingUp className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-display font-semibold text-foreground mb-1">
+                        Tips Pro: Tingkatkan Penghasilan Anda
+                      </h3>
+                      <p className="text-muted-foreground text-sm">
+                        Bagikan link afiliasi Anda di media sosial dan buletin email
+                        untuk menjangkau lebih banyak calon pelanggan. Produk dengan
+                        tingkat konversi lebih tinggi harus diprioritaskan dalam
+                        promosi Anda.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+        </div>
+      </div>
 
-        {/* Quick Tip */}
+      <div className="grid grid-cols-1">
+        {/* Recent Customer History */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.6 }}
         >
-          <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 shadow-card">
-            <CardContent className="py-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                  <TrendingUp className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-display font-semibold text-foreground mb-1">
-                    Pro Tip: Increase Your Earnings
-                  </h3>
-                  <p className="text-muted-foreground text-sm">
-                    Share your affiliate links on social media and email newsletters to reach more potential customers. 
-                    Products with higher conversion rates should be prioritized in your promotions.
-                  </p>
-                </div>
-              </div>
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle className="text-lg font-display flex items-center gap-2">
+                <Users className="w-5 h-5 text-primary" />
+                Riwayat Pelanggan Terbaru
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Pelanggan</TableHead>
+                    <TableHead>Produk</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Tanggal</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    Array.from({ length: 5 }).map((_, i) => (
+                      <TableRow key={i}>
+                        <TableCell>
+                          <Skeleton className="h-5 w-32" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-5 w-40" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-6 w-20" />
+                        </TableCell>
+                        <TableCell>
+                          <Skeleton className="h-5 w-24" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : recentOrders.length > 0 ? (
+                    recentOrders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell>
+                          <div className="font-medium">{order.buyerName}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {order.buyerPhone}
+                          </div>
+                        </TableCell>
+                        <TableCell>{order.product?.name || "N/A"}</TableCell>
+                        <TableCell>
+                          <Badge className={getOrderStatusBadge(order.status)}>
+                            {order.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-12">
+                        Belum ada pesanan terbaru.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </motion.div>
       </div>
+    </div>
   );
 }

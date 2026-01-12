@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   ShoppingCart, 
-  DollarSign, 
+  Landmark, 
   Users, 
   Package,
   TrendingUp,
@@ -62,10 +62,10 @@ export default function AdminDashboard() {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-            Admin Dashboard
+            Dasbor Admin
           </h1>
           <p className="text-muted-foreground">
-            Overview of your affiliate program performance
+            Ikhtisar performa program afiliasi Anda
           </p>
         </div>
 
@@ -81,13 +81,13 @@ export default function AdminDashboard() {
           ) : (
             <>
               <StatCard
-                title="Total Orders"
+                title="Total Pesanan"
                 value={stats?.totalOrders.toString() || '0'}
                 icon={ShoppingCart}
                 delay={0}
               />
               <StatCard
-                title="Total Revenue"
+                title="Total Pendapatan"
                 value={
                   stats?.totalRevenue.toLocaleString('id-ID', {
                     style: 'currency',
@@ -96,18 +96,18 @@ export default function AdminDashboard() {
                     maximumFractionDigits: 0,
                   }) || 'Rp0'
                 }
-                icon={DollarSign}
+                icon={Landmark}
                 variant="primary"
                 delay={0.1}
               />
               <StatCard
-                title="Active Affiliators"
+                title="Afiliasi Aktif"
                 value={stats?.totalAffiliators.toString() || '0'}
                 icon={Users}
                 delay={0.2}
               />
               <StatCard
-                title="Total Commissions"
+                title="Total Komisi"
                 value={
                   stats?.totalCommissions.toLocaleString('id-ID', {
                     style: 'currency',
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Recent Orders */}
+          {/* Pesanan Terbaru */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -135,9 +135,9 @@ export default function AdminDashboard() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-display flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-primary" />
-                  Recent Orders
+                  Pesanan Terbaru
                 </CardTitle>
-                <Badge variant="secondary">Today</Badge>
+                <Badge variant="secondary">Hari Ini</Badge>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -160,7 +160,7 @@ export default function AdminDashboard() {
                           variant={order.status === 'paid' ? 'default' : 'secondary'}
                           className={order.status === 'paid' ? 'bg-success text-success-foreground' : ''}
                         >
-                          {order.status}
+                          {order.status === 'paid' ? 'dibayar' : 'tertunda'}
                         </Badge>
                       </div>
                     </div>
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
             </Card>
           </motion.div>
 
-          {/* Pending Affiliators */}
+          {/* Persetujuan Tertunda */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -180,9 +180,9 @@ export default function AdminDashboard() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg font-display flex items-center gap-2">
                   <Clock className="w-5 h-5 text-accent" />
-                  Pending Approvals
+                  Persetujuan Tertunda
                 </CardTitle>
-                <Badge className="bg-accent text-accent-foreground">{pendingAffiliators.length} new</Badge>
+                <Badge className="bg-accent text-accent-foreground">{pendingAffiliators.length} baru</Badge>
               </CardHeader>
               <CardContent>
                 {pendingAffiliators.length > 0 ? (
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
                   </div>
                 ) : (
                   <p className="text-muted-foreground text-center py-8">
-                    No pending approvals
+                    Tidak ada persetujuan tertunda
                   </p>
                 )}
               </CardContent>

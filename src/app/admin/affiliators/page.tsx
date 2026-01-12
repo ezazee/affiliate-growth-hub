@@ -82,18 +82,18 @@ export default function AdminAffiliators() {
         setUsers(prev => prev.map(u => 
           u.id === userId ? { ...u, status: newStatus } : u
         ));
-        toast.success(`Affiliator ${newStatus}`);
+        toast.success(`Status afiliasi diperbarui menjadi ${newStatus}`);
       } else {
-        toast.error('Failed to update affiliator status.');
+        toast.error('Gagal memperbarui status afiliasi.');
       }
     } catch (error) {
-      console.error('Failed to update status:', error);
-      toast.error('An error occurred while updating status.');
+      console.error('Gagal memperbarui status:', error);
+      toast.error('Terjadi kesalahan saat memperbarui status.');
     }
   };
 
   const deleteUser = async (userId: string) => {
-    if (!window.confirm('Are you sure you want to delete this affiliator? This action cannot be undone.')) {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus afiliasi ini? Tindakan ini tidak dapat dibatalkan.')) {
       return;
     }
     try {
@@ -103,13 +103,13 @@ export default function AdminAffiliators() {
 
       if (response.ok) {
         setUsers(prev => prev.filter(u => u.id !== userId));
-        toast.success('Affiliator deleted successfully');
+        toast.success('Afiliasi berhasil dihapus');
       } else {
-        toast.error('Failed to delete affiliator.');
+        toast.error('Gagal menghapus afiliasi.');
       }
     } catch (error) {
-      console.error('Failed to delete user:', error);
-      toast.error('An error occurred while deleting affiliator.');
+      console.error('Gagal menghapus pengguna:', error);
+      toast.error('Terjadi kesalahan saat menghapus afiliasi.');
     }
   };
 
@@ -147,15 +147,15 @@ export default function AdminAffiliators() {
         setUsers(prev => prev.map(u => 
           u.id === updatedUser.id ? updatedUser : u
         ));
-        toast.success('Affiliator profile updated successfully');
+        toast.success('Profil afiliasi berhasil diperbarui');
         setIsEditDialogOpen(false);
         setEditingUser(null);
       } else {
-        toast.error('Failed to update affiliator profile.');
+        toast.error('Gagal memperbarui profil afiliasi.');
       }
     } catch (error) {
-      console.error('Failed to update user profile:', error);
-      toast.error('An error occurred while updating profile.');
+      console.error('Gagal memperbarui profil pengguna:', error);
+      toast.error('Terjadi kesalahan saat memperbarui profil.');
     }
   };
 
@@ -190,24 +190,24 @@ export default function AdminAffiliators() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-display font-bold text-foreground mb-2">Affiliators</h1>
-          <p className="text-muted-foreground">Manage affiliator registrations and status</p>
+          <h1 className="text-3xl font-display font-bold text-foreground mb-2">Afiliasi</h1>
+          <p className="text-muted-foreground">Kelola pendaftaran dan status afiliasi</p>
         </div>
 
         {/* Edit User Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="font-display">Edit Affiliator Profile</DialogTitle>
+              <DialogTitle className="font-display">Ubah Profil Afiliasi</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleEditSubmit} className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">Nama Lengkap</Label>
                 <Input
                   id="name"
                   value={editFormData.name}
                   onChange={handleEditFormChange}
-                  placeholder="Full Name"
+                  placeholder="Nama Lengkap"
                   required
                 />
               </div>
@@ -223,17 +223,17 @@ export default function AdminAffiliators() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">Nomor Telepon</Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={editFormData.phone}
                   onChange={handleEditFormChange}
-                  placeholder="Phone Number"
+                  placeholder="Nomor Telepon"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="referralCode">Referral Code</Label>
+                <Label htmlFor="referralCode">Kode Referral</Label>
                 <Input
                   id="referralCode"
                   value={editingUser?.referralCode || ''}
@@ -242,7 +242,7 @@ export default function AdminAffiliators() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="registrationNumber">Registration Number</Label>
+                <Label htmlFor="registrationNumber">Nomor Registrasi</Label>
                 <Input
                   id="registrationNumber"
                   value={editingUser?.registrationNumber || ''}
@@ -260,19 +260,19 @@ export default function AdminAffiliators() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                    <SelectItem value="suspended">Suspended</SelectItem>
+                    <SelectItem value="pending">Tertunda</SelectItem>
+                    <SelectItem value="approved">Disetujui</SelectItem>
+                    <SelectItem value="rejected">Ditolak</SelectItem>
+                    <SelectItem value="suspended">Ditangguhkan</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="flex justify-end gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancel
+                  Batal
                 </Button>
                 <Button type="submit">
-                  Save Changes
+                  Simpan Perubahan
                 </Button>
               </div>
             </form>
@@ -284,9 +284,9 @@ export default function AdminAffiliators() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: 'Total', value: stats.total, color: 'bg-primary/10 text-primary' },
-            { label: 'Pending', value: stats.pending, color: 'bg-accent/10 text-accent-foreground' },
-            { label: 'Approved', value: stats.approved, color: 'bg-success/10 text-success' },
-            { label: 'Suspended', value: stats.suspended, color: 'bg-muted text-muted-foreground' },
+            { label: 'Tertunda', value: stats.pending, color: 'bg-accent/10 text-accent-foreground' },
+            { label: 'Disetujui', value: stats.approved, color: 'bg-success/10 text-success' },
+            { label: 'Ditangguhkan', value: stats.suspended, color: 'bg-muted text-muted-foreground' },
           ].map((stat) => (
             <div key={stat.label} className={`rounded-xl p-4 ${stat.color}`}>
               <p className="text-2xl font-display font-bold">{stat.value}</p>
@@ -300,7 +300,7 @@ export default function AdminAffiliators() {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search by name or email..."
+              placeholder="Cari berdasarkan nama atau email..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -309,14 +309,14 @@ export default function AdminAffiliators() {
           <ClientOnly>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
+                <SelectValue placeholder="Filter berdasarkan status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="approved">Approved</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value="all">Semua Status</SelectItem>
+                <SelectItem value="pending">Tertunda</SelectItem>
+                <SelectItem value="approved">Disetujui</SelectItem>
+                <SelectItem value="rejected">Ditolak</SelectItem>
+                <SelectItem value="suspended">Ditangguhkan</SelectItem>
               </SelectContent>
             </Select>
           </ClientOnly>
@@ -351,7 +351,7 @@ export default function AdminAffiliators() {
                           <h3 className="font-semibold text-foreground">{user.name}</h3>
                           <p className="text-sm text-muted-foreground">{user.email}</p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            Joined: {new Date(user.createdAt).toLocaleDateString()}
+                            Bergabung: {new Date(user.createdAt).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
@@ -371,7 +371,7 @@ export default function AdminAffiliators() {
                                 onClick={() => updateStatus(user.id, 'approved')}
                               >
                                 <Check className="w-4 h-4 mr-1" />
-                                Approve
+                                Setujui
                               </Button>
                               <Button 
                                 size="sm" 
@@ -379,7 +379,7 @@ export default function AdminAffiliators() {
                                 onClick={() => updateStatus(user.id, 'rejected')}
                               >
                                 <X className="w-4 h-4 mr-1" />
-                                Reject
+                                Tolak
                               </Button>
                             </>
                           )}
@@ -391,7 +391,7 @@ export default function AdminAffiliators() {
                               onClick={() => updateStatus(user.id, 'suspended')}
                             >
                               <Ban className="w-4 h-4 mr-1" />
-                              Suspend
+                              Tangguhkan
                             </Button>
                           )}
                           {(user.status === 'suspended' || user.status === 'rejected') && (
@@ -401,7 +401,7 @@ export default function AdminAffiliators() {
                               onClick={() => updateStatus(user.id, 'approved')}
                             >
                               <UserCheck className="w-4 h-4 mr-1" />
-                              Reactivate
+                              Aktifkan Kembali
                             </Button>
                           )}
                           <Button
@@ -433,7 +433,7 @@ export default function AdminAffiliators() {
         {!loading && filteredUsers.length === 0 && (
           <div className="text-center py-12">
             <Users className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">No affiliators found</p>
+            <p className="text-muted-foreground">Tidak ada afiliasi ditemukan</p>
           </div>
         )}
       </div>
