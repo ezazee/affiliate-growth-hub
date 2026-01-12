@@ -45,13 +45,21 @@ export async function getUsers(): Promise<User[]> {
 export async function getUserById(id: string): Promise<User | null> {
   await init();
   const usersCollection = _db.collection<User>('users');
-  return usersCollection.findOne({ id: id });
+  const user = await usersCollection.findOne({ _id: new ObjectId(id) });
+  if (user) {
+    return { ...user, id: user._id.toString() };
+  }
+  return null;
 }
 
 export async function getUserByReferralCode(referralCode: string): Promise<User | null> {
   await init();
   const usersCollection = _db.collection<User>('users');
-  return usersCollection.findOne({ referralCode: referralCode });
+  const user = await usersCollection.findOne({ referralCode: referralCode });
+  if (user) {
+    return { ...user, id: user._id.toString() };
+  }
+  return null;
 }
 
 export async function getAffiliateLinkByAffiliatorProduct(affiliatorId: string, productId: string): Promise<AffiliateLink | null> {
