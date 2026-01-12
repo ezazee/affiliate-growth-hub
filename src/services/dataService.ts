@@ -1,5 +1,5 @@
 import clientPromise from '@/lib/mongodb';
-import { Collection, MongoClient, Db } from 'mongodb';
+import { Collection, MongoClient, Db, ObjectId } from 'mongodb';
 import { Product, AffiliateLink, User } from '@/types';
 
 let _client: MongoClient;
