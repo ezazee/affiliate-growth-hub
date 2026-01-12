@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
   } catch (error) {
+    console.error('Login API error:', error);
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }
