@@ -27,7 +27,11 @@ export async function getProducts(): Promise<Product[]> {
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   await init();
   const productsCollection = _db.collection<Product>('products');
-  return productsCollection.findOne({ slug });
+  const product = await productsCollection.findOne({ slug });
+  if (product) {
+    return { ...product, id: product._id.toString() };
+  }
+  return null;
 }
 
 export async function getAffiliateLinks(): Promise<AffiliateLink[]> {
@@ -65,5 +69,8 @@ export async function getUserByReferralCode(referralCode: string): Promise<User 
 export async function getAffiliateLinkByAffiliatorProduct(affiliatorId: string, productId: string): Promise<AffiliateLink | null> {
   await init();
   const affiliateLinksCollection = _db.collection<AffiliateLink>('affiliateLinks');
-  return affiliateLinksCollection.findOne({ affiliatorId: affiliatorId, productId: productId });
+  return affiliateLinksCollection.findOne({ 
+    affiliatorId: new ObjectId(affiliatorId), 
+    productId: new ObjectId(productId) 
+  });
 }

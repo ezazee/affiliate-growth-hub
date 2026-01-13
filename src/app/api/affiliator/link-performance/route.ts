@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    const affiliateLinks = await db.collection('affiliateLinks').find({ affiliatorId }).toArray();
+    const affiliateLinks = await db.collection('affiliateLinks').find({ affiliatorId: new ObjectId(affiliatorId) }).toArray();
     const linkIds = affiliateLinks.map(link => link._id);
 
     const clickData = await db.collection('link_clicks').aggregate([

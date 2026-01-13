@@ -86,18 +86,18 @@ export default function Checkout() {
   }, [productSlug, refCode, router]);
 
   useEffect(() => {
-    if (refCode) {
+    if (refCode && productSlug) {
       fetch('/api/track-click', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ref: refCode }),
+        body: JSON.stringify({ ref: refCode, productSlug: productSlug }),
       }).catch(error => {
         console.error('Failed to track click:', error);
       });
     }
-  }, [refCode]);
+  }, [refCode, productSlug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,6 +1,5 @@
 const products = [
   {
-    id: "product1",
     name: "CICA-B5 Refreshing Toner",
     slug: "cica-b5-refreshing-toner",
     price: 144000,
@@ -13,7 +12,6 @@ const products = [
     isActive: true,
   },
   {
-    id: "product2",
     name: "Vit C Tone-Up Daycream SPF 50",
     slug: "vit-c-tone-up-daycream-spf-50",
     price: 144000,
@@ -26,7 +24,6 @@ const products = [
     isActive: true,
   },
   {
-    id: "product3",
     name: "Honey Cleansing Gel",
     slug: "honey-cleansing-gel",
     price: 144000,
@@ -39,7 +36,6 @@ const products = [
     isActive: true,
   },
   {
-    id: "product4",
     name: "PE Prebiotic Pore-EX Facial Pad",
     slug: "pe-prebiotic-pore-ex-facial-pad",
     price: 144000,
@@ -52,7 +48,6 @@ const products = [
     isActive: true,
   },
   {
-    id: "product5",
     name: "Hydro Restorative Cream",
     slug: "hydro-restorative-cream",
     price: 144000,
@@ -65,7 +60,6 @@ const products = [
     isActive: true,
   },
   {
-    id: "product6",
     name: "Skin Awakening Glow Serum",
     slug: "skin-awakening-glow-serum",
     price: 144000,
@@ -78,7 +72,6 @@ const products = [
     isActive: true,
   },
   {
-    id: "product7",
     name: "Intimate Feminine Mousse Cleanser",
     slug: "intimate-feminine-mousse-cleanser",
     price: 144000,
@@ -95,7 +88,6 @@ const products = [
 
 const users = [
   {
-    id: "admin1",
     name: "Admin User",
     email: "admin@example.com",
     password: "password123",
@@ -104,16 +96,15 @@ const users = [
     createdAt: new Date(),
   },
   {
-    id: "affiliator1",
     name: "Alice Wonderland",
     email: "alice@example.com",
     password: "password123",
     role: "affiliator",
     status: "approved",
+    referralCode: "ALICE123",
     createdAt: new Date(),
   },
   {
-    id: "affiliator2",
     name: "Bob The Builder",
     email: "bob@example.com",
     password: "password123",

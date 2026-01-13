@@ -4,7 +4,7 @@ import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Ban, XCircle, ArrowLeft } from 'lucide-react';
+import { Ban, XCircle, ArrowLeft, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -16,7 +16,7 @@ export default function ClientOnlyAccountStatus() {
 
   useEffect(() => {
     // If no user or user is approved/pending, redirect them away
-    if (!user || user.status === 'approved' || user.status === 'pending') {
+    if (!user || user.status === 'approved') {
       router.push('/'); // Or appropriate dashboard
     }
   }, [user, router]);
@@ -38,6 +38,12 @@ export default function ClientOnlyAccountStatus() {
       title: 'Account Suspended',
       description: 'Your affiliate account has been suspended. Please contact our support team to resolve this issue.',
       iconClass: 'text-orange-500',
+    },
+    pending: {
+      icon: Clock,
+      title: 'Account Pending Approval',
+      description: 'Your account is currently pending approval. Please wait for an administrator to review your application.',
+      iconClass: 'text-blue-500',
     },
   }[status as string] || {
     icon: Ban,

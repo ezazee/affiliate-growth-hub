@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { User } from '@/types';
+import { User, Product, AffiliateLink } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 
 // Function to generate a unique referral code
@@ -11,6 +11,14 @@ const generateReferralCode = (length: number = 8): string => {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
+};
+
+// Function to generate a unique link code
+const generateLinkCode = (productName: string, affiliatorName: string): string => {
+  const productCode = productName.slice(0, 4).toUpperCase();
+  const affiliatorCode = affiliatorName.slice(0, 4).toUpperCase();
+  const randomPart = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `${affiliatorCode}-${productCode}-${randomPart}`;
 };
 
 export async function POST(req: NextRequest) {
@@ -40,8 +48,24 @@ export async function POST(req: NextRequest) {
     };
 
     const result = await db.collection('users').insertOne(userToInsert);
-
     const createdUser: User = { ...userToInsert, _id: result.insertedId, id: result.insertedId.toString() };
+
+    // If the new user is an affiliator, create affiliate links for all products
+    if (createdUser.role === 'affiliator') {
+      const products = await db.collection<Product>('products').find({}).toArray();
+      const newAffiliateLinks: Omit<AffiliateLink, '_id'>[] = products.map(product => ({
+        affiliatorId: createdUser._id,
+        productId: product._id,
+        linkCode: generateLinkCode(product.name, createdUser.name),
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }));
+
+      if (newAffiliateLinks.length > 0) {
+        await db.collection('affiliateLinks').insertMany(newAffiliateLinks);
+      }
+    }
 
     return NextResponse.json({ user: createdUser });
   } catch (error) {

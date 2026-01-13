@@ -22,7 +22,8 @@ export async function GET(req: NextRequest) {
     
     const productIds = userLinks.map(link => link.productId);
     
-    const products = await db.collection<Product>('products').find({ id: { $in: productIds } }).toArray();
+    const productsRaw = await db.collection<Product>('products').find({ _id: { $in: productIds.map(id => new ObjectId(id)) } }).toArray();
+    const products = productsRaw.map(p => ({ ...p, id: p._id.toString() }));
 
     const linksWithProducts = userLinks.map(link => {
       const product = products.find(p => p.id === link.productId);
@@ -72,27 +73,14 @@ export async function POST(req: NextRequest) {
     const result = await db.collection('affiliateLinks').insertOne(newLink);
     const insertedId = result.insertedId;
 
-    // Fetch the newly created link with its product data to return the full object
-    const createdLinkWithProduct = await affiliateLinksCollection.aggregate([
-      { $match: { _id: insertedId } },
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'productId',
-          foreignField: 'id',
-          as: 'product'
-        }
-      },
-      {
-        $unwind: { path: '$product', preserveNullAndEmptyArrays: true }
-      }
-    ]).next();
-    
-    if (!createdLinkWithProduct) {
-      return NextResponse.json({ error: 'Failed to retrieve created link' }, { status: 500 });
+    const createdLink = await db.collection('affiliateLinks').findOne({ _id: insertedId });
+    if (!createdLink) {
+        return NextResponse.json({ error: 'Failed to retrieve created link' }, { status: 500 });
     }
-    
-    const formattedLink = { ...createdLinkWithProduct, id: createdLinkWithProduct._id.toString() };
+
+    const product = await db.collection('products').findOne({ _id: new ObjectId(createdLink.productId) });
+
+    const formattedLink = { ...createdLink, id: createdLink._id.toString(), product: product ? { ...product, id: product._id.toString() } : null };
 
     return NextResponse.json(formattedLink, { status: 201 });
   } catch (error) {

@@ -1,29 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { AffiliateLink } from '@/types';
+import { getProductBySlug, getUserByReferralCode, getAffiliateLinkByAffiliatorProduct } from '@/services/dataService';
 
 export async function POST(req: NextRequest) {
   try {
-    const { ref } = await req.json();
+    const { ref, productSlug } = await req.json();
 
-    if (!ref) {
-      return NextResponse.json({ error: 'ref is required' }, { status: 400 });
+    if (!ref || !productSlug) {
+      return NextResponse.json({ error: 'ref and productSlug are required' }, { status: 400 });
     }
 
-    const client = await clientPromise;
-    const db = client.db();
+    const affiliator = await getUserByReferralCode(ref);
+    if (!affiliator) {
+      console.warn(`Click tracking: Affiliator with ref "${ref}" not found.`);
+      return NextResponse.json({ success: true });
+    }
 
-    // Find the link to get its ID
-    const link = await db.collection<AffiliateLink>('affiliateLinks').findOne({ code: ref });
+    const product = await getProductBySlug(productSlug);
+    if (!product) {
+      console.warn(`Click tracking: Product with slug "${productSlug}" not found.`);
+      return NextResponse.json({ success: true });
+    }
+    
+    const affiliateLink = await getAffiliateLinkByAffiliatorProduct(affiliator.id, product.id);
 
-    if (link) {
-      // Insert a new document into the link_clicks collection
+    if (affiliateLink) {
+      const client = await clientPromise;
+      const db = client.db();
       await db.collection('link_clicks').insertOne({
-        linkId: link._id,
+        linkId: affiliateLink._id,
         createdAt: new Date(),
       });
     } else {
-      console.warn(`Click tracking: Affiliate link with code "${ref}" not found.`);
+      console.warn(`Click tracking: Affiliate link for affiliator "${affiliator.id}" and product "${product.id}" not found.`);
     }
 
     return NextResponse.json({ success: true });

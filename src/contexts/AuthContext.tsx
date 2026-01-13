@@ -15,6 +15,13 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const processUser = (user: any): User => {
+  if (user && user._id) {
+    user.id = user._id.toString();
+  }
+  return user;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Initialize loading state
@@ -35,24 +42,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             return;
           }
+
+          // Verify user session against the backend
+          const verifyResponse = await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: sessionData.user._id }),
+          });
+
+          if (!verifyResponse.ok) {
+            localStorage.removeItem('affiliate_user_session');
+            setUser(null);
+            return;
+          }
+
+          const verification = await verifyResponse.json();
+          if (!verification.valid) {
+            localStorage.removeItem('affiliate_user_session');
+            setUser(null);
+            return;
+          }
           
-          let parsedUser: User = sessionData.user;
-
-          if (parsedUser._id && !parsedUser.id) {
-            parsedUser.id = parsedUser._id.toString();
-          }
-
-          if (!parsedUser.referralCode || parsedUser.referralCode === '') {
-            const response = await fetch(`/api/user/${parsedUser.id}`);
-            if (response.ok) {
-              const { user: freshUser } = await response.json();
-              if (freshUser) {
-                parsedUser = freshUser;
-                const newSessionData = { user: freshUser, timestamp: new Date().getTime() };
-                localStorage.setItem('affiliate_user_session', JSON.stringify(newSessionData));
-              }
-            }
-          }
+          const parsedUser = processUser(sessionData.user);
 
           setUser(parsedUser);
 
@@ -93,24 +104,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const { user: loggedInUser } = await response.json();
-        if (loggedInUser._id && !loggedInUser.id) {
-          loggedInUser.id = loggedInUser._id.toString();
-        }
+        const processedUser = processUser(loggedInUser);
         
         const sessionData = {
-            user: loggedInUser,
+            user: processedUser,
             timestamp: new Date().getTime(),
         };
         
-        setUser(loggedInUser);
+        setUser(processedUser);
         localStorage.setItem('affiliate_user_session', JSON.stringify(sessionData));
 
-        if (loggedInUser.status === 'pending') {
+        if (processedUser.status === 'pending') {
           router.push('/waiting-approval');
-        } else if (loggedInUser.status === 'rejected' || loggedInUser.status === 'suspended') {
-          router.push(`/account-status?status=${loggedInUser.status}`);
-        } else if (loggedInUser.status === 'approved') {
-          router.push(loggedInUser.role === 'admin' ? '/admin' : '/affiliator');
+        } else if (processedUser.status === 'rejected' || processedUser.status === 'suspended') {
+          router.push(`/account-status?status=${processedUser.status}`);
+        } else if (processedUser.status === 'approved') {
+          router.push(processedUser.role === 'admin' ? '/admin' : '/affiliator');
         }
         return true;
       }
@@ -136,18 +145,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const { user: registeredUser } = await response.json();
-        if (registeredUser._id && !registeredUser.id) {
-          registeredUser.id = registeredUser._id.toString();
-        }
+        const processedUser = processUser(registeredUser);
 
         const sessionData = {
-            user: registeredUser,
+            user: processedUser,
             timestamp: new Date().getTime(),
         };
 
-        setUser(registeredUser);
+        setUser(processedUser);
         localStorage.setItem('affiliate_user_session', JSON.stringify(sessionData));
-        console.log('AuthContext: User registered:', registeredUser);
+        console.log('AuthContext: User registered:', processedUser);
         return true;
       }
       return false;
