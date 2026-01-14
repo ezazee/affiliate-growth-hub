@@ -13,6 +13,7 @@ import AdminProducts from "./pages_old/admin/AdminProducts";
 import AdminAffiliators from "./pages_old/admin/AdminAffiliators";
 import AdminOrders from "./pages_old/admin/AdminOrders";
 import AdminCommissions from "./pages_old/admin/AdminCommissions";
+import AdminWithdrawals from "./pages_old/admin/AdminWithdrawals";
 import AffiliatorDashboard from "./pages_old/affiliator/AffiliatorDashboard";
 import AffiliatorLinks from "./pages_old/affiliator/AffiliatorLinks";
 import AffiliatorCommissions from "./pages_old/affiliator/AffiliatorCommissions";
@@ -61,6 +62,7 @@ function AppRoutes() {
       <Route path="/admin/affiliators" element={<AdminRoute><AdminAffiliators /></AdminRoute>} />
       <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
       <Route path="/admin/commissions" element={<AdminRoute><AdminCommissions /></AdminRoute>} />
+      <Route path="/admin/withdrawals" element={<AdminRoute><AdminWithdrawals /></AdminRoute>} />
       
       {/* Affiliator Routes */}
       <Route path="/affiliator" element={<AffiliatorRoute><AffiliatorDashboard /></AffiliatorRoute>} />

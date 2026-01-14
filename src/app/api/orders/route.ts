@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { Order, OrderStatus } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+import { ObjectId } from 'mongodb';
 
 // Helper function to generate a unique order number
 const generateOrderNumber = async (db): Promise<string> => {
-  const prefix = 'ORD';
+  const prefix = 'ORDER';
   let isUnique = false;
   let orderNumber;
   while (!isUnique) {
@@ -35,19 +36,36 @@ export async function POST(req: NextRequest) {
       affiliatorId,
       affiliateCode,
       affiliateName,
+      shippingCost,
+      totalPrice,
     } = await req.json();
 
-    if (!buyerName || !buyerPhone || !shippingAddress || !city || !province || !postalCode || !productId || !affiliatorId || !affiliateCode || !affiliateName) {
+    if (
+      !buyerName || !buyerPhone || !shippingAddress || !city || !province || !postalCode || 
+      !productId || !affiliatorId || !affiliateCode || !affiliateName || 
+      shippingCost === undefined || totalPrice === undefined
+    ) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
     const client = await clientPromise;
     const db = client.db();
 
+
+
     const orderNumber = await generateOrderNumber(db);
+    const paymentToken = uuidv4(); // Generate a secure token
+    const paymentTokenExpiresAt = new Date(Date.now() + 1 * 60 * 1000); // 1 minute from now
+
+    // Get product price to store
+    const product = await db.collection('products').findOne({ _id: new ObjectId(productId) });
+    const productPrice = product?.price || 0;
 
     const orderToInsert = {
       orderNumber,
+      paymentToken,
+      paymentTokenExpiresAt,
+      isPaymentUsed: false, // New field for single-use functionality
       buyerName,
       buyerPhone,
       shippingAddress,
@@ -59,19 +77,22 @@ export async function POST(req: NextRequest) {
       affiliateCode,
       affiliateName,
       status: 'pending' as OrderStatus,
-      shippingCost: 0,
+      shippingCost,
+      productPrice, // Store product price separately
+      totalPrice,
       orderNote,
       createdAt: new Date(),
     };
 
     const result = await db.collection('orders').insertOne(orderToInsert);
-
-    // Return the inserted document with _id mapped to id
-    const insertedOrder = { ...orderToInsert, _id: result.insertedId, id: result.insertedId.toString() };
-
-    return NextResponse.json(insertedOrder, { status: 201 });
+    // Return only necessary info for payment navigation
+    return NextResponse.json({ 
+      paymentToken: orderToInsert.paymentToken, 
+      orderNumber: orderToInsert.orderNumber,
+      status: orderToInsert.status
+    }, { status: 201 });
   } catch (error) {
-    console.error('Error creating order:', error);
+
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }

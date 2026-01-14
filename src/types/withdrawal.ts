@@ -17,4 +17,5 @@ export interface Withdrawal {
   bankDetails: BankDetails;
   requestedAt: Date;
   processedAt?: Date;
+  rejectionReason?: string; // Alasan penolakan
 }

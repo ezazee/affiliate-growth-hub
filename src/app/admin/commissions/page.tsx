@@ -205,6 +205,9 @@ export default function AdminCommissions() {
                           approved: 'Disetujui',
                           paid: 'Dibayar',
                           cancelled: 'Dibatalkan',
+                          withdrawn: 'Sudah Ditarik',
+                          reserved: 'Diproses',
+                          processed: 'Selesai Diproses',
                         };
 
                         return (

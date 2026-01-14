@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } else {
         }
       } catch (error) {
-        console.error("AuthContext: Failed to load or refresh user from localStorage", error);
+
         localStorage.removeItem('affiliate_user_session');
         setUser(null);
       } finally {
@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return false;
     } catch (error) {
-      console.error('AuthContext: Login failed:', error);
+
       return false;
     } finally {
       setLoading(false);
@@ -154,12 +154,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setUser(processedUser);
         localStorage.setItem('affiliate_user_session', JSON.stringify(sessionData));
-        console.log('AuthContext: User registered:', processedUser);
+
         return true;
       }
       return false;
     } catch (error) {
-      console.error('AuthContext: Registration failed:', error);
+
       return false;
     } finally {
       setLoading(false);
@@ -171,12 +171,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (error) {
-      console.error('AuthContext: Logout failed:', error);
+
     } finally {
       setUser(null);
       localStorage.removeItem('affiliate_user_session');
       setLoading(false);
-      console.log('AuthContext: User logged out.');
+
     }
   }, []);
 

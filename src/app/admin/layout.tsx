@@ -14,7 +14,9 @@ import {
   LogOut,
   Menu,
   X,
-  Bug
+  Bug,
+  Settings,
+  ArrowUpDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,7 +32,8 @@ const adminNavItems = [
   { path: '/admin/affiliators', label: 'Afiliasi', icon: Users },
   { path: '/admin/orders', label: 'Pesanan', icon: ShoppingCart },
   { path: '/admin/commissions', label: 'Komisi', icon: Landmark },
-  { path: '/admin/debug', label: 'Debug', icon: Bug },
+  { path: '/admin/withdrawals', label: 'Penarikan', icon: ArrowUpDown },
+  { path: '/admin/settings', label: 'Pengaturan', icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { Order } from '@/types';
+import { ObjectId } from 'mongodb';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -14,21 +15,43 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    const orders = await db.collection<Order>('orders').find({ affiliatorId }).sort({ createdAt: -1 }).toArray();
+// Get orders first
+    const orders = await db.collection('orders').find({ affiliatorId }).sort({ createdAt: -1 }).toArray();
+    
 
-    // Collect productIds as strings
-    const productIds = Array.from(new Set(orders.map(order => order.productId)));
-    // Find products by their string 'id' field
-    const products = await db.collection('products').find({ id: { $in: productIds } }).toArray();
+    
+    // Manual product lookup
+    const allProducts = await db.collection('products').find().toArray();
+    const productMap = new Map();
+    
+    allProducts.forEach(product => {
+      productMap.set(product._id.toString(), product);
+      if (product.id) productMap.set(product.id, product);
+    });
 
-    // Map products by their string 'id' for easy lookup
-    const productsMap = new Map(products.map(p => [p.id, p]));
-
-    const ordersWithProducts = orders.map(order => ({
-      ...order,
-      id: order._id.toString(), // Keep _id to id mapping for the order itself
-      product: productsMap.get(order.productId), // Lookup product by its string 'id'
-    }));
+    const ordersWithProducts = orders.map(order => {
+      const product = productMap.get(order.productId) || productMap.get(order.productId.toString());
+      
+      // Calculate commission based on product commission setting from admin
+      // If order is cancelled, commission is 0
+      let commission = 0;
+      if (order.status !== 'cancelled' && product) {
+        if (product.commissionType === 'percentage') {
+          commission = Math.round(product.price * (product.commissionValue / 100));
+        } else if (product.commissionType === 'fixed') {
+          commission = product.commissionValue || 0;
+        }
+      }
+      
+      return {
+        ...order,
+        id: order._id?.toString(),
+        productName: product?.name || null,
+        product: product || null,
+        productPrice: product?.price || 0,
+        commission: commission
+      };
+    });
 
     return NextResponse.json(ordersWithProducts);
   } catch (error) {

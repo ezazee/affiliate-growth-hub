@@ -7,6 +7,9 @@ export interface Order {
   _id?: ObjectId | string;
   id?: string;
   orderNumber?: string;
+  paymentToken?: string;
+  paymentTokenExpiresAt?: Date;
+  isPaymentUsed?: boolean; // New field for single-use functionality
   buyerName: string;
   buyerPhone: string;
   shippingAddress: string;
@@ -19,10 +22,15 @@ export interface Order {
   affiliateName: string;
   status: OrderStatus;
   shippingCost?: number;
+  totalPrice?: number;
+  commission?: number;
+  commissionRate?: number;
   orderNote?: string;
   paymentProof?: string;
   createdAt: Date;
   product?: Product;
   productName?: string;
   productPrice?: number;
+  commissionType?: string;
+  commissionValue?: number;
 }

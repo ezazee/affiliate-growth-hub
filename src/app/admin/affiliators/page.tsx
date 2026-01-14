@@ -352,6 +352,11 @@ export default function AdminAffiliators() {
                           <p className="text-xs text-muted-foreground mt-1">
                             Bergabung: {new Date(user.createdAt).toLocaleDateString()}
                           </p>
+                          {user.referralCode && (
+                            <p className="text-xs text-primary font-medium mt-1">
+                              Kode Ref: {user.referralCode}
+                            </p>
+                          )}
                         </div>
                       </div>
                       

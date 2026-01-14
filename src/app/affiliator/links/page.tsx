@@ -138,10 +138,11 @@ export default function AffiliatorLinks() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
+          <div className="flex-shrink-0">
             <h1 className="text-3xl font-display font-bold text-foreground mb-2">Link Afiliasi Saya</h1>
-            <p className="text-muted-foreground">Buat dan kelola link afiliasi Anda</p>
+            <p className="text-muted-foreground text-sm">Buat dan kelola link afiliasi Anda</p>
           </div>
+        </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="hero" disabled={availableProducts.length === 0}>
@@ -220,7 +221,6 @@ export default function AffiliatorLinks() {
               </div>
             </DialogContent>
           </Dialog>
-        </div>
 
         {/* Links List */}
         {loading ? (

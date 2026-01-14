@@ -45,53 +45,106 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Invalid withdrawal amount' }, { status: 400 });
     }
 
-    const MINIMUM_WITHDRAWAL_AMOUNT = 100000;
-    if (requestedAmount < MINIMUM_WITHDRAWAL_AMOUNT) {
-        return NextResponse.json({ error: `Minimum withdrawal amount is Rp${MINIMUM_WITHDRAWAL_AMOUNT.toLocaleString('id-ID')}` }, { status: 400 });
-    }
-
     const client = await clientPromise;
     const db = client.db();
+    
+    // Fetch minimum withdrawal from settings
+    const settingsCollection = db.collection('settings');
+    const minimumWithdrawalSetting = await settingsCollection.findOne({ name: 'minimumWithdrawal' });
+    const minimumWithdrawalAmount = minimumWithdrawalSetting?.value || 10000;
+    
+    if (requestedAmount < minimumWithdrawalAmount) {
+        return NextResponse.json({ error: `Minimum withdrawal amount is Rp${minimumWithdrawalAmount.toLocaleString('id-ID')}` }, { status: 400 });
+    }
+
     const commissionsCollection = db.collection<Commission>('commissions');
     const withdrawalsCollection = db.collection<Withdrawal>('withdrawals');
 
-    // 1. Calculate withdrawable balance (sum of 'approved' commissions)
-    const approvedCommissions = await commissionsCollection.find({ 
+    // 1. Calculate withdrawable balance menggunakan balance tracking
+    const availableCommissions = await commissionsCollection.find({ 
         affiliatorId, 
-        status: 'approved' 
-    }).sort({ date: 1 }).toArray(); // Sort oldest first
+        status: 'paid'
+    }).sort({ date: 1 }).toArray();
 
-    const withdrawableBalance = approvedCommissions.reduce((sum, c) => sum + c.amount, 0);
+    // Calculate actual withdrawable balance
+    const withdrawableBalance = availableCommissions.reduce((sum, commission) => {
+      const usedAmount = commission.usedAmount || 0;
+      const remainingBalance = commission.amount - usedAmount;
+      return sum + remainingBalance;
+    }, 0);
 
     // 2. Check if balance is sufficient
     if (requestedAmount > withdrawableBalance) {
       return NextResponse.json({ error: 'Insufficient balance' }, { status: 400 });
     }
     
-    // 3. Create the withdrawal request
+    // 3. Create withdrawal request - LANGSUNG DIPROSES
     const newWithdrawal: Omit<Withdrawal, 'id' | '_id'> = {
       affiliatorId,
       amount: requestedAmount,
       bankDetails,
-      status: 'pending',
+      status: 'approved', // Langsung approved = sedang diproses
       requestedAt: new Date(),
     };
 
     const result = await withdrawalsCollection.insertOne(newWithdrawal as Withdrawal);
 
-    // 4. Update status of commissions used in this withdrawal
+    // 4. LANGSUNG PROSES: Update usedAmount dan buat reserved commissions
     let amountToCover = requestedAmount;
-    for (const commission of approvedCommissions) {
-      if (amountToCover > 0) {
-        await commissionsCollection.updateOne(
-          { _id: new ObjectId(commission.id) },
-          { $set: { status: 'paid' } } // Mark as 'paid' to prevent re-use
-        );
-        amountToCover -= commission.amount;
-      } else {
-        break; // Stop when the withdrawn amount is covered
-      }
+    const reservedCommissionIds = [];
+
+    for (const commission of availableCommissions) {
+      if (amountToCover <= 0) break;
+
+      const usedAmount = commission.usedAmount || 0;
+      const availableBalance = commission.amount - usedAmount;
+
+      if (availableBalance <= 0) continue;
+
+      const amountToUse = Math.min(amountToCover, availableBalance);
+
+      // ALWAYS create reserved commission untuk tracking balance restore
+      const reservedCommission = {
+        affiliatorId,
+        orderId: commission.orderId,
+        productName: commission.productName,
+        amount: amountToUse,
+        status: 'reserved',
+        withdrawalId: result.insertedId.toString(),
+        createdAt: commission.createdAt,
+        date: commission.date,
+        isPartial: true,
+        parentCommissionId: commission._id.toString(),
+      };
+
+      const reservedResult = await db.collection('commissions').insertOne(reservedCommission);
+      console.log(`Created reserved commission: ${reservedResult.insertedId} for amount ${amountToUse}`);
+
+      // Update usedAmount di commission asli
+      const newUsedAmount = usedAmount + amountToUse;
+      await commissionsCollection.updateOne(
+        { _id: commission._id },
+        { $set: { usedAmount: newUsedAmount }}
+      );
+
+      reservedCommissionIds.push({
+        commissionId: commission._id.toString(),
+        amount: amountToUse,
+        reservedCommissionId: reservedResult.insertedId.toString()
+      });
+
+      amountToCover -= amountToUse;
+      console.log(`Reserved ${amountToUse} from commission ${commission._id}, total used: ${newUsedAmount}`);
     }
+
+    // Transaction log untuk audit
+    await db.collection('withdrawal_transactions').insertOne({
+      withdrawalId: result.insertedId.toString(),
+      affiliatorId,
+      totalAmount: requestedAmount,
+      reservedCommissions: reservedCommissionIds,
+      createdAt: new Date(),
+    });
 
     const insertedWithdrawal = { ...newWithdrawal, id: result.insertedId.toString() };
     return NextResponse.json(insertedWithdrawal, { status: 201 });

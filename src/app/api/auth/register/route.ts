@@ -54,8 +54,8 @@ export async function POST(req: NextRequest) {
     if (createdUser.role === 'affiliator') {
       const products = await db.collection<Product>('products').find({}).toArray();
       const newAffiliateLinks: Omit<AffiliateLink, '_id'>[] = products.map(product => ({
-        affiliatorId: createdUser._id,
-        productId: product._id,
+        affiliatorId: createdUser._id.toString(),
+        productId: product._id.toString(),
         linkCode: generateLinkCode(product.name, createdUser.name),
         isActive: true,
         createdAt: new Date(),

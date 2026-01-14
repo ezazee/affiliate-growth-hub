@@ -8,53 +8,70 @@ import {
   Users, 
   Package,
   TrendingUp,
-  Clock
+  Clock,
+  DollarSign,
+  UserCheck,
+  Link,
+  MoreHorizontal
 } from 'lucide-react';
 import { StatCard } from '@/components/dashboard/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Mock data for demo
-const recentOrders = [
-  { id: '1', buyer: 'Alice Johnson', product: 'Premium Course', amount: 299, status: 'paid', date: '2024-01-15' },
-  { id: '2', buyer: 'Bob Smith', product: 'E-Book Bundle', amount: 49, status: 'pending', date: '2024-01-15' },
-  { id: '3', buyer: 'Carol White', product: 'Membership', amount: 99, status: 'paid', date: '2024-01-14' },
-  { id: '4', buyer: 'David Brown', product: 'Premium Course', amount: 299, status: 'pending', date: '2024-01-14' },
-];
-
-const pendingAffiliators = [
-  { id: '1', name: 'Emma Wilson', email: 'emma@example.com', date: '2024-01-15' },
-  { id: '2', name: 'Frank Miller', email: 'frank@example.com', date: '2024-01-14' },
-];
+interface AffiliatorStats {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  stats: {
+    totalLinks: number;
+    totalOrders: number;
+    paidOrders: number;
+    totalRevenue: number;
+    totalCommission: number;
+    paidCommission: number;
+    withdrawableCommission: number;
+    conversionRate: string;
+  };
+}
 
 interface AdminStats {
-  totalRevenue: number;
   totalAffiliators: number;
   totalOrders: number;
-  totalCommissions: number;
+  paidOrders: number;
+  totalRevenue: number;
+  totalCommission: number;
+  netRevenue: number; // Pendapatan bersih
+  activeAffiliators: number;
+}
+
+interface DashboardData {
+  overallStats: AdminStats;
+  affiliators: AffiliatorStats[];
 }
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchDashboardData = async () => {
       try {
-        const response = await fetch('/api/admin/stats');
+        const response = await fetch('/api/admin/dashboard');
         if (response.ok) {
           const data = await response.json();
-          setStats(data);
+          setDashboardData(data);
         }
       } catch (error) {
-        console.error('Failed to fetch admin stats:', error);
+        console.error('Failed to fetch admin dashboard data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
+    fetchDashboardData();
   }, []);
 
   return (
@@ -81,15 +98,27 @@ export default function AdminDashboard() {
           ) : (
             <>
               <StatCard
-                title="Total Pesanan"
-                value={stats?.totalOrders.toString() || '0'}
-                icon={ShoppingCart}
+                title="Total Afiliasi"
+                value={dashboardData?.overallStats.totalAffiliators.toString() || '0'}
+                icon={Users}
                 delay={0}
               />
               <StatCard
-                title="Total Pendapatan"
+                title="Afiliasi Aktif"
+                value={dashboardData?.overallStats.activeAffiliators.toString() || '0'}
+                icon={UserCheck}
+                delay={0.1}
+              />
+              <StatCard
+                title="Total Pesanan"
+                value={dashboardData?.overallStats.totalOrders.toString() || '0'}
+                icon={ShoppingCart}
+                delay={0.2}
+              />
+              <StatCard
+                title="Pendapatan Bersih"
                 value={
-                  stats?.totalRevenue.toLocaleString('id-ID', {
+                  dashboardData?.overallStats.netRevenue.toLocaleString('id-ID', {
                     style: 'currency',
                     currency: 'IDR',
                     minimumFractionDigits: 0,
@@ -98,121 +127,142 @@ export default function AdminDashboard() {
                 }
                 icon={Landmark}
                 variant="primary"
-                delay={0.1}
-              />
-              <StatCard
-                title="Afiliasi Aktif"
-                value={stats?.totalAffiliators.toString() || '0'}
-                icon={Users}
-                delay={0.2}
-              />
-              <StatCard
-                title="Total Komisi"
-                value={
-                  stats?.totalCommissions.toLocaleString('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  }) || 'Rp0'
-                }
-                icon={Package}
                 delay={0.3}
               />
             </>
           )}
         </div>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Pesanan Terbaru */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.4 }}
-          >
-            <Card className="shadow-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-display flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                  Pesanan Terbaru
-                </CardTitle>
-                <Badge variant="secondary">Hari Ini</Badge>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentOrders.map((order) => (
-                    <div key={order.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
-                      <div className="flex-1">
-                        <p className="font-medium text-foreground">{order.buyer}</p>
-                        <p className="text-sm text-muted-foreground">{order.product}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">
-                          {order.amount.toLocaleString('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0,
-                          })}
-                        </p>
-                        <Badge 
-                          variant={order.status === 'paid' ? 'default' : 'secondary'}
-                          className={order.status === 'paid' ? 'bg-success text-success-foreground' : ''}
-                        >
-                          {order.status === 'paid' ? 'dibayar' : 'tertunda'}
-                        </Badge>
-                      </div>
+        {/* All Affiliators */}
+        <Card className="shadow-card">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg font-display flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary" />
+              Daftar Afiliasi
+            </CardTitle>
+            <Badge variant="secondary">
+              {dashboardData?.affiliators.length || 0} total
+            </Badge>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="space-y-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="p-4 border rounded-lg">
+                    <Skeleton className="h-6 w-48 mb-2" />
+                    <Skeleton className="h-4 w-64 mb-4" />
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-8 w-20" />
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Persetujuan Tertunda */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.5 }}
-          >
-            <Card className="shadow-card">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-display flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-accent" />
-                  Persetujuan Tertunda
-                </CardTitle>
-                <Badge className="bg-accent text-accent-foreground">{pendingAffiliators.length} baru</Badge>
-              </CardHeader>
-              <CardContent>
-                {pendingAffiliators.length > 0 ? (
-                  <div className="space-y-4">
-                    {pendingAffiliators.map((affiliator) => (
-                      <div key={affiliator.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 hover:bg-secondary transition-colors">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                            <span className="font-semibold text-primary">
-                              {affiliator.name.charAt(0)}
+                  </div>
+                ))}
+              </div>
+            ) : dashboardData?.affiliators && dashboardData.affiliators.length > 0 ? (
+              <div className="space-y-4">
+                {dashboardData.affiliators.map((affiliator, index) => (
+                  <motion.div
+                    key={affiliator.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                    className="border rounded-lg p-4 hover:bg-secondary/50 transition-colors"
+                  >
+                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                      {/* Affiliator Info */}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center">
+                            <span className="font-bold text-primary-foreground">
+                              {affiliator.name?.charAt(0)?.toUpperCase() || 'A'}
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium text-foreground">{affiliator.name}</p>
+                            <h3 className="font-semibold text-foreground text-lg">{affiliator.name}</h3>
                             <p className="text-sm text-muted-foreground">{affiliator.email}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Bergabung: {new Date(affiliator.createdAt).toLocaleDateString('id-ID', { 
+                                day: 'numeric', 
+                                month: 'long', 
+                                year: 'numeric' 
+                              })}
+                            </p>
                           </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">{affiliator.date}</p>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground text-center py-8">
-                    Tidak ada persetujuan tertunda
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 min-w-[320px]">
+                        <div className="text-center p-3 bg-muted/50 rounded-lg">
+                          <Link className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
+                          <p className="text-xs text-muted-foreground">Link</p>
+                          <p className="font-bold text-foreground">{affiliator.stats.totalLinks}</p>
+                        </div>
+                        <div className="text-center p-3 bg-muted/50 rounded-lg">
+                          <ShoppingCart className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
+                          <p className="text-xs text-muted-foreground">Pesanan</p>
+                          <p className="font-bold text-foreground">{affiliator.stats.totalOrders}</p>
+                        </div>
+                        <div className="text-center p-3 bg-success/10 rounded-lg">
+                          <DollarSign className="w-4 h-4 mx-auto text-success mb-1" />
+                          <p className="text-xs text-muted-foreground">Komisi</p>
+                          <p className="font-bold text-success">
+                            {affiliator.stats.totalCommission.toLocaleString('id-ID', {
+                              style: 'currency',
+                              currency: 'IDR',
+                              minimumFractionDigits: 0,
+                            })}
+                          </p>
+                        </div>
+                        <div className="text-center p-3 bg-primary/10 rounded-lg">
+                          <TrendingUp className="w-4 h-4 mx-auto text-primary mb-1" />
+                          <p className="text-xs text-muted-foreground">Konversi</p>
+                          <p className="font-bold text-primary">{affiliator.stats.conversionRate}%</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Detailed Stats */}
+                    <div className="mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Pesanan Dibayar:</span>
+                        <span className="font-medium">{affiliator.stats.paidOrders}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total Pendapatan:</span>
+                        <span className="font-medium">
+                          {affiliator.stats.totalRevenue.toLocaleString('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                          })}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Komisi Bisa Ditarik:</span>
+                        <span className="font-medium text-primary">
+                          {affiliator.stats.withdrawableCommission.toLocaleString('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                          })}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <Users className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold text-foreground mb-2">Belum Ada Afiliasi</h3>
+                <p className="text-muted-foreground">Belum ada affiliator yang terdaftar dalam sistem.</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
   );
 }

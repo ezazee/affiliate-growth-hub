@@ -8,6 +8,7 @@ import { Clock, ArrowLeft, CheckCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import { getAdminWhatsApp, createWhatsAppLink } from '@/lib/whatsapp';
 
 export default function WaitingApproval() {
   const { user, logout } = useAuth();
@@ -40,6 +41,20 @@ export default function WaitingApproval() {
 
     return () => clearInterval(interval); // Cleanup on component unmount
   }, [user]);
+
+  const [adminWhatsApp, setAdminWhatsApp] = useState('6281313711180');
+
+  useEffect(() => {
+    const fetchWhatsApp = async () => {
+      try {
+        const whatsapp = await getAdminWhatsApp();
+        setAdminWhatsApp(whatsapp);
+      } catch (error) {
+        console.error('Error fetching admin WhatsApp:', error);
+      }
+    };
+    fetchWhatsApp();
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -132,16 +147,16 @@ export default function WaitingApproval() {
           className="mb-8"
         >
           
-          <Button size="lg" className="w-full sm:w-auto" asChild>
-            <a 
-              href={`https://wa.me/6281313711180?text=${encodeURIComponent(
-                `*Permintaan Registrasi Affiliate Baru*\nNama Lengkap: ${user?.name || 'N/A'}\nEmail: ${user?.email || 'N/A'}\nNo Handphone: ${user?.phone || 'N/A'}\nNomor Registrasi: ${user?.registrationNumber || 'N/A'}\nKode Referral: ${user?.referralCode || 'N/A'}\nMohon segera ditindaklanjuti. Terima kasih.`
-              )}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              Contact Admin on WhatsApp
-            </a>
+          <Button 
+            size="lg" 
+            className="w-full sm:w-auto"
+            onClick={() => {
+              const message = `*Permintaan Registrasi Affiliate Baru*\nNama Lengkap: ${user?.name || 'N/A'}\nEmail: ${user?.email || 'N/A'}\nNo Handphone: ${user?.phone || 'N/A'}\nNomor Registrasi: ${user?.registrationNumber || 'N/A'}\nKode Referral: ${user?.referralCode || 'N/A'}\nMohon segera ditindaklanjuti. Terima kasih.`;
+              const whatsappUrl = createWhatsAppLink(adminWhatsApp, message);
+              window.open(whatsappUrl, '_blank');
+            }}
+          >
+            Contact Admin on WhatsApp
           </Button>
         </motion.div>
 

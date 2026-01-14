@@ -5,7 +5,7 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { ShoppingCart, User, Phone, MapPin, CreditCard, CheckCircle } from 'lucide-react';
+import { ShoppingCart, User, Phone, MapPin, CreditCard, CheckCircle, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,13 +14,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Product, AffiliateLink, User as UserType } from '@/types';
 import { toast } from 'sonner';
 
+
 const Logo = () => (
     <div className="flex items-center gap-2">
-      <Image 
-        src="/Logo.png" 
+      <Image
+        src="/Logo.png"
         alt="Affiliate PE Skinpro Logo"
-        width={32} 
-        height={32} 
+        width={32}
+        height={32}
         priority
       />
       <span className="font-display font-bold text-lg text-foreground">Affiliate</span>
@@ -37,9 +38,12 @@ export default function Checkout() {
   const [product, setProduct] = useState<Product | null>(null);
   const [affiliateLink, setAffiliateLink] = useState<AffiliateLink | null>(null);
   const [affiliator, setAffiliator] = useState<UserType | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [shippingCost, setShippingCost] = useState<number | null>(null);
+  const [distanceInKm, setDistanceInKm] = useState<number | null>(null);
+  const [appliedRateDetails, setAppliedRateDetails] = useState<string | null>(null);
+  const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
   const [formData, setFormData] = useState({
     buyerName: '',
@@ -76,7 +80,6 @@ export default function Checkout() {
       } catch (error) {
         console.error('Error fetching checkout data:', error);
         toast.error('Gagal memuat data pembayaran karena kesalahan jaringan.');
-        router.push('/invalid-affiliate');
       } finally {
         setIsLoading(false);
       }
@@ -99,9 +102,41 @@ export default function Checkout() {
     }
   }, [refCode, productSlug]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleCalculateShipping = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setIsCalculatingShipping(true);
+    setShippingCost(null);
+    setDistanceInKm(null);
+    setAppliedRateDetails(null);
+
+    try {
+      const response = await fetch('/api/calculate-shipping', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setShippingCost(data.shippingCost);
+        setDistanceInKm(data.distanceInKm);
+        setAppliedRateDetails(data.appliedRateDetails);
+        toast.success('Biaya pengiriman berhasil dihitung.');
+      } else {
+        toast.error(`Gagal menghitung pengiriman: ${data.error || 'Silakan periksa alamat Anda.'}`);
+      }
+    } catch (error) {
+      toast.error('Gagal menghitung pengiriman karena kesalahan jaringan.');
+    } finally {
+      setIsCalculatingShipping(false);
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    setIsPlacingOrder(true);
 
     const orderData = {
       ...formData,
@@ -109,6 +144,8 @@ export default function Checkout() {
       affiliatorId: affiliator?.id,
       affiliateCode: refCode,
       affiliateName: affiliator?.name,
+      shippingCost: shippingCost,
+      totalPrice: (product?.price || 0) + (shippingCost || 0),
     };
 
     try {
@@ -120,19 +157,26 @@ export default function Checkout() {
         body: JSON.stringify(orderData),
       });
 
+      const newOrder = await response.json();
+
       if (response.ok) {
-        setIsSuccess(true);
-        toast.success('Pesanan berhasil ditempatkan!');
+        toast.success('Pesanan berhasil dibuat! Mengarahkan ke pembayaran...');
+        router.push(`/payment/${newOrder.paymentToken}`);
       } else {
-        const errorData = await response.json();
-        toast.error(`Gagal menempatkan pesanan: ${errorData.error || 'Silakan coba lagi.'}`);
+        toast.error(`Gagal menempatkan pesanan: ${newOrder.error || 'Silakan coba lagi.'}`);
       }
     } catch (error) {
       console.error('Failed to submit order:', error);
       toast.error('Gagal menempatkan pesanan karena kesalahan jaringan.');
     } finally {
-      setIsSubmitting(false);
+      setIsPlacingOrder(false);
     }
+  };
+
+  const handleEditAddress = () => {
+    setShippingCost(null);
+    setDistanceInKm(null);
+    setAppliedRateDetails(null);
   };
 
   if (isLoading || !product || !affiliator) {
@@ -143,67 +187,11 @@ export default function Checkout() {
     );
   }
 
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center px-6 py-12">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md text-center"
-        >
-          <motion.div 
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.2, type: 'spring' }}
-            className="w-24 h-24 mx-auto mb-8 rounded-full bg-success/20 flex items-center justify-center"
-          >
-            <CheckCircle className="w-12 h-12 text-success" />
-          </motion.div>
 
-          <h1 className="text-3xl font-display font-bold text-foreground mb-4">
-            Pesanan Ditempatkan!
-          </h1>
-          <p className="text-muted-foreground mb-8">
-            Terima kasih atas pesanan Anda. Tim kami akan segera menghubungi Anda untuk konfirmasi pembayaran 
-            dan detail pengiriman.
-          </p>
-
-          <div className="bg-card rounded-xl p-6 shadow-card border border-border text-left mb-8">
-            <h3 className="font-semibold text-foreground mb-3">Ringkasan Pesanan</h3>
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Produk</span>
-                <span className="font-medium">{product.name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Harga</span>
-                <span className="font-medium">
-                  {product.price.toLocaleString('id-ID', {
-                    style: 'currency',
-                    currency: 'IDR',
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  })}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Pengiriman</span>
-                <span className="font-medium">Akan ditentukan</span>
-              </div>
-            </div>
-          </div>
-
-          <Button asChild className="w-full">
-            <Link href="/">Kembali ke Beranda</Link>
-          </Button>
-        </motion.div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-background py-8 px-6">
+      {/* ... (Header remains the same) ... */}
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
         <motion.div 
@@ -234,7 +222,8 @@ export default function Checkout() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleCalculateShipping} className="space-y-6">
+                  {/* ... (Form fields remain the same) ... */}
                   {/* Personal Info */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -249,6 +238,7 @@ export default function Checkout() {
                           onChange={(e) => setFormData(prev => ({ ...prev, buyerName: e.target.value }))}
                           placeholder="John Doe"
                           required
+                          disabled={shippingCost !== null}
                         />
                       </div>
                       <div className="space-y-2">
@@ -262,56 +252,62 @@ export default function Checkout() {
                             placeholder="+62..."
                             className="pl-10"
                             required
+                            disabled={shippingCost !== null}
                           />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Shipping Info */}
+                  {/* Shipping Info - Address Form */}
                   <div className="space-y-4">
                     <h3 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                       <MapPin className="w-4 h-4" /> Alamat Pengiriman
                     </h3>
                     <div className="space-y-2">
-                      <Label htmlFor="shippingAddress">Alamat Jalan *</Label>
+                      <Label htmlFor="shippingAddress">Alamat Lengkap *</Label>
                       <Input
                         id="shippingAddress"
                         value={formData.shippingAddress}
                         onChange={(e) => setFormData(prev => ({ ...prev, shippingAddress: e.target.value }))}
-                        placeholder="Jalan, nomor rumah, RT/RW..."
+                        placeholder="Alamat lengkap Anda"
                         required
+                        disabled={shippingCost !== null}
                       />
                     </div>
-                    <div className="grid sm:grid-cols-3 gap-4">
+
+                    <div className="grid sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="city">Kota *</Label>
+                        <Label htmlFor="city">Kota</Label>
                         <Input
                           id="city"
                           value={formData.city}
                           onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                          placeholder="Jakarta"
+                          placeholder="Kota"
                           required
+                          disabled={shippingCost !== null}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="province">Provinsi *</Label>
+                        <Label htmlFor="province">Provinsi</Label>
                         <Input
                           id="province"
                           value={formData.province}
                           onChange={(e) => setFormData(prev => ({ ...prev, province: e.target.value }))}
-                          placeholder="DKI Jakarta"
+                          placeholder="Provinsi"
                           required
+                          disabled={shippingCost !== null}
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="postalCode">Kode Pos *</Label>
+                        <Label htmlFor="postalCode">Kode Pos</Label>
                         <Input
                           id="postalCode"
                           value={formData.postalCode}
                           onChange={(e) => setFormData(prev => ({ ...prev, postalCode: e.target.value }))}
-                          placeholder="12345"
+                          placeholder="Kode Pos"
                           required
+                          disabled={shippingCost !== null}
                         />
                       </div>
                     </div>
@@ -326,23 +322,54 @@ export default function Checkout() {
                       onChange={(e) => setFormData(prev => ({ ...prev, orderNote: e.target.value }))}
                       placeholder="Instruksi khusus..."
                       rows={3}
+                      disabled={shippingCost !== null}
                     />
                   </div>
 
-                  <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? (
-                      <span className="animate-pulse-soft">Memproses...</span>
-                    ) : (
-                      <>
-                        <CreditCard className="w-4 h-4 mr-2" />
-                        Tempatkan Pesanan
-                      </>
-                    )}
-                  </Button>
+                  {shippingCost === null ? (
+                    <Button type="submit" size="lg" className="w-full" disabled={isCalculatingShipping}>
+                      {isCalculatingShipping ? (
+                        <span className="animate-pulse-soft">Menghitung Biaya...</span>
+                      ) : (
+                        'Hitung Biaya Pengiriman'
+                      )}
+                    </Button>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="p-4 rounded-lg bg-secondary">
+                        <div className="flex justify-between items-center mb-2">
+                          <p className="text-sm text-muted-foreground">Biaya Pengiriman</p>
+                          <Button variant="link" size="sm" className="h-auto p-0 text-primary" onClick={handleEditAddress}>
+                            <Pencil className="w-3 h-3 mr-1" />
+                            Edit Alamat
+                          </Button>
+                        </div>
+                        <p className="text-2xl font-bold text-center">
+                          {shippingCost.toLocaleString('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                          })}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          Jarak: {distanceInKm} km.
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {appliedRateDetails}
+                        </p>
+                      </div>
+                      <Button onClick={handlePlaceOrder} size="lg" className="w-full" disabled={isPlacingOrder}>
+                        {isPlacingOrder ? (
+                          <span className="animate-pulse-soft">Memproses...</span>
+                        ) : (
+                          'Konfirmasi & Tempatkan Pesanan'
+                        )}
+                      </Button>
+                    </div>
+                  )}
 
                   <p className="text-xs text-center text-muted-foreground">
-                    Dengan menempatkan pesanan ini, Anda menyetujui syarat dan ketentuan kami. 
-                    Detail pembayaran akan dikirim melalui WhatsApp/Email.
+                    Dengan menempatkan pesanan ini, Anda menyetujui syarat dan ketentuan kami.
                   </p>
                 </form>
               </CardContent>
@@ -379,28 +406,35 @@ export default function Checkout() {
 
                 {/* Price Breakdown */}
                 <div className="space-y-3 pt-4 border-t border-border">
-                                  <div className="flex justify-between text-sm">
-                                    <span className="text-muted-foreground">Subtotal</span>
-                                    <span className="font-medium">
-                                      {product.price.toLocaleString('id-ID', {
-                                        style: 'currency',
-                                        currency: 'IDR',
-                                        minimumFractionDigits: 0,
-                                        maximumFractionDigits: 0,
-                                      })}
-                                    </span>
-                                  </div>                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Pengiriman</span>
-                    <span className="font-medium">Dihitung nanti</span>
-                  </div>
-                  <div className="flex justify-between text-lg pt-3 border-t border-border">
-                    <span className="font-semibold">Total</span>
-                    <span className="font-display font-bold text-primary">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span className="font-medium">
                       {product.price.toLocaleString('id-ID', {
                         style: 'currency',
                         currency: 'IDR',
                         minimumFractionDigits: 0,
-                        maximumFractionDigits: 0,
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Pengiriman</span>
+                    <span className="font-medium">
+                      {shippingCost === null
+                        ? 'Menunggu...'
+                        : shippingCost.toLocaleString('id-ID', {
+                            style: 'currency',
+                            currency: 'IDR',
+                            minimumFractionDigits: 0,
+                          })}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-lg pt-3 border-t border-border">
+                    <span className="font-semibold">Total</span>
+                    <span className="font-display font-bold text-primary">
+                      {((product.price || 0) + (shippingCost || 0)).toLocaleString('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0,
                       })}
                     </span>
                   </div>

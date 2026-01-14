@@ -15,23 +15,33 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    const userCommissions = await db.collection('commissions').aggregate([
-      { $match: { affiliatorId } },
-      {
-        $lookup: {
-          from: 'orders',
-          localField: 'orderId',
-          foreignField: 'id',
-          as: 'order'
-        }
-      },
-      {
-        $unwind: {
-          path: '$order',
-          preserveNullAndEmptyArrays: true
-        }
-      }
-    ]).sort({ createdAt: -1 }).toArray();
+     const userCommissions = await db.collection('commissions').aggregate([
+       { $match: { affiliatorId } },
+       {
+         $addFields: {
+           orderIdObjectId: { $toObjectId: '$orderId' }
+         }
+       },
+       {
+         $lookup: {
+           from: 'orders',
+           localField: 'orderIdObjectId',
+           foreignField: '_id',
+           as: 'order'
+         }
+       },
+       {
+         $unwind: {
+           path: '$order',
+           preserveNullAndEmptyArrays: true
+         }
+       },
+       {
+         $project: {
+           orderIdObjectId: 0
+         }
+       }
+     ]).sort({ createdAt: -1 }).toArray();
 
     const formattedCommissions = userCommissions.map(commission => {
       return {

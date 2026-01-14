@@ -70,7 +70,7 @@ export async function getAffiliateLinkByAffiliatorProduct(affiliatorId: string, 
   await init();
   const affiliateLinksCollection = _db.collection<AffiliateLink>('affiliateLinks');
   return affiliateLinksCollection.findOne({ 
-    affiliatorId: new ObjectId(affiliatorId), 
-    productId: new ObjectId(productId) 
+    affiliatorId, 
+    productId 
   });
 }

@@ -15,7 +15,7 @@ const purge = async () => {
     await client.connect();
     const db = client.db();
 
-    const collectionsToPurge = ['users', 'products', 'orders', 'commissions', 'affiliateLinks'];
+    const collectionsToPurge = ['users', 'products', 'orders', 'commissions', 'affiliateLinks', 'withdrawals', 'settings'];
 
     for (const collectionName of collectionsToPurge) {
         try {

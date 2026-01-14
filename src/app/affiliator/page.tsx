@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Link as LinkIcon, 
@@ -40,8 +40,9 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { AffiliateLink, Commission, Order, OrderStatus } from '@/types';
+import { AffiliateLink, Commission, Order, OrderStatus, CommissionStatus } from '@/types';
 import { cn } from '@/lib/utils';
+import { Wallet } from 'lucide-react';
 
 interface AffiliatorStats {
   totalRevenue: number;
@@ -55,15 +56,24 @@ export default function AffiliatorDashboard() {
   const [affiliateLinks, setAffiliateLinks] = useState<AffiliateLink[]>([]);
   const [recentCommissions, setRecentCommissions] = useState<Commission[]>([]);
   const [recentOrders, setRecentOrders] = useState<Order[]>([]);
+  const [withdrawals, setWithdrawals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [chartData, setChartData] = useState([]);
   const [productKeys, setProductKeys] = useState<string[]>([]);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
-  const [dateRange, setDateRange] = useState<DateRange | undefined>({
-    from: startOfDay(new Date()),
-    to: new Date(),
-  });
-
+  const [activeTab, setActiveTab] = useState<'commissions' | 'withdrawals'>('commissions');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(() => ({ 
+    from: startOfDay(new Date()), 
+    to: new Date() 
+  }));
+  
+  const totalClicks = useMemo(() => {
+    return chartData.reduce((acc, item) => 
+      acc + Object.values(item).reduce((a: any, b: any) => 
+        typeof b === 'number' ? a + b : a, 0), 0
+    );
+  }, [chartData]);
+  
   const handleFilterClick = (filter: 'weekly' | 'monthly' | 'yearly') => {
     if (activeFilter === filter) {
       setActiveFilter(null);
@@ -78,16 +88,20 @@ export default function AffiliatorDashboard() {
     }
   };
 
-  const processChartData = (data: any[], links: AffiliateLink[]) => {
-    if (!data || !links) return;
+  const processChartData = useCallback((data: any[], links: AffiliateLink[]) => {
+    if (!data || !links || data.length === 0) {
+      setChartData([]);
+      setProductKeys([]);
+      return;
+    }
 
-    const linkMap = new Map(links.map(l => [l._id.toString(), l.product?.name || 'Unknown']));
-    const productNames = Array.from(new Set(links.map(l => l.product?.name || 'Unknown')));
+    // Use productName directly from API response
+    const productNames = Array.from(new Set(data.map(item => item.productName)));
     setProductKeys(productNames);
     
-    const pivotedData = data.reduce((acc, item) => {
+    const pivotedData = data.reduce((acc: Record<string, any>, item) => {
       const date = item.date;
-      const productName = linkMap.get(item.linkId.toString());
+      const productName = item.productName;
       
       if (!acc[date]) {
         acc[date] = { date };
@@ -95,37 +109,49 @@ export default function AffiliatorDashboard() {
           acc[date][name] = 0;
         });
       }
-      acc[date][productName] = item.clicks;
+      
+      acc[date][productName] = (acc[date][productName] || 0) + (item.clicks || 0);
       
       return acc;
     }, {});
 
-    setChartData(Object.values(pivotedData));
-  };
+    const result = Object.values(pivotedData);
+    setChartData(result);
+  }, []);
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchLinkPerformance = async () => {
       if (!user?.id || !dateRange?.from || !dateRange?.to || affiliateLinks.length === 0) {
         return;
       }
+      
       try {
         const response = await fetch(
           `/api/affiliator/link-performance?affiliatorId=${user.id}&startDate=${format(dateRange.from, 'yyyy-MM-dd')}&endDate=${format(dateRange.to, 'yyyy-MM-dd')}`
         );
+        
         if (response.ok) {
           const data = await response.json();
-          processChartData(data, affiliateLinks);
+          if (isMounted) {
+            processChartData(data, affiliateLinks);
+          }
         } else {
-          toast.error('Gagal memuat data chart.');
+          if (isMounted) toast.error('Gagal memuat data chart.');
         }
       } catch (error) {
         console.error('Gagal mengambil data chart:', error);
-        toast.error('Terjadi kesalahan saat memuat data chart.');
+        if (isMounted) toast.error('Terjadi kesalahan saat memuat data chart.');
       }
     };
 
-    if(affiliateLinks.length > 0) fetchLinkPerformance();
-  }, [user, dateRange, affiliateLinks]);
+    fetchLinkPerformance();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [user, dateRange, affiliateLinks, processChartData]);
 
   useEffect(() => {
     const fetchInitialData = async () => {
@@ -146,6 +172,7 @@ export default function AffiliatorDashboard() {
           }),
           fetch(`/api/affiliator/commissions?affiliatorId=${user.id}`),
           fetch(`/api/affiliator/customers?affiliatorId=${user.id}`),
+          fetch(`/api/affiliator/withdrawals?affiliatorId=${user.id}`),
         ]);
 
         if (
@@ -175,16 +202,19 @@ export default function AffiliatorDashboard() {
     fetchInitialData();
   }, [user]);
 
-  const getCommissionStatusBadge = (status: Commission["status"]) => {
-    const styles: Record<Commission["status"], string> = {
+  const getCommissionStatusBadge = (status: CommissionStatus) => {
+    const styles: Record<CommissionStatus, string> = {
       pending: "bg-accent/20 text-accent-foreground",
       approved: "bg-primary/20 text-primary",
       paid: "bg-success/20 text-success",
       cancelled: "bg-destructive/20 text-destructive",
+      withdrawn: "bg-warning/20 text-warning",
+      reserved: "bg-orange/20 text-orange-600",
+      processed: "bg-gray/20 text-gray-600",
     };
-    return styles[status] || "bg-gray-100 text-gray-800";
+    return styles[status];
   };
-  
+
   const getOrderStatusBadge = (status: OrderStatus) => {
     const styles: Record<OrderStatus, string> = {
       pending: "bg-accent/20 text-accent-foreground",
@@ -195,14 +225,16 @@ export default function AffiliatorDashboard() {
     return styles[status];
   };
 
-  const chartColors = [
-    "hsl(var(--primary))",
-    "hsl(var(--success))",
-    "hsl(var(--warning))",
-    "#8884d8",
-    "#82ca9d",
-    "#ffc658",
-  ];
+  const chartColors = useMemo(() => [
+    '#8884d8',
+    '#82ca9d',
+    '#ffc658',
+    '#ff7c7c',
+    '#8dd1e1',
+    '#d084d0',
+    '#ffb347',
+    '#67b7dc'
+  ], []);
   
   return (
     <div className="space-y-8">
@@ -255,7 +287,7 @@ export default function AffiliatorDashboard() {
             />
             <StatCard
               title="Total Klik (Rentang Tanggal)"
-              value={chartData.reduce((acc, item) => acc + Object.values(item).reduce((a: any, b: any) => (typeof b === 'number' ? a + b : a), 0), 0).toString()}
+              value={totalClicks.toString()}
               icon={BarChartIcon}
               delay={0.3}
             />
@@ -327,14 +359,19 @@ export default function AffiliatorDashboard() {
                 {loading ? (
                   <Skeleton className="h-72" />
                 ) : chartData.length > 0 ? (
-                  <div style={{ width: '100%' }}>
-                    <ResponsiveContainer width="100%" aspect={4 / 3}>
+                  <div style={{ width: '100%', height: '400px' }}>
+                    <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         data={chartData}
                         margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-                        <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="hsl(var(--foreground))" interval={0} />
+                        <XAxis 
+                          dataKey="date" 
+                          tick={{ fontSize: 12 }} 
+                          stroke="hsl(var(--foreground))" 
+                          interval={Math.floor(chartData.length / 10)}
+                        />
                         <YAxis allowDecimals={false} tick={{ fontSize: 12 }} stroke="hsl(var(--foreground))"/>
                         <Tooltip 
                           cursor={{ fill: 'hsl(var(--primary) / 0.1)' }}
@@ -351,6 +388,7 @@ export default function AffiliatorDashboard() {
                             dataKey={key} 
                             fill={chartColors[index % chartColors.length]} 
                             radius={[4, 4, 0, 0]}
+                            maxBarSize={50}
                           />
                         ))}
                       </BarChart>
@@ -364,70 +402,39 @@ export default function AffiliatorDashboard() {
           </motion.div>
         </div>
         <div className="lg:col-span-1 flex flex-col gap-6">
-            {/* Recent Commissions */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.5 }}
-            >
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle className="text-lg font-display flex items-center gap-2">
-                    <Landmark className="w-5 h-5 text-success" />
-                    Komisi Terbaru
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {loading ? (
-                    <div className="space-y-4">
-                      <Skeleton className="h-16" />
-                      <Skeleton className="h-16" />
-                      <Skeleton className="h-16" />
+            {/* Commission & Withdrawal Summary Cards */}
+            <div className="md:grid-cols-2 gap-6">
+              {/* Commission Summary */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.4 }}
+              >
+                <Card className="bg-gradient-to-r from-primary/10 to-success/10 border-primary/20 shadow-card">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-display flex items-center gap-2">
+                      <Landmark className="w-5 h-5 text-primary" />
+                      Total Komisi
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2">
+                    <div className="text-center">
+                      <p className="text-3xl font-display font-bold text-primary">
+                        {stats?.totalRevenue?.toLocaleString("id-ID", {
+                          style: "currency",
+                          currency: "IDR",
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        }) || "Rp0"}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Dari {stats?.totalOrders || 0} transaksi
+                      </p>
                     </div>
-                  ) : recentCommissions.length > 0 ? (
-                    <div className="space-y-2">
-                      {recentCommissions.map((commission) => (
-                        <div
-                          key={commission.id}
-                          className="flex items-center justify-between p-3 rounded-lg hover:bg-secondary transition-colors"
-                        >
-                          <div>
-                            <p className="font-medium text-foreground">
-                              {commission.productName}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {new Date(commission.date).toLocaleDateString()}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-semibold text-foreground">
-                              {commission.amount.toLocaleString("id-ID", {
-                                style: "currency",
-                                currency: "IDR",
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0,
-                              })}
-                            </p>
-                            <Badge
-                              variant="secondary"
-                              className={getCommissionStatusBadge(
-                                commission.status
-                              )}
-                            >
-                              {commission.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground text-center py-8">
-                      Belum ada komisi terbaru.
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </div>
             {/* Quick Tip */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -530,9 +537,9 @@ export default function AffiliatorDashboard() {
                 </TableBody>
               </Table>
             </CardContent>
-          </Card>
-        </motion.div>
-      </div>
-    </div>
-  );
+           </Card>
+         </motion.div>
+       </div>
+     </div>
+   );
 }

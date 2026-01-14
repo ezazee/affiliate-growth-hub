@@ -8,32 +8,40 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    const orders = await db.collection<Order>('orders').aggregate([
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'productId',
-          foreignField: 'id',
-          as: 'productInfo'
-        }
-      },
+     const orders = await db.collection<Order>('orders').aggregate([
+       {
+         $addFields: {
+           productIdObjectId: { $toObjectId: '$productId' }
+         }
+       },
+       {
+         $lookup: {
+           from: 'products',
+           localField: 'productIdObjectId',
+           foreignField: '_id',
+           as: 'productInfo'
+         }
+       },
       {
         $unwind: {
           path: '$productInfo',
           preserveNullAndEmptyArrays: true // Keep orders even if product not found
         }
       },
-      {
-        $addFields: {
-          productName: '$productInfo.name',
-          productPrice: '$productInfo.price'
-        }
-      },
-      {
-        $project: {
-          productInfo: 0
-        }
-      }
+       {
+         $addFields: {
+           productName: '$productInfo.name',
+           productPrice: '$productInfo.price',
+           commissionType: '$productInfo.commissionType',
+           commissionValue: '$productInfo.commissionValue'
+         }
+       },
+       {
+         $project: {
+           productInfo: 0,
+           productIdObjectId: 0
+         }
+       }
     ]).sort({ createdAt: -1 }).toArray();
 
     const formattedOrders = orders.map(order => ({
@@ -85,59 +93,77 @@ export async function PUT(req: NextRequest) {
 
     // If order is marked as paid, create the commission
     if (updatedOrder && status === 'paid') {
-      const product = await db.collection('products').findOne({ id: updatedOrder.productId });
+      // Check if commission already exists for this order
+      const existingCommission = await db.collection('commissions').findOne({ 
+        orderId: updatedOrder._id.toString() 
+      });
+      
+      if (!existingCommission) {
+        const product = await db.collection('products').findOne({ _id: new ObjectId(updatedOrder.productId) });
 
-      if (product) {
-        let commissionAmount = 0;
-        if (product.commissionType === 'percentage') {
-          commissionAmount = (product.price * product.commissionValue) / 100;
-        } else { // 'fixed'
-          commissionAmount = product.commissionValue;
+        if (product) {
+          let commissionAmount = 0;
+          if (product.commissionType === 'percentage') {
+            commissionAmount = (product.price * product.commissionValue) / 100;
+          } else { // 'fixed'
+            commissionAmount = product.commissionValue;
+          }
+
+          const commissionToInsert = {
+            affiliatorId: updatedOrder.affiliatorId,
+            affiliateName: updatedOrder.affiliateName,
+            orderId: updatedOrder._id.toString(),
+            productName: product.name,
+            amount: commissionAmount,
+            status: 'approved', // Auto-approved when order is paid
+            date: new Date(),
+            createdAt: new Date(),
+          };
+
+          const result = await db.collection('commissions').insertOne(commissionToInsert);
+
         }
+      } else {
 
-        const commissionToInsert = {
-          affiliatorId: updatedOrder.affiliatorId,
-          affiliateName: updatedOrder.affiliateName,
-          orderId: updatedOrder._id.toString(),
-          productName: product.name,
-          amount: commissionAmount,
-          status: 'approved', // Auto-approved when order is paid
-          date: new Date(),
-          createdAt: new Date(),
-        };
-
-        const result = await db.collection('commissions').insertOne(commissionToInsert);
       }
     }
 
     // Add product details to the returned order
     const finalOrder = await db.collection('orders').aggregate([
       { $match: { _id: new ObjectId(orderId) } }, // Match by ObjectId for the order document itself
-      {
-        $lookup: {
-          from: 'products',
-          localField: 'productId', // Use the string productId
-          foreignField: 'id',      // Join with the string 'id' field in products
-          as: 'productInfo'
-        }
-      },
-      {
-        $unwind: {
-          path: '$productInfo',
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $addFields: {
-          productName: '$productInfo.name',
-          productPrice: '$productInfo.price'
-        }
-      },
-      {
-        $project: {
-          productInfo: 0,
-        }
-      }
+       {
+         $addFields: {
+           productIdObjectId: { $toObjectId: '$productId' }
+         }
+       },
+       {
+         $lookup: {
+           from: 'products',
+           localField: 'productIdObjectId',
+           foreignField: '_id',
+           as: 'productInfo'
+         }
+       },
+       {
+         $unwind: {
+           path: '$productInfo',
+           preserveNullAndEmptyArrays: true // Keep orders even if product not found
+         }
+       },
+       {
+         $addFields: {
+           productName: '$productInfo.name',
+           productPrice: '$productInfo.price',
+           commissionType: '$productInfo.commissionType',
+           commissionValue: '$productInfo.commissionValue'
+         }
+       },
+       {
+         $project: {
+           productInfo: 0,
+           productIdObjectId: 0
+         }
+       }
     ]).next();
 
     if (!finalOrder) {
