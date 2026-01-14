@@ -1,13 +1,8 @@
 import { Metadata } from 'next';
 import CheckoutClient from './CheckoutClient';
-import {
-  getUserByReferralCode,
-  getAffiliateLinkByAffiliatorProduct,
-  getProductBySlug,
-} from '@/services/dataService';
 
 /* ===========================
-   STATIC PRODUCT MAP (OG SAFE)
+   STATIC PRODUCT MAP (OG ONLY)
 =========================== */
 
 const PRODUCT_MAP: Record<
@@ -19,22 +14,6 @@ const PRODUCT_MAP: Record<
     image: string;
   }
 > = {
-  'cica-b5-refreshing-toner': {
-    name: 'CICA-B5 Refreshing Toner',
-    description:
-      'Toner dengan CICA dan Vitamin B5 untuk menenangkan kulit, menjaga kelembapan, dan memperkuat skin barrier.',
-    price: 144000,
-    image:
-      'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/CICA-B5-REFRESHING.jpg',
-  },
-  'vit-c-tone-up-daycream-spf-50': {
-    name: 'Vit C Tone-Up Daycream SPF 50',
-    description:
-      'Day cream dengan Vitamin C dan SPF 50 untuk mencerahkan kulit sekaligus melindungi dari sinar UV.',
-    price: 144000,
-    image:
-      'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/600x750_VIT-C-TONE-UP--DAY-CREAM-SPF50.jpg',
-  },
   'honey-cleansing-gel': {
     name: 'Honey Cleansing Gel',
     description:
@@ -43,37 +22,21 @@ const PRODUCT_MAP: Record<
     image:
       'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/HONEY-CLEANSING-GEL.jpg',
   },
-  'pe-prebiotic-pore-ex-facial-pad': {
-    name: 'PE Prebiotic Pore-EX Facial Pad',
+  'cica-b5-refreshing-toner': {
+    name: 'CICA-B5 Refreshing Toner',
     description:
-      'Facial pad dengan prebiotic untuk membantu membersihkan pori dan menjaga keseimbangan mikrobioma kulit.',
+      'Toner dengan CICA dan Vitamin B5 untuk menenangkan kulit dan memperkuat skin barrier.',
     price: 144000,
     image:
-      'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/600x750_PREBIOTIC-PORE-EX.jpg',
+      'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/CICA-B5-REFRESHING.jpg',
   },
   'hydro-restorative-cream': {
     name: 'Hydro Restorative Cream',
     description:
-      'Moisturizer untuk membantu memperbaiki skin barrier dan menjaga hidrasi kulit sepanjang hari.',
+      'Moisturizer untuk membantu memperbaiki skin barrier dan menjaga hidrasi kulit.',
     price: 144000,
     image:
       'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/600x750_HYDRO-RESTORATIVE-CREAM.jpg',
-  },
-  'skin-awakening-glow-serum': {
-    name: 'Skin Awakening Glow Serum',
-    description:
-      'Serum pencerah yang membantu membuat kulit tampak lebih glowing dan sehat.',
-    price: 144000,
-    image:
-      'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/600x750_SKIN-AWAKENING-GLOW-SERUM.jpg',
-  },
-  'intimate-feminine-mousse-cleanser': {
-    name: 'Intimate Feminine Mousse Cleanser',
-    description:
-      'Pembersih area kewanitaan berbentuk mousse dengan formula lembut untuk penggunaan harian.',
-    price: 144000,
-    image:
-      'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/600x750_PREBIOTIC-FEMININE-MOUSSE-CLEANSER.jpg',
   },
 };
 
@@ -88,7 +51,7 @@ const getBaseUrl = () =>
     : 'http://localhost:3000');
 
 /* ===========================
-   Metadata
+   Metadata (OG SAFE)
 =========================== */
 
 export async function generateMetadata({
@@ -99,20 +62,16 @@ export async function generateMetadata({
   searchParams: { ref?: string };
 }): Promise<Metadata> {
   const baseUrl = getBaseUrl();
-  const refCode = searchParams.ref;
+  const product = PRODUCT_MAP[params.productSlug];
 
-  const productOG = PRODUCT_MAP[params.productSlug];
-
-  /* ===========================
-     RULE KAMU: TANPA REF = INVALID
-  =========================== */
-  if (!refCode || !productOG) {
+  // ❌ Tanpa ref atau produk tidak ada → invalid
+  if (!searchParams.ref || !product) {
     return {
       title: 'Link Checkout Tidak Valid',
-      description: 'Link checkout tidak valid atau sudah kedaluwarsa.',
+      description: 'Link checkout tidak valid atau tidak lengkap.',
       openGraph: {
         title: 'Link Checkout Tidak Valid',
-        description: 'Link checkout tidak valid atau sudah kedaluwarsa.',
+        description: 'Link checkout tidak valid atau tidak lengkap.',
         images: [
           {
             url: `${baseUrl}/Logo.png`,
@@ -124,48 +83,11 @@ export async function generateMetadata({
     };
   }
 
-  /* ===========================
-     VALIDASI AFFILIATOR
-  =========================== */
-  const affiliator = await getUserByReferralCode(refCode);
-  if (!affiliator) {
-    return {
-      title: 'Link Checkout Tidak Valid',
-      description: 'Link checkout tidak valid.',
-    };
-  }
-
-  /* ===========================
-     🔥 FIX UTAMA: AMBIL PRODUCT ID
-  =========================== */
-  const productFromDb = await getProductBySlug(params.productSlug);
-  if (!productFromDb) {
-    return {
-      title: 'Link Checkout Tidak Valid',
-      description: 'Produk tidak ditemukan.',
-    };
-  }
-
-  const affiliateLink = await getAffiliateLinkByAffiliatorProduct(
-    affiliator.id,
-    productFromDb.id
-  );
-
-  if (!affiliateLink || !affiliateLink.isActive) {
-    return {
-      title: 'Link Checkout Tidak Valid',
-      description: 'Link checkout tidak aktif.',
-    };
-  }
-
-  /* ===========================
-     VALID METADATA
-  =========================== */
-
-  const title = `${productOG.name} - Rekomendasi ${affiliator.name}`;
-  const description = `Beli ${productOG.name} hanya Rp ${productOG.price.toLocaleString(
+  // ✅ DENGAN REF → LANGSUNG OG PRODUK (TANPA DB)
+  const title = `${product.name} - Checkout Resmi PE Skinpro`;
+  const description = `Beli ${product.name} hanya Rp ${product.price.toLocaleString(
     'id-ID'
-  )}. ${productOG.description} ✨ Original PE Skinpro`;
+  )}. ${product.description} ✨ Original PE Skinpro`;
 
   return {
     title,
@@ -174,13 +96,13 @@ export async function generateMetadata({
       title,
       description,
       type: 'website',
-      url: `${baseUrl}/checkout/${params.productSlug}?ref=${refCode}`,
+      url: `${baseUrl}/checkout/${params.productSlug}?ref=${searchParams.ref}`,
       images: [
         {
-          url: productOG.image,
+          url: product.image,
           width: 1200,
           height: 630,
-          alt: productOG.name,
+          alt: product.name,
         },
       ],
     },
@@ -188,7 +110,7 @@ export async function generateMetadata({
       card: 'summary_large_image',
       title,
       description,
-      images: [productOG.image],
+      images: [product.image],
     },
   };
 }
