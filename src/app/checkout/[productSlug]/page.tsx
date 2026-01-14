@@ -5,48 +5,18 @@ import { Metadata } from 'next';
 import CheckoutClient from './CheckoutClient';
 
 /* ===========================
-   STATIC PRODUCT MAP (OG SAFE)
-=========================== */
-
-const PRODUCT_MAP: Record<
-  string,
-  {
-    name: string;
-    description: string;
-    price: number;
-    image: string;
-  }
-> = {
-  'honey-cleansing-gel': {
-    name: 'Honey Cleansing Gel',
-    description:
-      'Facial cleanser berbahan madu untuk membersihkan wajah dengan lembut tanpa membuat kulit kering.',
-    price: 144000,
-    image:
-      'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/HONEY-CLEANSING-GEL.jpg',
-  },
-  'hydro-restorative-cream': {
-    name: 'Hydro Restorative Cream',
-    description:
-      'Moisturizer untuk membantu memperbaiki skin barrier dan menjaga hidrasi kulit.',
-    price: 144000,
-    image:
-      'https://blsfkizrchqzahqa.public.blob.vercel-storage.com/600x750_HYDRO-RESTORATIVE-CREAM.jpg',
-  },
-};
-
-/* ===========================
    Utils
 =========================== */
 
-const getBaseUrl = () =>
-  process.env.NEXTAUTH_URL ||
-  (process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : 'http://localhost:3000');
+const getBaseUrl = () => {
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return 'http://localhost:3000';
+};
 
 /* ===========================
-   Metadata (NO DB, NO CACHE)
+   Metadata
 =========================== */
 
 export async function generateMetadata({
@@ -57,10 +27,9 @@ export async function generateMetadata({
   searchParams: { ref?: string };
 }): Promise<Metadata> {
   const baseUrl = getBaseUrl();
-  const product = PRODUCT_MAP[params.productSlug];
 
   // ❌ TANPA REF = INVALID (RULE KAMU)
-  if (!searchParams.ref || !product) {
+  if (!searchParams.ref) {
     return {
       title: 'Link Checkout Tidak Valid',
       description: 'Link checkout tidak valid atau tidak lengkap.',
@@ -78,36 +47,67 @@ export async function generateMetadata({
     };
   }
 
-  // ✅ DENGAN REF = OG PRODUK
-  const title = `${product.name} - Checkout Resmi PE Skinpro`;
-  const description = `Beli ${product.name} hanya Rp ${product.price.toLocaleString(
-    'id-ID'
-  )}. ${product.description} ✨ Original PE Skinpro`;
+  try {
+    const response = await fetch(
+      `${baseUrl}/api/checkout/${params.productSlug}?ref=${searchParams.ref}`,
+      {
+        cache: 'no-store',
+      }
+    );
 
-  return {
-    title,
-    description,
-    openGraph: {
+    if (!response.ok) {
+      throw new Error('API not ok');
+    }
+
+    const data = await response.json();
+    const { product, affiliator } = data;
+
+    // HARD SAFETY
+    if (!product || !affiliator) {
+      throw new Error('Invalid API data');
+    }
+
+    const title = `${product.name} - Rekomendasi ${affiliator.name}`;
+    const description = `Beli ${product.name} hanya Rp ${product.price.toLocaleString(
+      'id-ID'
+    )}. ${product.description}`;
+
+    return {
       title,
       description,
-      type: 'website',
-      url: `${baseUrl}/checkout/${params.productSlug}?ref=${searchParams.ref}`,
-      images: [
-        {
-          url: product.image,
-          width: 1200,
-          height: 630,
-          alt: product.name,
-        },
-      ],
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [product.image],
-    },
-  };
+      openGraph: {
+        title,
+        description,
+        type: 'website',
+        url: `${baseUrl}/checkout/${params.productSlug}?ref=${searchParams.ref}`,
+        images: [
+          {
+            url: product.imageUrl.endsWith('.jpg')
+              ? product.imageUrl
+              : `${product.imageUrl}.jpg`,
+            width: 1200,
+            height: 630,
+            alt: product.name,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [
+          product.imageUrl.endsWith('.jpg')
+            ? product.imageUrl
+            : `${product.imageUrl}.jpg`,
+        ],
+      },
+    };
+  } catch (err) {
+    return {
+      title: 'Checkout Produk - PE Skinpro',
+      description: 'Selesaikan pembelian produk PE Skinpro Anda',
+    };
+  }
 }
 
 /* ===========================
