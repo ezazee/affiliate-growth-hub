@@ -11,6 +11,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string, phone: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean; // Add loading state
+  isLoggingOut: boolean; // Add logout loading state
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +26,7 @@ const processUser = (user: any): User => {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true); // Initialize loading state
+  const [isLoggingOut, setIsLoggingOut] = useState(false); // Add logout loading state
   const router = useRouter();
   const pathname = usePathname();
 
@@ -167,21 +169,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    setLoading(true);
+    setIsLoggingOut(true);
     try {
+      // Call logout API (for logging purposes)
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (error) {
-
+      console.error('Logout error:', error);
     } finally {
+      // Clear user state and local storage
       setUser(null);
       localStorage.removeItem('affiliate_user_session');
-      setLoading(false);
-
+      setIsLoggingOut(false);
+      
+      // Redirect to home page and refresh to clear any cached state
+      window.location.href = '/';
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout, loading }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout, loading, isLoggingOut }}>
       {children}
     </AuthContext.Provider>
   );

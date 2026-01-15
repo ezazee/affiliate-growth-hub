@@ -4,10 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { AddressAutocompleteInput } from '@/components/ui/address-autocomplete-input';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, Upload, Image, Link as LinkIcon, Mail, Phone, Instagram, ShoppingBag, MessageCircle, Globe } from 'lucide-react';
 
 export default function SettingsPage() {
   const [address, setAddress] = useState('');
@@ -20,11 +21,29 @@ export default function SettingsPage() {
     long_flat_rate: 50000,
   });
 
+  // Landing Page Settings
+  const [landingPageSettings, setLandingPageSettings] = useState({
+    aboutTitle: '',
+    aboutDescription: '',
+    aboutImage: '',
+    heroTitle: '',
+    heroDescription: '',
+    instagramUrl: '',
+    tiktokUrl: '',
+    shopeeUrl: '',
+    websiteUrl: '',
+    whatsappNumber: '',
+    email: '',
+    footerDescription: '',
+  });
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSavingAddress, setIsSavingAddress] = useState(false);
   const [isSavingWhatsApp, setIsSavingWhatsApp] = useState(false);
   const [isSavingWithdrawal, setIsSavingWithdrawal] = useState(false);
   const [isSavingRates, setIsSavingRates] = useState(false);
+  const [isSavingLandingPage, setIsSavingLandingPage] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   useEffect(() => {
     const fetchSettings = async () => {
@@ -55,6 +74,30 @@ export default function SettingsPage() {
           long_rate: data.long_rate || 1000,
           long_flat_rate: data.long_flat_rate || 50000,
         });
+
+        // Landing Page Settings
+        try {
+          const landingResponse = await fetch('/api/admin/landing-settings');
+          if (landingResponse.ok) {
+            const landingData = await landingResponse.json();
+            setLandingPageSettings({
+              aboutTitle: landingData.aboutTitle || '',
+              aboutDescription: landingData.aboutDescription || '',
+              aboutImage: landingData.aboutImage || '',
+              heroTitle: landingData.heroTitle || '',
+              heroDescription: landingData.heroDescription || '',
+              instagramUrl: landingData.instagramUrl || 'https://www.instagram.com/peskinproid',
+              tiktokUrl: landingData.tiktokUrl || 'https://www.tiktok.com/@peskinproid',
+              shopeeUrl: landingData.shopeeUrl || 'https://shopee.co.id/peskinpro_id',
+              websiteUrl: landingData.websiteUrl || 'https://peskinpro.id',
+              whatsappNumber: landingData.whatsappNumber || '0821-2316-7895',
+              email: landingData.email || 'adm.peskinproid@gmail.com',
+              footerDescription: landingData.footerDescription || 'Program affiliate resmi PE Skinpro. Dapatkan komisi menarik dari setiap penjualan produk skincare berkualitas.',
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching landing page settings:', error);
+        }
       } catch (error) {
         console.error('Settings fetch error:', error);
         toast.error('Gagal memuat pengaturan karena kesalahan jaringan.');
@@ -239,6 +282,88 @@ export default function SettingsPage() {
     setShippingRates(prev => ({ ...prev, [name]: value }));
   };
 
+  // Landing Page Settings Handlers
+  const handleLandingPageChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setLandingPageSettings(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('File harus berupa gambar');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Ukuran gambar maksimal 5MB');
+      return;
+    }
+
+    setIsUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.error || 'Gagal mengupload gambar');
+        return;
+      }
+
+      const data = await response.json();
+      setLandingPageSettings(prev => ({ ...prev, aboutImage: data.url }));
+      toast.success('Gambar berhasil diupload');
+    } catch (error) {
+      console.error('Image upload error:', error);
+      toast.error('Gagal mengupload gambar');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
+
+  const handleSaveLandingPage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSavingLandingPage(true);
+
+    try {
+      const response = await fetch('/api/admin/landing-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(landingPageSettings),
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Gagal memperbarui pengaturan landing page.';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          errorMessage = `Server error: ${response.status} ${response.statusText}`;
+        }
+        toast.error(errorMessage);
+        return;
+      }
+
+      const data = await response.json();
+      toast.success('Pengaturan landing page berhasil diperbarui.');
+    } catch (error) {
+      console.error('Landing page save error:', error);
+      toast.error('Gagal memperbarui pengaturan landing page.');
+    } finally {
+      setIsSavingLandingPage(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -397,6 +522,225 @@ export default function SettingsPage() {
                 </div>
                 <Button type="submit" disabled={isSavingRates}>
                   {isSavingRates ? 'Menyimpan...' : 'Simpan Biaya Pengiriman'}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Landing Page Settings */}
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Upload className="w-5 h-5" />
+                Pengaturan Landing Page
+              </CardTitle>
+              <CardDescription>
+                Kelola konten dan tampilan landing page affiliate
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSaveLandingPage} className="space-y-8">
+                {/* Hero Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Hero Section</h3>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="heroTitle">Judul Hero</Label>
+                      <Input
+                        id="heroTitle"
+                        name="heroTitle"
+                        value={landingPageSettings.heroTitle}
+                        onChange={handleLandingPageChange}
+                        placeholder="Dapatkan Penghasilan Hingga 10%"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="heroDescription">Deskripsi Hero</Label>
+                      <Textarea
+                        id="heroDescription"
+                        name="heroDescription"
+                        value={landingPageSettings.heroDescription}
+                        onChange={handleLandingPageChange}
+                        placeholder="Bergabunglah dengan program affiliate PE Skinpro dan dapatkan komisi menarik..."
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* About Section */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Tentang Kami</h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="aboutTitle">Judul Tentang Kami</Label>
+                      <Input
+                        id="aboutTitle"
+                        name="aboutTitle"
+                        value={landingPageSettings.aboutTitle}
+                        onChange={handleLandingPageChange}
+                        placeholder="Tentang PE Skinpro"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="aboutDescription">Deskripsi Tentang Kami</Label>
+                      <Textarea
+                        id="aboutDescription"
+                        name="aboutDescription"
+                        value={landingPageSettings.aboutDescription}
+                        onChange={handleLandingPageChange}
+                        placeholder="PE Skin Professional didirikan pada satu dekade yang lalu..."
+                        rows={4}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="aboutImage">Gambar Tentang Kami</Label>
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1">
+                          <Input
+                            id="aboutImage"
+                            name="aboutImage"
+                            value={landingPageSettings.aboutImage}
+                            onChange={handleLandingPageChange}
+                            placeholder="https://example.com/image.jpg"
+                            className="font-mono text-sm"
+                          />
+                        </div>
+                        <div className="relative">
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            disabled={isUploadingImage}
+                          />
+                          <Button type="button" variant="outline" disabled={isUploadingImage}>
+                            <Image className="w-4 h-4 mr-2" />
+                            {isUploadingImage ? 'Mengupload...' : 'Upload'}
+                          </Button>
+                        </div>
+                      </div>
+                      {landingPageSettings.aboutImage && (
+                        <div className="mt-2">
+                          <img 
+                            src={landingPageSettings.aboutImage} 
+                            alt="About" 
+                            className="h-20 w-20 object-cover rounded border"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Contact & Social Media */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Kontak & Media Sosial</h3>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="instagramUrl" className="flex items-center gap-2">
+                        <Instagram className="w-4 h-4" />
+                        Instagram URL
+                      </Label>
+                      <Input
+                        id="instagramUrl"
+                        name="instagramUrl"
+                        value={landingPageSettings.instagramUrl}
+                        onChange={handleLandingPageChange}
+                        placeholder="https://www.instagram.com/peskinproid"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="tiktokUrl" className="flex items-center gap-2">
+                        <MessageCircle className="w-4 h-4" />
+                        TikTok URL
+                      </Label>
+                      <Input
+                        id="tiktokUrl"
+                        name="tiktokUrl"
+                        value={landingPageSettings.tiktokUrl}
+                        onChange={handleLandingPageChange}
+                        placeholder="https://www.tiktok.com/@peskinproid"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="shopeeUrl" className="flex items-center gap-2">
+                        <ShoppingBag className="w-4 h-4" />
+                        Shopee URL
+                      </Label>
+                      <Input
+                        id="shopeeUrl"
+                        name="shopeeUrl"
+                        value={landingPageSettings.shopeeUrl}
+                        onChange={handleLandingPageChange}
+                        placeholder="https://shopee.co.id/peskinpro_id"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="websiteUrl" className="flex items-center gap-2">
+                        <Globe className="w-4 h-4" />
+                        Website URL
+                      </Label>
+                      <Input
+                        id="websiteUrl"
+                        name="websiteUrl"
+                        value={landingPageSettings.websiteUrl}
+                        onChange={handleLandingPageChange}
+                        placeholder="https://peskinpro.id"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="whatsappNumber" className="flex items-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        Nomor WhatsApp
+                      </Label>
+                      <Input
+                        id="whatsappNumber"
+                        name="whatsappNumber"
+                        value={landingPageSettings.whatsappNumber}
+                        onChange={handleLandingPageChange}
+                        placeholder="0821-2316-7895"
+                      />
+                    </div>
+                    <div className="space-y-2 md:col-span-3">
+                      <Label htmlFor="email" className="flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        Email
+                      </Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        value={landingPageSettings.email}
+                        onChange={handleLandingPageChange}
+                        placeholder="adm.peskinproid@gmail.com"
+                        className="md:max-w-md"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Description */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Footer Description</h3>
+                  <div className="space-y-2">
+                    <Label htmlFor="footerDescription">Deskripsi Footer</Label>
+                    <Textarea
+                      id="footerDescription"
+                      name="footerDescription"
+                      value={landingPageSettings.footerDescription}
+                      onChange={handleLandingPageChange}
+                      placeholder="Program affiliate resmi PE Skinpro. Dapatkan komisi menarik dari setiap penjualan produk skincare berkualitas."
+                      rows={2}
+                    />
+                  </div>
+                </div>
+
+                <Button type="submit" disabled={isSavingLandingPage} className="w-full md:w-auto">
+                  {isSavingLandingPage ? 'Menyimpan...' : 'Simpan Pengaturan Landing Page'}
                 </Button>
               </form>
             </CardContent>

@@ -38,12 +38,12 @@ export default function Login() {
           router.push('/waiting-approval');
         }
         
-        toast.success('Welcome back!');
+        toast.success('Selamat datang kembali!');
       } else {
-        toast.error('Invalid email or password');
+        toast.error('Email atau password salah');
       }
     } catch {
-      toast.error('Something went wrong');
+      toast.error('Terjadi kesalahan');
     } finally {
       setIsLoading(false);
     }
@@ -68,10 +68,10 @@ export default function Login() {
           </Link>
 
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-            Welcome back
+            Selamat datang kembali
           </h1>
           <p className="text-muted-foreground mb-8">
-            Enter your credentials to access your dashboard
+            Masukkan kredensial Anda untuk mengakses dashboard
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -92,7 +92,7 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Kata Sandi</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -116,10 +116,10 @@ export default function Login() {
 
             <Button type="submit" size="lg" className="w-full" disabled={isLoading}>
               {isLoading ? (
-                <span className="animate-pulse-soft">Signing in...</span>
+                <span className="animate-pulse-soft">Masuk...</span>
               ) : (
                 <>
-                  Sign in
+                  Masuk
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               )}
@@ -127,15 +127,15 @@ export default function Login() {
           </form>
 
           <p className="mt-8 text-center text-muted-foreground">
-            Don't have an account?{' '}
+            Belum punya akun?{' '}
             <Link href="/register" className="text-primary font-medium hover:underline">
-              Register as Affiliator
+              Daftar sebagai Affiliator
             </Link>
           </p>
 
           {/* Demo Credentials */}
           <div className="mt-8 p-4 rounded-lg bg-secondary border border-border">
-            <p className="text-sm font-medium text-foreground mb-2">Demo Credentials:</p>
+            <p className="text-sm font-medium text-foreground mb-2">Kredensial Demo:</p>
             <p className="text-xs text-muted-foreground">Admin: admin@example.com / admin123</p>
             <p className="text-xs text-muted-foreground">Affiliator: john@example.com / john123</p>
           </div>
@@ -154,10 +154,10 @@ export default function Login() {
             <ArrowRight className="w-12 h-12" />
           </div>
           <h2 className="text-4xl font-display font-bold mb-4">
-            Grow Your Income
+            Tingkatkan Penghasilan Anda
           </h2>
           <p className="text-lg text-primary-foreground/80 max-w-md">
-            Join our affiliate program and earn commissions by promoting products you love.
+            Bergabunglah dengan program afiliasi kami dan dapatkan komisi dengan mempromosikan produk yang Anda sukai.
           </p>
         </motion.div>
       </div>

@@ -29,23 +29,23 @@ export default function Register() {
       const success = await register(name, email, password, phone);
       
       if (success) {
-        toast.success('Registration successful!');
+        toast.success('Pendaftaran berhasil!');
         router.push('/waiting-approval');
       } else {
-        toast.error('Email already exists');
+        toast.error('Email sudah terdaftar');
       }
     } catch {
-      toast.error('Something went wrong');
+      toast.error('Terjadi kesalahan');
     } finally {
       setIsLoading(false);
     }
   };
 
   const benefits = [
-    'Earn commissions on every sale',
-    'Track your earnings in real-time',
-    'Get paid monthly',
-    'Access to exclusive promotions',
+    'Dapatkan komisi dari setiap penjualan',
+    'Lacak penghasilan Anda secara real-time',
+    'Dibayar setiap bulan',
+    'Akses ke promosi eksklusif',
   ];
 
   return (
@@ -59,10 +59,10 @@ export default function Register() {
           className="text-primary-foreground max-w-md"
         >
           <h2 className="text-4xl font-display font-bold mb-6">
-            Become an Affiliator
+            Menjadi Affiliator
           </h2>
           <p className="text-lg text-primary-foreground/80 mb-8">
-            Join thousands of successful affiliators earning passive income.
+            Bergabunglah dengan ribuan affiliator sukses yang menghasilkan penghasilan pasif.
           </p>
           <ul className="space-y-4">
             {benefits.map((benefit, index) => (
@@ -98,15 +98,15 @@ export default function Register() {
           </Link>
 
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
-            Create your account
+            Buat akun Anda
           </h1>
           <p className="text-muted-foreground mb-8">
-            Register to become an affiliator and start earning
+            Daftar untuk menjadi affiliator dan mulai menghasilkan
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Full Name</Label>
+              <Label htmlFor="name">Nama Lengkap</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -138,7 +138,7 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">Nomor Telepon</Label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -154,7 +154,7 @@ export default function Register() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Kata Sandi</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
@@ -179,10 +179,10 @@ export default function Register() {
 
             <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
               {isLoading ? (
-                <span className="animate-pulse-soft">Creating account...</span>
+                <span className="animate-pulse-soft">Membuat akun...</span>
               ) : (
                 <>
-                  Create Account
+                  Buat Akun
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </>
               )}
@@ -190,9 +190,9 @@ export default function Register() {
           </form>
 
           <p className="mt-8 text-center text-muted-foreground">
-            Already have an account?{' '}
+            Sudah punya akun?{' '}
             <Link href="/login" className="text-primary font-medium hover:underline">
-              Sign in
+              Masuk
             </Link>
           </p>
         </motion.div>

@@ -183,7 +183,7 @@ Terima kasih.`;
           </div>
           
           <div className="p-4 border rounded-lg bg-white">
-            <Image src="/qris.jpeg" alt="QRIS Payment Code" width={300} height={300} priority />
+            <Image src="https://blsfkizrchqzahqa.public.blob.vercel-storage.com/qris.jpeg" alt="QRIS Payment Code" width={300} height={300} priority />
           </div>
 
           <div className="w-full text-left mt-6 space-y-2 text-sm">

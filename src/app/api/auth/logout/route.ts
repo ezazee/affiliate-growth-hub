@@ -2,10 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(req: NextRequest) {
   try {
-    // In a real application, you would invalidate the user's session here.
-    // For this mock implementation, we just return a success message.
-    return NextResponse.json({ message: 'Logout successful' });
+    // For stateless authentication like this app, 
+    // the actual logout is handled client-side by clearing localStorage
+    // This endpoint is mainly for logging purposes
+    console.log('User logged out at:', new Date().toISOString());
+    
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Logout successful' 
+    });
   } catch (error) {
-    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
+    console.error('Logout API error:', error);
+    return NextResponse.json({ 
+      error: 'Something went wrong' 
+    }, { status: 500 });
   }
 }
