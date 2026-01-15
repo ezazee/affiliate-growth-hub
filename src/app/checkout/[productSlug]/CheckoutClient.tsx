@@ -27,12 +27,15 @@ const Logo = () => (
     </div>
   );
 
-export default function CheckoutClient() {
+export default function CheckoutClient({ productSlug: propProductSlug, referralCode: propReferralCode }: { 
+  productSlug?: string; 
+  referralCode?: string; 
+}) {
   const params = useParams();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const productSlug = params.productSlug as string;
-  const refCode = searchParams.get('ref');
+  const productSlug = propProductSlug || (params.productSlug as string);
+  const refCode = propReferralCode || searchParams.get('ref');
 
   const [product, setProduct] = useState<Product | null>(null);
   const [affiliateLink, setAffiliateLink] = useState<AffiliateLink | null>(null);

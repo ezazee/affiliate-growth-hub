@@ -73,7 +73,6 @@ export default function Index() {
 
         if (settingsResponse.ok) {
           const settingsData = await settingsResponse.json();
-          console.log('Landing settings loaded:', settingsData);
         setLandingSettings(settingsData);
       } else {
         console.error('Failed to fetch landing settings');

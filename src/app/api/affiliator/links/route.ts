@@ -15,6 +15,17 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
     
+    // Check if affiliator is approved
+    const affiliator = await db.collection('users').findOne({ _id: new ObjectId(affiliatorId) });
+    if (!affiliator) {
+      return NextResponse.json({ error: 'Affiliator not found' }, { status: 404 });
+    }
+    
+    if (affiliator.status !== 'approved') {
+      // Return empty array for non-approved affiliators
+      return NextResponse.json([]);
+    }
+    
     const matchQuery = affiliatorId === 'all' ? {} : { affiliatorId };
 
     const userLinksRaw = await db.collection<AffiliateLink>('affiliateLinks').find(matchQuery).toArray();
@@ -50,6 +61,16 @@ export async function POST(req: NextRequest) {
 
     const client = await clientPromise;
     const db = client.db();
+    
+    // Check if affiliator is approved
+    const affiliator = await db.collection('users').findOne({ _id: new ObjectId(affiliatorId) });
+    if (!affiliator) {
+      return NextResponse.json({ error: 'Affiliator not found' }, { status: 404 });
+    }
+    
+    if (affiliator.status !== 'approved') {
+      return NextResponse.json({ error: 'Affiliator account is not approved yet' }, { status: 403 });
+    }
     
     const affiliateLinksCollection = db.collection('affiliateLinks');
     

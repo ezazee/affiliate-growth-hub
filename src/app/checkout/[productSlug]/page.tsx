@@ -3,12 +3,14 @@ import CheckoutClient from './CheckoutClient';
 
 // Generate dynamic metadata for SEO and social sharing
 export async function generateMetadata({ params, searchParams }: { 
-  params: { productSlug: string }; 
-  searchParams: { ref?: string } 
+  params: Promise<{ productSlug: string }>; 
+  searchParams: Promise<{ ref?: string }> 
 }): Promise<Metadata> {
   try {
+    const { productSlug } = await params;
+    const { ref } = await searchParams;
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/checkout/${params.productSlug}?ref=${searchParams.ref}`, {
+    const response = await fetch(`${baseUrl}/api/checkout/${productSlug}?ref=${ref}`, {
       cache: 'no-store'
     });
     
@@ -39,7 +41,7 @@ export async function generateMetadata({ params, searchParams }: {
           }
         ] : [],
         type: 'website',
-        url: `${baseUrl}/checkout/${params.productSlug}?ref=${searchParams.ref}`,
+        url: `${baseUrl}/checkout/${productSlug}?ref=${ref}`,
       },
       twitter: {
         card: 'summary_large_image',
@@ -57,6 +59,12 @@ export async function generateMetadata({ params, searchParams }: {
   }
 }
 
-export default function CheckoutPage() {
-  return <CheckoutClient />;
+export default async function CheckoutPage({ params, searchParams }: {
+  params: Promise<{ productSlug: string }>;
+  searchParams: Promise<{ ref?: string }>;
+}) {
+  const { productSlug } = await params;
+  const { ref } = await searchParams;
+  
+  return <CheckoutClient productSlug={productSlug} referralCode={ref} />;
 }

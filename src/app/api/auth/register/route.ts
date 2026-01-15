@@ -50,22 +50,8 @@ export async function POST(req: NextRequest) {
     const result = await db.collection('users').insertOne(userToInsert);
     const createdUser: User = { ...userToInsert, _id: result.insertedId, id: result.insertedId.toString() };
 
-    // If the new user is an affiliator, create affiliate links for all products
-    if (createdUser.role === 'affiliator') {
-      const products = await db.collection<Product>('products').find({}).toArray();
-      const newAffiliateLinks: Omit<AffiliateLink, '_id'>[] = products.map(product => ({
-        affiliatorId: createdUser._id.toString(),
-        productId: product._id.toString(),
-        linkCode: generateLinkCode(product.name, createdUser.name),
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }));
-
-      if (newAffiliateLinks.length > 0) {
-        await db.collection('affiliateLinks').insertMany(newAffiliateLinks);
-      }
-    }
+    // Note: Affiliate links will be created when admin approves the user
+    // This prevents affiliates from having links before approval
 
     return NextResponse.json({ user: createdUser });
   } catch (error) {
