@@ -7,7 +7,7 @@ export async function GET(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db();
 
-    // Fetch only active products for public landing page
+    // Fetch only active products for public landing page with performance optimizations
     const products = await db.collection<Product>('products')
       .find({ isActive: true })
       .project({
@@ -20,10 +20,11 @@ export async function GET(req: NextRequest) {
         commissionValue: 1,
         isActive: 1
       })
-      .sort({ createdAt: 1 })
+      .limit(20) // Limit products for performance
+      .sort({ createdAt: -1 }) // Show newest first
       .toArray();
 
-    // Map _id to id and format the response
+    // Map _id to id and format response
     const productsWithId = products.map((p) => ({
       id: p._id?.toString(),
       name: p.name,
@@ -36,7 +37,11 @@ export async function GET(req: NextRequest) {
       isActive: p.isActive
     }));
 
-    return NextResponse.json(productsWithId);
+    return NextResponse.json(productsWithId, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400'
+      }
+    });
   } catch (error) {
     console.error('Error fetching public products:', error);
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });

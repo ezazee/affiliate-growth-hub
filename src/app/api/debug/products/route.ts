@@ -21,11 +21,8 @@ export async function GET() {
       })
       .toArray();
 
-    console.log('Raw products from DB:', JSON.stringify(products, null, 2));
-
     // Map _id to id and format response
     const productsWithId = products.map((p) => {
-      console.log(`Product: ${p.name}, Commission: ${p.commissionValue} (type: ${typeof p.commissionValue})`);
       return {
         id: p._id?.toString(),
         name: p.name,

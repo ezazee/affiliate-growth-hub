@@ -20,30 +20,25 @@ const purge = async () => {
     for (const collectionName of collectionsToPurge) {
         try {
             await db.collection(collectionName).deleteMany({});
-            console.log(`🧹 Purged collection: ${collectionName}`);
         } catch (e) {
             if (e.codeName === 'NamespaceNotFound') {
-                console.log(`- Collection not found, skipping: ${collectionName}`);
+                // Collection doesn't exist, skip
             } else {
                 throw e;
             }
         }
     }
 
-    // Also drop the incorrect collection if it exists
+    // Also drop incorrect collection if it exists
     try {
         await db.dropCollection('affiliatelinks');
-        console.log(`🧹 Dropped incorrect collection: affiliatelinks`);
     } catch(e) {
         if (e.codeName === 'NamespaceNotFound') {
-            console.log(`- Incorrect collection not found, skipping: affiliatelinks`);
+            // Collection doesn't exist, skip
         } else {
             throw e;
         }
     }
-    
-
-    console.log('\n✅ Database purge complete.');
   } catch (error) {
     console.error('❌ An error occurred during the purge:', error);
   } finally {

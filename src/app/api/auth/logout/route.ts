@@ -5,7 +5,6 @@ export async function POST(req: NextRequest) {
     // For stateless authentication like this app, 
     // the actual logout is handled client-side by clearing localStorage
     // This endpoint is mainly for logging purposes
-    console.log('User logged out at:', new Date().toISOString());
     
     return NextResponse.json({ 
       success: true, 

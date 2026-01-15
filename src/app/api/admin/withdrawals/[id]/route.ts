@@ -56,8 +56,7 @@ export async function PUT(
           { $set: { status: 'withdrawn' } }
         );
       }
-      console.log(`Withdrawal ${id} approved, ${reservedCommissions.length} commissions marked as withdrawn`);
-      
+       
     } else if (status === 'rejected') {
       // Kembalikan saldo
       for (const reserved of reservedCommissions) {
@@ -70,19 +69,9 @@ export async function PUT(
             { _id: new ObjectId(reserved.parentCommissionId) },
             { $inc: { usedAmount: -reserved.amount } }
           );
-          
-          console.log(`Restored ${reserved.amount} to parent commission ${reserved.parentCommissionId}`);
         }
       }
-      
-      console.log(`Withdrawal ${id} rejected, balance restored for ${reservedCommissions.length} reserved commissions`);
     }
-    
-    console.log('Withdrawal approval debug:', {
-      withdrawalId: id,
-      newStatus: status,
-      reservedCommissionsFound: status === 'rejected' ? (await db.collection('commissions').countDocuments({ withdrawalId: id, status: 'reserved' })) : 0
-    });
 
     return NextResponse.json(result);
   } catch (error) {

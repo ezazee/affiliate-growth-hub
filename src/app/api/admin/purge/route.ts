@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
           collection: collectionName,
           deletedCount: result.deletedCount
         });
-        console.log(`🧹 Purged collection: ${collectionName} (${result.deletedCount} documents)`);
       } catch (e: any) {
         if (e.codeName === 'NamespaceNotFound') {
           results.push({
@@ -24,7 +23,6 @@ export async function POST(req: NextRequest) {
             deletedCount: 0,
             status: 'not_found'
           });
-          console.log(`- Collection not found, skipping: ${collectionName}`);
         } else {
           throw e;
         }
@@ -38,14 +36,12 @@ export async function POST(req: NextRequest) {
         collection: 'affiliatelinks',
         status: 'dropped'
       });
-      console.log(`🧹 Dropped incorrect collection: affiliatelinks`);
     } catch (e: any) {
       if (e.codeName === 'NamespaceNotFound') {
         results.push({
           collection: 'affiliatelinks',
           status: 'not_found'
         });
-        console.log(`- Incorrect collection not found, skipping: affiliatelinks`);
       } else {
         throw e;
       }

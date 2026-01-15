@@ -3,7 +3,6 @@ const { MongoClient } = require('mongodb');
 const { products, users } = require('./data.cjs');
 
 const uri = process.env.MONGODB_URI;
-console.log('MONGODB_URI from process.env:', uri);
 
 // Function to generate a unique link code
 const generateLinkCode = (productName, affiliatorName) => {
@@ -36,10 +35,9 @@ const seed = async () => {
     // Drop the problematic index if it exists
     try {
       await db.collection('products').dropIndex('sku_1');
-      console.log('Dropped sku_1 index from products collection.');
     } catch (e) {
       if (e.codeName !== 'IndexNotFound') {
-        console.warn('Could not drop sku_1 index, it might not exist or another error occurred:', e.message);
+        // Index might not exist or another error occurred
       }
     }
 
@@ -75,9 +73,7 @@ const seed = async () => {
       await db.collection('affiliateLinks').insertMany(newAffiliateLinks);
     }
 
-    console.log('Database seeded successfully!');
   } catch (error) {
-    console.error('Error seeding database:', error);
   } finally {
     await client.close();
   }

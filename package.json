@@ -9,7 +9,10 @@
     "start": "next start",
     "lint": "next lint",
     "seed": "node scripts/seed.cjs",
-    "purge": "node scripts/purge.cjs"
+    "purge": "node scripts/purge.cjs",
+    "create-indexes": "node scripts/create-indexes.cjs",
+    "optimize-performance": "chmod +x scripts/optimize-performance.sh && ./scripts/optimize-performance.sh",
+    "analyze-bundle": "ANALYZE=true npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

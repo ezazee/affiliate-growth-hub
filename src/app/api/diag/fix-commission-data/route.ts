@@ -17,15 +17,6 @@ export async function POST(req: NextRequest) {
     // 1. Cari semua commissions untuk affiliator ini
     const allCommissions = await commissionsCollection.find({ affiliatorId }).toArray();
 
-    console.log('All commissions:', allCommissions.map(c => ({
-      id: c._id,
-      amount: c.amount,
-      status: c.status,
-      usedAmount: c.usedAmount,
-      isPartial: c.isPartial,
-      parentCommissionId: c.parentCommissionId
-    })));
-
     // 2. Group by orderId untuk temukan komisi asli vs partial
     const commissionsByOrder: { [key: string]: any[] } = {};
     
@@ -69,7 +60,7 @@ export async function POST(req: NextRequest) {
           await commissionsCollection.deleteOne({ _id: partial._id });
         }
 
-        console.log(`Fixed order ${orderId}: main commission updated with usedAmount=${Math.min(totalWithdrawnAmount, mainCommission.amount)}, deleted ${partialCommissions.length} partial commissions`);
+
       }
     }
 

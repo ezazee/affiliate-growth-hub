@@ -16,32 +16,35 @@ export async function GET(req: NextRequest) {
     const db = client.db();
 
      const userCommissions = await db.collection('commissions').aggregate([
-       { $match: { affiliatorId } },
-       {
-         $addFields: {
-           orderIdObjectId: { $toObjectId: '$orderId' }
-         }
-       },
-       {
-         $lookup: {
-           from: 'orders',
-           localField: 'orderIdObjectId',
-           foreignField: '_id',
-           as: 'order'
-         }
-       },
-       {
-         $unwind: {
-           path: '$order',
-           preserveNullAndEmptyArrays: true
-         }
-       },
-       {
-         $project: {
-           orderIdObjectId: 0
-         }
-       }
-     ]).sort({ createdAt: -1 }).toArray();
+        { $match: { affiliatorId } },
+        {
+          $addFields: {
+            orderIdObjectId: { $toObjectId: '$orderId' }
+          }
+        },
+        {
+          $lookup: {
+            from: 'orders',
+            localField: 'orderIdObjectId',
+            foreignField: '_id',
+            as: 'order'
+          }
+        },
+        {
+          $unwind: {
+            path: '$order',
+            preserveNullAndEmptyArrays: true
+          }
+        },
+        {
+          $project: {
+            orderIdObjectId: 0
+          }
+        }
+      ])
+      .sort({ createdAt: -1 })
+      .limit(50) // Limit to prevent memory issues
+      .toArray();
 
     const formattedCommissions = userCommissions.map(commission => {
       return {

@@ -42,23 +42,10 @@ export default function AffiliatorCommissions() {
 
   const { user } = useAuth();
 
-  // DEBUG: Log all commissions to understand the data
-  useEffect(() => {
-    if (commissions.length > 0) {
-      console.log('DEBUG: All commissions:', commissions.map(c => ({
-        id: c.id,
-        amount: c.amount,
-        status: c.status,
-        usedAmount: c.usedAmount,
-        remaining: c.amount - (c.usedAmount || 0)
-      })));
-    }
-  }, [commissions]);
+
 
   const fetchData = async () => {
-    console.log('fetchData called, user:', user);
     if (!user?.id) {
-      console.log('No user ID, returning');
       return;
     }
     
@@ -66,7 +53,6 @@ export default function AffiliatorCommissions() {
     try {
       // Fetch commissions data
       const commissionsUrl = `/api/affiliator/commissions?affiliatorId=${user.id}`;
-      console.log('Fetching commissions from:', commissionsUrl);
       const commissionsResponse = await fetch(commissionsUrl);
       const commissionsResult = await commissionsResponse.json();
       
@@ -77,24 +63,15 @@ export default function AffiliatorCommissions() {
        // Fetch withdrawal history
        const withdrawalsResponse = await fetch(`/api/affiliator/withdrawals?affiliatorId=${user.id}`);
        const withdrawalsResult = await withdrawalsResponse.json();
-
-       console.log('Commissions API Response:', commissionsResult);
-       console.log('Withdrawals API Response:', withdrawalsResult);
-       console.log('Settings API Response:', settingsResult);
        
-       if (commissionsResponse.ok && withdrawalsResponse.ok && settingsResponse.ok) {
-          setCommissions(Array.isArray(commissionsResult) ? commissionsResult : []);
-          setWithdrawals(Array.isArray(withdrawalsResult) ? withdrawalsResult : []);
-          setMinimumWithdrawal(settingsResult.minimumWithdrawal || 50000);
-          setAdminWhatsApp(settingsResult.adminWhatsApp || '628123456789');
-          console.log('Commissions set:', Array.isArray(commissionsResult) ? commissionsResult.length : 0);
-          console.log('Withdrawals set:', Array.isArray(withdrawalsResult) ? withdrawalsResult.length : 0);
-          console.log('Minimum withdrawal set:', settingsResult.minimumWithdrawal || 50000);
-          console.log('Admin WhatsApp set:', settingsResult.adminWhatsApp || '628123456789');
-        } else {
-          console.error('API Error:', { commissions: commissionsResult, withdrawals: withdrawalsResult, settings: settingsResult });
-          toast.error('Gagal memuat data komisi');
-        }
+        if (commissionsResponse.ok && withdrawalsResponse.ok && settingsResponse.ok) {
+           setCommissions(Array.isArray(commissionsResult) ? commissionsResult : []);
+           setWithdrawals(Array.isArray(withdrawalsResult) ? withdrawalsResult : []);
+           setMinimumWithdrawal(settingsResult.minimumWithdrawal || 50000);
+           setAdminWhatsApp(settingsResult.adminWhatsApp || '628123456789');
+         } else {
+           toast.error('Gagal memuat data komisi');
+         }
     } catch (error) {
       console.error('Fetch error:', error);
       toast.error('Terjadi kesalahan saat memuat data');
@@ -104,12 +81,9 @@ export default function AffiliatorCommissions() {
   };
 
   useEffect(() => {
-    console.log('useEffect triggered, user:', user);
     if (user?.id) {
-      console.log('User has ID, calling fetchData');
       fetchData();
     } else {
-      console.log('No user ID, setting loading to false');
       setLoading(false);
     }
   }, [user?.id]);
@@ -222,20 +196,7 @@ export default function AffiliatorCommissions() {
     paid: availableForWithdrawal,
   };
 
-  // DEBUG: Log stats calculation
-  console.log('DEBUG Stats Calculation:', {
-    totalCommissions: commissions.length,
-    historyCommissions: historyCommissions.length,
-    availableCommissions: availableCommissions.length,
-    totalRevenue: stats.totalRevenue,
-    availableForWithdrawal: stats.availableForWithdrawal,
-    commissionsDetail: historyCommissions.map(c => ({
-      amount: c.amount,
-      status: c.status,
-      usedAmount: c.usedAmount,
-      remaining: c.amount - (c.usedAmount || 0)
-    }))
-  });
+
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-3 sm:py-6 sm:px-6 lg:px-8">

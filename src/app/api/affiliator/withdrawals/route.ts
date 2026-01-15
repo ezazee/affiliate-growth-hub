@@ -118,7 +118,6 @@ export async function POST(req: NextRequest) {
       };
 
       const reservedResult = await db.collection('commissions').insertOne(reservedCommission);
-      console.log(`Created reserved commission: ${reservedResult.insertedId} for amount ${amountToUse}`);
 
       // Update usedAmount di commission asli
       const newUsedAmount = usedAmount + amountToUse;
@@ -134,7 +133,6 @@ export async function POST(req: NextRequest) {
       });
 
       amountToCover -= amountToUse;
-      console.log(`Reserved ${amountToUse} from commission ${commission._id}, total used: ${newUsedAmount}`);
     }
 
     // Transaction log untuk audit
