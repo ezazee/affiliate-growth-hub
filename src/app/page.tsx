@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Users, DollarSign, TrendingUp, CheckCircle, Star, Sparkles, Shield, Award, ChevronDown, LogOut, Instagram, MessageCircle, ShoppingBag, Globe } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Skeleton, HeroSkeleton, AboutSkeleton, BenefitsSkeleton, ProductsSkeleton, CTASkeleton, LandingSkeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface LandingSettings {
@@ -29,6 +29,7 @@ export default function Index() {
   const [products, setProducts] = useState<any[]>([]);
   const [landingSettings, setLandingSettings] = useState<LandingSettings>({});
   const [loading, setLoading] = useState(true);
+  const [dataLoaded, setDataLoaded] = useState(false);
 
   // Helper functions for formatting links
   const formatWhatsAppLink = (phone: string) => {
@@ -73,21 +74,22 @@ export default function Index() {
         if (settingsResponse.ok) {
           const settingsData = await settingsResponse.json();
           console.log('Landing settings loaded:', settingsData);
-          setLandingSettings(settingsData);
-        } else {
-          console.error('Failed to fetch landing settings');
-          // Set default values on error
-          setLandingSettings({
-            footerDescription: 'Program affiliate resmi PE Skinpro. Dapatkan komisi menarik dari setiap penjualan produk skincare berkualitas.'
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        // Fallback to empty array
-        setProducts([]);
-      } finally {
-        setLoading(false);
+        setLandingSettings(settingsData);
+      } else {
+        console.error('Failed to fetch landing settings');
+        // Set default values on error
+        setLandingSettings({
+          footerDescription: 'Program affiliate resmi PE Skinpro. Dapatkan komisi menarik dari setiap penjualan produk skincare berkualitas.'
+        });
       }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      // Fallback to empty array
+      setProducts([]);
+    } finally {
+      setLoading(false);
+      setDataLoaded(true);
+    }
     };
 
     fetchData();
@@ -132,6 +134,11 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Show full page skeleton while loading */}
+      {loading && <LandingSkeleton />}
+      
+      {/* Main content with fade-in animation */}
+      <div className={`transition-opacity duration-500 ${loading ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
@@ -423,80 +430,61 @@ export default function Index() {
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {loading ? (
-              // Loading skeletons
-              Array.from({ length: 8 }).map((_, index) => (
-                <div key={index} className="bg-card rounded-2xl p-6 shadow-card flex flex-col h-full">
-                  <Skeleton className="w-full h-40 rounded-xl mb-4 flex-shrink-0" />
-                  <Skeleton className="h-6 w-3/4 mb-2" />
-                  <Skeleton className="h-4 w-full mb-2" />
-                  <Skeleton className="h-4 w-5/6 mb-4 flex-grow" />
+          {/* Show products skeleton if products are loading but main page is loaded */}
+          {products.length === 0 && !loading ? (
+            <div className="col-span-full text-center py-12">
+              <Sparkles className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-foreground mb-2">Belum Ada Produk Tersedia</h3>
+              <p className="text-muted-foreground">Produk akan segera tersedia. Silakan cek kembali nanti.</p>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {products.map((product, index) => (
+                <motion.div
+                  key={product.id || product.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  className="bg-card rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col h-full"
+                >
+                  <div className="w-full h-40 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl mb-4 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img 
+                      src={product.imageUrl} 
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                      }}
+                    />
+                    <Sparkles className="w-12 h-12 text-primary/50 hidden" />
+                  </div>
+                  <h3 className="text-lg font-display font-semibold text-foreground mb-2 line-clamp-2">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-grow">
+                    {product.description}
+                  </p>
                   <div className="flex flex-col gap-3 mt-auto">
                     <div className="flex items-center justify-between">
-                      <Skeleton className="h-5 w-20" />
-                      <Skeleton className="h-5 w-16" />
-                    </div>
-                    <Skeleton className="h-10 w-full" />
-                  </div>
-                </div>
-              ))
-            ) : products.length === 0 ? (
-              <div className="col-span-full text-center py-12">
-                <Sparkles className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-foreground mb-2">Belum Ada Produk Tersedia</h3>
-                <p className="text-muted-foreground">Produk akan segera tersedia. Silakan cek kembali nanti.</p>
-              </div>
-            ) : (
-              // Actual products
-              products.map((product, index) => {
-                return (
-                  <motion.div
-                    key={product.id || product.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    className="bg-card rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col h-full"
-                  >
-                    <div className="w-full h-40 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl mb-4 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      <img 
-                        src={product.imageUrl} 
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                        }}
-                      />
-                      <Sparkles className="w-12 h-12 text-primary/50 hidden" />
-                    </div>
-                    <h3 className="text-lg font-display font-semibold text-foreground mb-2 line-clamp-2">
-                      {product.name}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-grow">
-                      {product.description}
-                    </p>
-                    <div className="flex flex-col gap-3 mt-auto">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="text-lg font-bold text-primary">Rp. {product.price.toLocaleString('id-ID')}</div>
-                        </div>
-                        <div className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
-                          {parseFloat(product.commissionValue || 0).toFixed(1)}% Komisi
-                        </div>
+                      <div>
+                        <div className="text-lg font-bold text-primary">Rp. {product.price.toLocaleString('id-ID')}</div>
                       </div>
-                      <Button variant="outline" className="w-full" asChild>
-                        <Link href="/register">
-                          Promosikan Produk
-                        </Link>
-                      </Button>
+                      <div className="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">
+                        {parseFloat(product.commissionValue || 0).toFixed(1)}% Komisi
+                      </div>
                     </div>
-                  </motion.div>
-                );
-              })
-            )}
-          </div>
+                    <Button variant="outline" className="w-full" asChild>
+                      <Link href="/register">
+                        Promosikan Produk
+                      </Link>
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -628,6 +616,7 @@ export default function Index() {
           </div>
         </div>
       </footer>
+      </div>
     </div>
   );
 }
