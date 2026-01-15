@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
+import Image from 'next/image';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -61,10 +62,10 @@ export default function Login() {
         >
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 mb-12">
-            <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-button">
-              <span className="text-primary-foreground font-bold text-xl">A</span>
-            </div>
-            <span className="font-display font-bold text-2xl text-foreground">AffiliateHub</span>
+          <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-button">
+            <Image width={100} height={100} src="/logo-white.png" alt="PE Skinpro" className="w-8 h-8" />
+          </div>
+            <span className="font-display font-bold text-2xl text-foreground">Affiliate</span>
           </Link>
 
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
@@ -132,13 +133,6 @@ export default function Login() {
               Daftar sebagai Affiliator
             </Link>
           </p>
-
-          {/* Demo Credentials */}
-          <div className="mt-8 p-4 rounded-lg bg-secondary border border-border">
-            <p className="text-sm font-medium text-foreground mb-2">Kredensial Demo:</p>
-            <p className="text-xs text-muted-foreground">Admin: admin@example.com / admin123</p>
-            <p className="text-xs text-muted-foreground">Affiliator: john@example.com / john123</p>
-          </div>
         </motion.div>
       </div>
 

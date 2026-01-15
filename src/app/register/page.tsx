@@ -1,21 +1,31 @@
 "use client";
 
-import React, { useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { User, Mail, Lock, ArrowRight, Eye, EyeOff, CheckCircle, Phone } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import {
+  User,
+  Mail,
+  Lock,
+  ArrowRight,
+  Eye,
+  EyeOff,
+  CheckCircle,
+  Phone,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
+import Image from "next/image";
 
 export default function Register() {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [phone, setPhone] = useState(''); // Added phone state
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState(""); // Added phone state
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { register } = useAuth();
@@ -27,32 +37,32 @@ export default function Register() {
 
     try {
       const success = await register(name, email, password, phone);
-      
+
       if (success) {
-        toast.success('Pendaftaran berhasil!');
-        router.push('/waiting-approval');
+        toast.success("Pendaftaran berhasil!");
+        router.push("/waiting-approval");
       } else {
-        toast.error('Email sudah terdaftar');
+        toast.error("Email sudah terdaftar");
       }
     } catch {
-      toast.error('Terjadi kesalahan');
+      toast.error("Terjadi kesalahan");
     } finally {
       setIsLoading(false);
     }
   };
 
   const benefits = [
-    'Dapatkan komisi dari setiap penjualan',
-    'Lacak penghasilan Anda secara real-time',
-    'Dibayar setiap bulan',
-    'Akses ke promosi eksklusif',
+    "Dapatkan komisi dari setiap penjualan",
+    "Lacak penghasilan Anda secara real-time",
+    "Dibayar setiap bulan",
+    "Akses ke promosi eksklusif",
   ];
 
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Benefits */}
       <div className="hidden lg:flex flex-1 gradient-hero items-center justify-center p-12">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
@@ -62,7 +72,8 @@ export default function Register() {
             Menjadi Affiliator
           </h2>
           <p className="text-lg text-primary-foreground/80 mb-8">
-            Bergabunglah dengan ribuan affiliator sukses yang menghasilkan penghasilan pasif.
+            Bergabunglah dengan ribuan affiliator sukses yang menghasilkan
+            penghasilan pasif.
           </p>
           <ul className="space-y-4">
             {benefits.map((benefit, index) => (
@@ -83,7 +94,7 @@ export default function Register() {
 
       {/* Right Side - Form */}
       <div className="flex-1 flex items-center justify-center px-6 py-12 lg:px-8">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
@@ -92,9 +103,17 @@ export default function Register() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 mb-12">
             <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-button">
-              <span className="text-primary-foreground font-bold text-xl">A</span>
+              <Image
+                width={100}
+                height={100}
+                src="/logo-white.png"
+                alt="PE Skinpro"
+                className="w-8 h-8"
+              />
             </div>
-            <span className="font-display font-bold text-2xl text-foreground">AffiliateHub</span>
+            <span className="font-display font-bold text-2xl text-foreground">
+              PE Skinpro
+            </span>
           </Link>
 
           <h1 className="text-3xl font-display font-bold text-foreground mb-2">
@@ -159,7 +178,7 @@ export default function Register() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -172,12 +191,22 @@ export default function Register() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
 
-            <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              variant="hero"
+              size="lg"
+              className="w-full"
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <span className="animate-pulse-soft">Membuat akun...</span>
               ) : (
@@ -190,8 +219,11 @@ export default function Register() {
           </form>
 
           <p className="mt-8 text-center text-muted-foreground">
-            Sudah punya akun?{' '}
-            <Link href="/login" className="text-primary font-medium hover:underline">
+            Sudah punya akun?{" "}
+            <Link
+              href="/login"
+              className="text-primary font-medium hover:underline"
+            >
               Masuk
             </Link>
           </p>
