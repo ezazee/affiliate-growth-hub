@@ -55,9 +55,11 @@ export default function Index() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // Add cache busting timestamp
+        const timestamp = Date.now();
         const [productsResponse, settingsResponse] = await Promise.all([
-          fetch('/api/public/products'),
-          fetch('/api/public/landing-settings')
+          fetch(`/api/public/products?t=${timestamp}`),
+          fetch(`/api/public/landing-settings?t=${timestamp}`)
         ]);
 
         if (productsResponse.ok) {
@@ -70,6 +72,7 @@ export default function Index() {
 
         if (settingsResponse.ok) {
           const settingsData = await settingsResponse.json();
+          console.log('Landing settings loaded:', settingsData);
           setLandingSettings(settingsData);
         } else {
           console.error('Failed to fetch landing settings');
@@ -286,28 +289,37 @@ export default function Index() {
                 </div>
               </div>
             </div>
-            <div className="relative">
-              {landingSettings.aboutImage ? (
-                <img 
-                  src={landingSettings.aboutImage} 
-                  alt="Tentang PE Skinpro"
-                  className="aspect-square w-full rounded-2xl object-cover"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-              ) : null}
-              <div className="aspect-square bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center mx-auto mb-4 shadow-button">
-                    <Sparkles className="w-10 h-10 text-primary-foreground" />
-                  </div>
-                  <h3 className="text-2xl font-bold text-foreground mb-2">PE Skinpro</h3>
-                  <p className="text-muted-foreground">Skincare Profesional untuk Kulit Cantik Anda</p>
-                </div>
-              </div>
-            </div>
+             <div className="relative">
+               <div className="aspect-square rounded-2xl overflow-hidden shadow-lg">
+                 {landingSettings.aboutImage ? (
+                   <img 
+                     src={landingSettings.aboutImage} 
+                     alt="Tentang PE Skinpro"
+                     className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                     onLoad={() => console.log('About image loaded successfully:', landingSettings.aboutImage)}
+                     onError={(e) => {
+                       console.error('Failed to load about image:', landingSettings.aboutImage);
+                       const target = e.currentTarget;
+                       target.style.display = 'none';
+                       const fallback = target.nextElementSibling as HTMLElement;
+                       if (fallback) {
+                         fallback.classList.remove('hidden');
+                         console.log('Showing fallback content');
+                       }
+                     }}
+                   />
+                 ) : null}
+                 <div className={`aspect-square bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl flex items-center justify-center ${landingSettings.aboutImage ? 'hidden' : ''}`}>
+                   <div className="text-center">
+                     <div className="w-20 h-20 rounded-full gradient-primary flex items-center justify-center mx-auto mb-4 shadow-button">
+                       <Sparkles className="w-10 h-10 text-primary-foreground" />
+                     </div>
+                     <h3 className="text-2xl font-bold text-foreground mb-2">PE Skinpro</h3>
+                     <p className="text-muted-foreground">Skincare Profesional untuk Kulit Cantik Anda</p>
+                   </div>
+                 </div>
+               </div>
+             </div>
           </motion.div>
         </div>
       </section>

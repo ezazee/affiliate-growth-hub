@@ -292,15 +292,43 @@ export default function SettingsPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
+    // Validate file type first
     if (!file.type.startsWith('image/')) {
-      toast.error('File harus berupa gambar');
+      toast.error('File harus berupa gambar (JPG, PNG, WebP, GIF)');
+      e.target.value = ''; // Reset input
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Ukuran gambar maksimal 5MB');
+    // Show file size info immediately
+    const fileSizeKB = Math.round(file.size / 1024);
+    const fileSizeMB = (file.size / 1024 / 1024).toFixed(2);
+    const maxSizeKB = 2 * 1024; // 2MB
+    const recommendedKB = 500; // 500KB
+    
+    // Client-side validation for max size
+    if (file.size > maxSizeKB * 1024) {
+      toast.error(`Ukuran file terlalu besar: ${fileSizeMB}MB. Maksimal: 2MB`, {
+        duration: 4000
+      });
+      e.target.value = ''; // Reset input
+      return;
+    }
+
+    // Warning for large files
+    if (fileSizeKB > recommendedKB) {
+      toast.info(`Ukuran file: ${fileSizeKB}KB. Untuk loading optimal, disarankan < 500KB.`, {
+        duration: 3000
+      });
+    } else {
+      toast.success(`Ukuran file optimal: ${fileSizeKB}KB`, {
+        duration: 2000
+      });
+    }
+
+    // Validate minimum size
+    if (file.size < 1024) {
+      toast.error('Ukuran gambar terlalu kecil (minimal 1KB)');
+      e.target.value = ''; // Reset input
       return;
     }
 
@@ -322,10 +350,25 @@ export default function SettingsPage() {
 
       const data = await response.json();
       setLandingPageSettings(prev => ({ ...prev, aboutImage: data.url }));
-      toast.success('Gambar berhasil diupload');
+      
+      // Show success with size info
+      const sizeInfo = ` (${data.sizeKB}KB)`;
+      toast.success(`Gambar "${file.name}" berhasil diupload ke cloud storage${sizeInfo}`);
+      
+      // Show warning if file is large
+      if (data.warning) {
+        setTimeout(() => {
+          toast.warning(data.warning, {
+            duration: 6000
+          });
+        }, 1000);
+      }
+      
+      // Reset file input
+      e.target.value = '';
     } catch (error) {
       console.error('Image upload error:', error);
-      toast.error('Gagal mengupload gambar');
+      toast.error('Terjadi kesalahan saat mengupload gambar. Silakan coba lagi.');
     } finally {
       setIsUploadingImage(false);
     }
@@ -593,48 +636,153 @@ export default function SettingsPage() {
                         rows={4}
                       />
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="aboutImage">Gambar Tentang Kami</Label>
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1">
-                          <Input
-                            id="aboutImage"
-                            name="aboutImage"
-                            value={landingPageSettings.aboutImage}
-                            onChange={handleLandingPageChange}
-                            placeholder="https://example.com/image.jpg"
-                            className="font-mono text-sm"
-                          />
-                        </div>
-                        <div className="relative">
-                          <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleImageUpload}
-                            className="absolute inset-0 opacity-0 cursor-pointer"
-                            disabled={isUploadingImage}
-                          />
-                          <Button type="button" variant="outline" disabled={isUploadingImage}>
-                            <Image className="w-4 h-4 mr-2" />
-                            {isUploadingImage ? 'Mengupload...' : 'Upload'}
-                          </Button>
+                      <div className="space-y-4">
+                        <Label htmlFor="aboutImage">Gambar Tentang Kami</Label>
+                        
+                        {/* Current Image Preview */}
+                        {landingPageSettings.aboutImage && (
+                          <div className="relative">
+                            <div className="rounded-lg overflow-hidden border border-border">
+                              <img 
+                                src={landingPageSettings.aboutImage} 
+                                alt="Tentang Kami" 
+                                className="w-full h-64 object-cover"
+                                onError={(e) => {
+                                  const target = e.currentTarget;
+                                  target.style.display = 'none';
+                                  target.nextElementSibling?.classList.remove('hidden');
+                                }}
+                              />
+                              <div className="hidden bg-secondary/50 h-64 flex items-center justify-center">
+                                <div className="text-center">
+                                  <Image className="w-12 h-12 text-muted-foreground mx-auto mb-2" />
+                                  <p className="text-muted-foreground">Gambar tidak dapat dimuat</p>
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="sm"
+                              className="absolute top-2 right-2"
+                              onClick={() => {
+                                setLandingPageSettings(prev => ({ ...prev, aboutImage: '' }));
+                                toast.success('Gambar dihapus');
+                              }}
+                            >
+                              Hapus
+                            </Button>
+                          </div>
+                        )}
+                        
+                        {/* Upload Section */}
+                        <div className="border-2 border-dashed border-border rounded-lg p-6">
+                          <div className="text-center">
+                            <Image className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                            <div className="space-y-2">
+                              <p className="text-sm text-muted-foreground">
+                                Upload gambar baru atau masukkan URL
+                              </p>
+                              <div className="bg-secondary/30 rounded-lg p-3 space-y-1">
+                                <p className="text-xs font-medium text-foreground">📐 Spesifikasi Gambar:</p>
+                                <ul className="text-xs text-muted-foreground space-y-1">
+                                  <li>• <strong>Ukuran Ideal:</strong> 800x600px (4:3) atau 800x800px (1:1)</li>
+                                  <li>• <strong>Maksimal Ukuran File:</strong> 2MB (dioptimasi untuk loading cepat)</li>
+                                  <li>• <strong>Format:</strong> JPG (recommended), PNG, WebP</li>
+                                  <li>• <strong>Kompresi:</strong> Medium-high (80-90% quality)</li>
+                                </ul>
+                                <p className="text-xs text-warning mt-2">
+                                  ⚠️ Gambar besar dapat memperlambat loading halaman dan mengkonsumsi bandwidth
+                                </p>
+                                <details className="text-xs text-muted-foreground mt-2 border border-border/50 rounded p-2">
+                                  <summary className="cursor-pointer text-primary hover:underline font-medium flex items-center gap-1">
+                                    <span>💡</span> Tips Kompresi Gambar
+                                  </summary>
+                                  <ul className="mt-2 space-y-1 ml-4">
+                                    <li>• <strong>TinyPNG.com</strong> - Kompresi online gratis</li>
+                                    <li>• <strong>Squoosh.app</strong> - Pilihan Google untuk optimasi</li>
+                                    <li>• Export JPG dengan quality 80-90% (optimal)</li>
+                                    <li>• <strong>Photoshop:</strong> Save for Web → Quality 80</li>
+                                    <li>• Crop gambar ke area yang penting saja</li>
+                                  </ul>
+                                </details>
+                              </div>
+                            </div>
+                            
+                            {/* URL Input */}
+                            <div className="mt-4">
+                              <Input
+                                id="aboutImage"
+                                name="aboutImage"
+                                value={landingPageSettings.aboutImage}
+                                onChange={handleLandingPageChange}
+                                placeholder="https://example.com/image.jpg"
+                                className="font-mono text-sm"
+                              />
+                              {landingPageSettings.aboutImage && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  URL: {landingPageSettings.aboutImage.length > 50 ? 
+                                    landingPageSettings.aboutImage.substring(0, 50) + '...' : 
+                                    landingPageSettings.aboutImage
+                                  }
+                                </p>
+                              )}
+                            </div>
+                            
+                            <div className="mt-4 flex items-center justify-center gap-4">
+                              <div className="relative">
+                                <Input
+                                  type="file"
+                                  accept="image/*"
+                                  onChange={handleImageUpload}
+                                  className="absolute inset-0 opacity-0 cursor-pointer"
+                                  disabled={isUploadingImage}
+                                />
+                                <Button type="button" variant="outline" disabled={isUploadingImage}>
+                                  <Image className="w-4 h-4 mr-2" />
+                                  {isUploadingImage ? 'Mengupload...' : 'Pilih File'}
+                                </Button>
+                              </div>
+                              
+                              {landingPageSettings.aboutImage && (
+                                <>
+                                  <Button
+                                    type="button"
+                                    variant="secondary"
+                                    onClick={() => {
+                                      window.open(landingPageSettings.aboutImage, '_blank');
+                                    }}
+                                  >
+                                    <Upload className="w-4 h-4 mr-2" />
+                                    Preview
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(landingPageSettings.aboutImage);
+                                      toast.success('URL berhasil disalin ke clipboard!');
+                                    }}
+                                  >
+                                    📋 Copy URL
+                                  </Button>
+                                </>
+                              )}
+                              
+                              {isUploadingImage && (
+                                <div className="text-sm text-primary animate-pulse-soft flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                                 <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      {landingPageSettings.aboutImage && (
-                        <div className="mt-2">
-                          <img 
-                            src={landingPageSettings.aboutImage} 
-                            alt="About" 
-                            className="h-20 w-20 object-cover rounded border"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        </div>
-                      )}
                     </div>
                   </div>
-                </div>
 
                 {/* Contact & Social Media */}
                 <div className="space-y-4">
