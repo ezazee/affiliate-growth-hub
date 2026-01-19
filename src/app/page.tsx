@@ -55,8 +55,8 @@ export default function Index() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Optimize: Only use cache-busting in development, not production
-        const timestamp = process.env.NODE_ENV === 'development' ? `?t=${Date.now()}` : '';
+        // Add cache-busting for both development and production to ensure fresh settings
+        const timestamp = `?t=${Date.now()}`;
         
         // Use Promise.all for parallel fetching (faster)
         const [productsResponse, settingsResponse] = await Promise.all([
