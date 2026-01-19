@@ -12,16 +12,97 @@ import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import Image from 'next/image';
 
+// List of valid email providers for Indonesia
+const VALID_EMAIL_PROVIDERS = [
+  'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com',
+  'icloud.com', 'ymail.com', 'rocketmail.com',
+  // Indonesia-specific providers
+  'plasa.com', 'telkom.net', 'indo.net.id', 'cbn.net.id',
+  'rad.net.id', 'centrin.net.id', 'klikbca.com', 'bni.co.id',
+  'mandiri.co.id', 'bri.co.id'
+];
+
+// Blocked domains (examples, testing, etc)
+const BLOCKED_DOMAINS = [
+  'example.com', 'test.com', 'demo.com', 'fake.com',
+  'temp.com', 'throwaway.email', '10minutemail.com',
+  'guerrillamail.com', 'mailinator.com', 'yopmail.com'
+];
+
+function validateEmail(email: string): { isValid: boolean; message?: string } {
+  // Basic email format check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return { isValid: false, message: 'Format email tidak valid' };
+  }
+
+  const domain = email.toLowerCase().split('@')[1];
+
+  // Check for blocked domains
+  if (BLOCKED_DOMAINS.some(blocked => domain.includes(blocked))) {
+    return { isValid: false, message: 'Domain email tidak diizinkan. Gunakan email pribadi yang valid.' };
+  }
+
+  // Check for valid providers
+  const isValidProvider = VALID_EMAIL_PROVIDERS.some(provider => domain === provider);
+  
+  if (!isValidProvider) {
+    return { 
+      isValid: false, 
+      message: 'Hanya email dari provider terpercaya yang diizinkan (Gmail, Yahoo, Outlook, dll)' 
+    };
+  }
+
+  return { isValid: true };
+}
+
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailError, setEmailError] = useState('');
   const { login } = useAuth();
   const router = useRouter();
 
+const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+    
+    // Clear error when user starts typing
+    if (emailError) {
+      setEmailError('');
+    }
+    
+    // Validate email on blur (when user leaves the field)
+    if (value.includes('@')) {
+      const validation = validateEmail(value);
+      if (!validation.isValid) {
+        setEmailError(validation.message || 'Email tidak valid');
+      }
+    }
+  };
+
+  const handleEmailBlur = () => {
+    if (email) {
+      const validation = validateEmail(email);
+      if (!validation.isValid) {
+        setEmailError(validation.message || 'Email tidak valid');
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate email before submission
+    const validation = validateEmail(email);
+    if (!validation.isValid) {
+      setEmailError(validation.message || 'Email tidak valid');
+      toast.error(validation.message || 'Email tidak valid');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -76,20 +157,27 @@ export default function Login() {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
+<div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
-                  placeholder="you@example.com"
+                  placeholder="nama@gmail.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 h-12"
+                  onChange={handleEmailChange}
+                  onBlur={handleEmailBlur}
+                  className={`pl-10 h-12 ${emailError ? 'border-red-500 focus:border-red-500' : ''}`}
                   required
                 />
               </div>
+              {emailError && (
+                <p className="text-sm text-red-500 mt-1">{emailError}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Gunakan email dari provider terpercaya: Gmail, Yahoo, Outlook, dll
+              </p>
             </div>
 
             <div className="space-y-2">

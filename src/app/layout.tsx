@@ -9,7 +9,8 @@ const inter = Inter({
   display: 'swap', // Improve loading performance
   preload: true,
   variable: '--font-inter',
-  weight: ['400', '500', '600', '700'] // Preload only needed weights
+  weight: ['400', '500', '600', '700'], // Preload only needed weights
+  fallback: ['system-ui', 'sans-serif'] // Fallback fonts if Google Fonts fails
 });
 
 export const metadata: Metadata = {
