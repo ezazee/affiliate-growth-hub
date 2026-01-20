@@ -16,11 +16,13 @@ import {
   X,
   Bug,
   Settings,
-  ArrowUpDown
+  ArrowUpDown,
+  Bell
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -38,6 +40,7 @@ const adminNavItems = [
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, logout, loading } = useAuth();
+  const { isSubscribed, subscribeToNotifications, permission } = usePushNotifications();
   const pathname = usePathname();
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
@@ -144,6 +147,16 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <p className="text-xs text-muted-foreground capitalize">{user?.role}</p>
               </div>
             </div>
+            {!isSubscribed && permission !== 'denied' && (
+                <Button 
+                    variant="outline" 
+                    className="w-full justify-start mb-2 gap-2 text-muted-foreground"
+                    onClick={subscribeToNotifications}
+                >
+                    <Bell className="h-4 w-4" />
+                    Aktifkan Notifikasi
+                </Button>
+            )}
             <Button
               variant="ghost"
               className="w-full justify-start text-muted-foreground hover:text-destructive"

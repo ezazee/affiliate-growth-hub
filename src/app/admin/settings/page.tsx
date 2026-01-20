@@ -27,8 +27,11 @@ import {
   Globe,
   Bell,
   Send,
+  User,
+  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -48,6 +51,8 @@ export default function SettingsPage() {
     ORDER_PAID: { title: 'Komisi Diterima! 💰', body: 'Pesanan #{orderNumber} telah dibayar. Anda menerima komisi {commission}!' },
     AFFILIATOR_APPROVED: { title: 'Akun Disetujui! ✅', body: 'Akun affiliate Anda telah disetujui. Mulai bagikan link sekarang!' },
     WITHDRAWAL_APPROVED: { title: 'Penarikan Disetujui 💸', body: 'Penarikan dana sebesar {amount} telah disetujui dan diproses.' },
+    ADMIN_NEW_ORDER: { title: 'Order Baru (Admin)', body: 'Order #{orderNumber} dari {affiliate} baru saja masuk.' },
+    ADMIN_USER_REGISTER: { title: 'Pendaftaran Baru! 👤', body: 'Affiliator baru: {name} ({email}) menunggu persetujuan.' },
   });
   const [isSavingNotifications, setIsSavingNotifications] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
@@ -793,121 +798,194 @@ export default function SettingsPage() {
                   Pengaturan Push Notification
                 </CardTitle>
                 <CardDescription>
-                  Atur template pesan notifikasi yang dikirim ke aplikasi PWA Affiliator.
+                  Atur template pesan notifikasi yang dikirim ke aplikasi PWA.
                   Gunakan <code>{`{variable}`}</code> untuk data dinamis.
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleSaveNotifications} className="space-y-8">
-                   <div className="grid gap-6 md:grid-cols-2">
-                      {/* NEW_ORDER */}
-                      <div className="space-y-3 p-4 border rounded-lg">
-                        <div className="flex justify-between items-center">
-                            <h4 className="font-semibold text-sm">Pesanan Baru (NEW_ORDER)</h4>
-                            <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('NEW_ORDER')} disabled={isSendingTest}>
-                                <Send className="w-3 h-3 mr-2" /> Test
-                            </Button>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Judul</Label>
-                            <Input 
-                                value={notificationTemplates.NEW_ORDER.title}
-                                onChange={(e) => handleNotificationChange('NEW_ORDER', 'title', e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Pesan</Label>
-                            <Textarea 
-                                value={notificationTemplates.NEW_ORDER.body}
-                                onChange={(e) => handleNotificationChange('NEW_ORDER', 'body', e.target.value)}
-                                rows={2}
-                            />
-                            <p className="text-xs text-muted-foreground">Vars: {`{orderNumber}, {amount}`} </p>
-                        </div>
-                      </div>
+                <form onSubmit={handleSaveNotifications} className="space-y-6">
+                   <Tabs defaultValue="affiliator" className="w-full">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="affiliator">
+                            <User className="w-4 h-4 mr-2" />
+                            Notifikasi Affiliator
+                        </TabsTrigger>
+                        <TabsTrigger value="admin">
+                            <ShieldCheck className="w-4 h-4 mr-2" />
+                            Notifikasi Admin
+                        </TabsTrigger>
+                      </TabsList>
+                      
+                      {/* AFFILIATOR NOTIFICATIONS TAB */}
+                      <TabsContent value="affiliator" className="space-y-6 mt-4">
+                        <div className="grid gap-6 md:grid-cols-2">
+                            {/* NEW_ORDER */}
+                            <div className="space-y-3 p-4 border rounded-lg">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="font-semibold text-sm">Pesanan Baru (NEW_ORDER)</h4>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('NEW_ORDER')} disabled={isSendingTest}>
+                                        <Send className="w-3 h-3 mr-2" /> Test
+                                    </Button>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Judul</Label>
+                                    <Input 
+                                        value={notificationTemplates.NEW_ORDER.title}
+                                        onChange={(e) => handleNotificationChange('NEW_ORDER', 'title', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Pesan</Label>
+                                    <Textarea 
+                                        value={notificationTemplates.NEW_ORDER.body}
+                                        onChange={(e) => handleNotificationChange('NEW_ORDER', 'body', e.target.value)}
+                                        rows={2}
+                                    />
+                                    <p className="text-xs text-muted-foreground">Vars: {`{orderNumber}, {amount}`} </p>
+                                </div>
+                            </div>
 
-                      {/* ORDER_PAID */}
-                      <div className="space-y-3 p-4 border rounded-lg">
-                        <div className="flex justify-between items-center">
-                            <h4 className="font-semibold text-sm">Komisi Cair (ORDER_PAID)</h4>
-                            <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('ORDER_PAID')} disabled={isSendingTest}>
-                                <Send className="w-3 h-3 mr-2" /> Test
-                            </Button>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Judul</Label>
-                            <Input 
-                                value={notificationTemplates.ORDER_PAID.title}
-                                onChange={(e) => handleNotificationChange('ORDER_PAID', 'title', e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Pesan</Label>
-                            <Textarea 
-                                value={notificationTemplates.ORDER_PAID.body}
-                                onChange={(e) => handleNotificationChange('ORDER_PAID', 'body', e.target.value)}
-                                rows={2}
-                            />
-                            <p className="text-xs text-muted-foreground">Vars: {`{orderNumber}, {commission}`} </p>
-                        </div>
-                      </div>
+                            {/* ORDER_PAID */}
+                            <div className="space-y-3 p-4 border rounded-lg">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="font-semibold text-sm">Komisi Cair (ORDER_PAID)</h4>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('ORDER_PAID')} disabled={isSendingTest}>
+                                        <Send className="w-3 h-3 mr-2" /> Test
+                                    </Button>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Judul</Label>
+                                    <Input 
+                                        value={notificationTemplates.ORDER_PAID.title}
+                                        onChange={(e) => handleNotificationChange('ORDER_PAID', 'title', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Pesan</Label>
+                                    <Textarea 
+                                        value={notificationTemplates.ORDER_PAID.body}
+                                        onChange={(e) => handleNotificationChange('ORDER_PAID', 'body', e.target.value)}
+                                        rows={2}
+                                    />
+                                    <p className="text-xs text-muted-foreground">Vars: {`{orderNumber}, {commission}`} </p>
+                                </div>
+                            </div>
 
-                      {/* AFFILIATOR_APPROVED */}
-                      <div className="space-y-3 p-4 border rounded-lg">
-                        <div className="flex justify-between items-center">
-                            <h4 className="font-semibold text-sm">Akun Disetujui (APPROVED)</h4>
-                            <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('AFFILIATOR_APPROVED')} disabled={isSendingTest}>
-                                <Send className="w-3 h-3 mr-2" /> Test
-                            </Button>
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Judul</Label>
-                            <Input 
-                                value={notificationTemplates.AFFILIATOR_APPROVED.title}
-                                onChange={(e) => handleNotificationChange('AFFILIATOR_APPROVED', 'title', e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-2">
-                            <Label>Pesan</Label>
-                            <Textarea 
-                                value={notificationTemplates.AFFILIATOR_APPROVED.body}
-                                onChange={(e) => handleNotificationChange('AFFILIATOR_APPROVED', 'body', e.target.value)}
-                                rows={2}
-                            />
-                        </div>
-                      </div>
+                            {/* AFFILIATOR_APPROVED */}
+                            <div className="space-y-3 p-4 border rounded-lg">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="font-semibold text-sm">Akun Disetujui (APPROVED)</h4>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('AFFILIATOR_APPROVED')} disabled={isSendingTest}>
+                                        <Send className="w-3 h-3 mr-2" /> Test
+                                    </Button>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Judul</Label>
+                                    <Input 
+                                        value={notificationTemplates.AFFILIATOR_APPROVED.title}
+                                        onChange={(e) => handleNotificationChange('AFFILIATOR_APPROVED', 'title', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Pesan</Label>
+                                    <Textarea 
+                                        value={notificationTemplates.AFFILIATOR_APPROVED.body}
+                                        onChange={(e) => handleNotificationChange('AFFILIATOR_APPROVED', 'body', e.target.value)}
+                                        rows={2}
+                                    />
+                                </div>
+                            </div>
 
-                      {/* WITHDRAWAL_APPROVED */}
-                      <div className="space-y-3 p-4 border rounded-lg">
-                        <div className="flex justify-between items-center">
-                            <h4 className="font-semibold text-sm">Penarikan Disetujui</h4>
-                            <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('WITHDRAWAL_APPROVED')} disabled={isSendingTest}>
-                                <Send className="w-3 h-3 mr-2" /> Test
-                            </Button>
+                            {/* WITHDRAWAL_APPROVED */}
+                            <div className="space-y-3 p-4 border rounded-lg">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="font-semibold text-sm">Penarikan Disetujui</h4>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('WITHDRAWAL_APPROVED')} disabled={isSendingTest}>
+                                        <Send className="w-3 h-3 mr-2" /> Test
+                                    </Button>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Judul</Label>
+                                    <Input 
+                                        value={notificationTemplates.WITHDRAWAL_APPROVED.title}
+                                        onChange={(e) => handleNotificationChange('WITHDRAWAL_APPROVED', 'title', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Pesan</Label>
+                                    <Textarea 
+                                        value={notificationTemplates.WITHDRAWAL_APPROVED.body}
+                                        onChange={(e) => handleNotificationChange('WITHDRAWAL_APPROVED', 'body', e.target.value)}
+                                        rows={2}
+                                    />
+                                    <p className="text-xs text-muted-foreground">Vars: {`{amount}`} </p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Judul</Label>
-                            <Input 
-                                value={notificationTemplates.WITHDRAWAL_APPROVED.title}
-                                onChange={(e) => handleNotificationChange('WITHDRAWAL_APPROVED', 'title', e.target.value)}
-                            />
+                      </TabsContent>
+
+                      {/* ADMIN NOTIFICATIONS TAB */}
+                      <TabsContent value="admin" className="space-y-6 mt-4">
+                        <div className="grid gap-6 md:grid-cols-2">
+                            {/* ADMIN_NEW_ORDER */}
+                            <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="font-semibold text-sm">Order Baru (ADMIN)</h4>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('ADMIN_NEW_ORDER')} disabled={isSendingTest}>
+                                        <Send className="w-3 h-3 mr-2" /> Test
+                                    </Button>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Judul</Label>
+                                    <Input 
+                                        value={notificationTemplates.ADMIN_NEW_ORDER.title}
+                                        onChange={(e) => handleNotificationChange('ADMIN_NEW_ORDER', 'title', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Pesan</Label>
+                                    <Textarea 
+                                        value={notificationTemplates.ADMIN_NEW_ORDER.body}
+                                        onChange={(e) => handleNotificationChange('ADMIN_NEW_ORDER', 'body', e.target.value)}
+                                        rows={2}
+                                    />
+                                    <p className="text-xs text-muted-foreground">Vars: {`{orderNumber}, {affiliate}`} </p>
+                                </div>
+                            </div>
+
+                            {/* ADMIN_USER_REGISTER */}
+                            <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
+                                <div className="flex justify-between items-center">
+                                    <h4 className="font-semibold text-sm">Pendaftaran Baru (ADMIN)</h4>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('ADMIN_USER_REGISTER')} disabled={isSendingTest}>
+                                        <Send className="w-3 h-3 mr-2" /> Test
+                                    </Button>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Judul</Label>
+                                    <Input 
+                                        value={notificationTemplates.ADMIN_USER_REGISTER.title}
+                                        onChange={(e) => handleNotificationChange('ADMIN_USER_REGISTER', 'title', e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Pesan</Label>
+                                    <Textarea 
+                                        value={notificationTemplates.ADMIN_USER_REGISTER.body}
+                                        onChange={(e) => handleNotificationChange('ADMIN_USER_REGISTER', 'body', e.target.value)}
+                                        rows={2}
+                                    />
+                                    <p className="text-xs text-muted-foreground">Vars: {`{name}, {email}`} </p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <Label>Pesan</Label>
-                            <Textarea 
-                                value={notificationTemplates.WITHDRAWAL_APPROVED.body}
-                                onChange={(e) => handleNotificationChange('WITHDRAWAL_APPROVED', 'body', e.target.value)}
-                                rows={2}
-                            />
-                            <p className="text-xs text-muted-foreground">Vars: {`{amount}`} </p>
-                        </div>
-                      </div>
-                   </div>
+                      </TabsContent>
+                   </Tabs>
 
                   <Button
                     type="submit"
                     disabled={isSavingNotifications}
-                    className="w-full md:w-auto"
+                    className="w-full md:w-auto mt-4"
                   >
                     {isSavingNotifications
                       ? "Menyimpan..."

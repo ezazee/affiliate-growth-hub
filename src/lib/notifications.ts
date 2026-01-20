@@ -19,7 +19,8 @@ export type NotificationType =
   | 'ORDER_PAID' 
   | 'AFFILIATOR_APPROVED' 
   | 'WITHDRAWAL_APPROVED' 
-  | 'ADMIN_NEW_ORDER';
+  | 'ADMIN_NEW_ORDER'
+  | 'ADMIN_USER_REGISTER';
 
 const DEFAULT_TEMPLATES = {
   NEW_ORDER: {
@@ -41,6 +42,10 @@ const DEFAULT_TEMPLATES = {
   ADMIN_NEW_ORDER: {
     title: 'Order Baru (Admin)',
     body: 'Order #{orderNumber} dari {affiliate} baru saja masuk.'
+  },
+  ADMIN_USER_REGISTER: {
+    title: 'Pendaftaran Baru! 👤',
+    body: 'Affiliator baru: {name} ({email}) menunggu persetujuan.'
   }
 };
 

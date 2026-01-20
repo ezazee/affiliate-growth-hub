@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { User, Product, AffiliateLink } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
+import { sendAdminNotification } from '@/lib/notifications';
 
 // Function to generate a unique referral code
 const generateReferralCode = (length: number = 8): string => {
@@ -49,6 +50,16 @@ export async function POST(req: NextRequest) {
 
     const result = await db.collection('users').insertOne(userToInsert);
     const createdUser: User = { ...userToInsert, _id: result.insertedId, id: result.insertedId.toString() };
+
+    // Trigger Admin Notification
+    try {
+      await sendAdminNotification('ADMIN_USER_REGISTER', { 
+        name: createdUser.name, 
+        email: createdUser.email 
+      });
+    } catch (error) {
+      console.error('Failed to send ADMIN_USER_REGISTER notification', error);
+    }
 
     // Note: Affiliate links will be created when admin approves the user
     // This prevents affiliates from having links before approval
