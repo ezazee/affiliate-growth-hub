@@ -22,8 +22,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "PE Skinpro Affiliate - Dapatkan Komisi 15% dari Produk Skincare Terbaik",
-  description: "Bergabung dengan program affiliate PE Skinpro dan dapatkan komisi 15% dari setiap penjualan. Promosikan produk skincare berkualitas dengan bahan alami dan teknologi Jerman.",
+  title: "PE Skinpro Affiliate",
+  description: "Dapatkan komisi dari penjualan produk skincare berkualitas dengan bergabung dalam program affiliate PE Skinpro.",
   icons: {
     icon: '/favicon/favicon.ico',
     apple: '/favicon/apple-touch-icon.png',
