@@ -114,23 +114,32 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
         return;
       }
 
+      console.log('🔄 Starting push subscription process...');
+      
       // Get service worker registration
+      console.log('📱 Getting service worker registration...');
       const registration = await navigator.serviceWorker.ready;
+      console.log('✅ Service worker ready:', registration.scope);
       
       // Convert VAPID key
+      console.log('🔑 Converting VAPID key...');
       const applicationServerKey = urlB64ToUint8Array(
         process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
       );
+      console.log('✅ VAPID key converted, length:', applicationServerKey.length);
 
       // Subscribe to push
+      console.log('🔔 Subscribing to push manager...');
       const pushSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
       });
+      console.log('✅ Push subscription successful:', pushSubscription.endpoint);
 
       const subscriptionData = pushSubscription.toJSON() as PushSubscription;
       setSubscription(subscriptionData);
       setIsSubscribed(true);
+      console.log('💾 Sending subscription to server...');
 
       // Send subscription to server
       const response = await fetch('/api/push/subscribe', {
@@ -142,16 +151,26 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
         body: JSON.stringify(subscriptionData),
       });
 
+      console.log('📡 Server response status:', response.status);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Server error:', errorText);
         throw new Error('Failed to save subscription on server');
       }
+      
+      const result = await response.json();
+      console.log('✅ Subscription saved on server:', result);
 
     } catch (err) {
-      console.error('Error subscribing to push notifications:', err);
-      setError('Failed to subscribe to push notifications');
+      console.error('❌ Subscription error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to subscribe to push notifications';
+      console.error('❌ Error details:', errorMessage);
+      setError(errorMessage);
       setIsSubscribed(false);
     } finally {
       setIsLoading(false);
+      console.log('🏁 Subscription process finished');
     }
   }, [isSupported, permission, requestPermission]);
 
