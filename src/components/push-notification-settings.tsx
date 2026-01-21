@@ -41,27 +41,36 @@ export const PushNotificationSettings = ({ userId, className }: PushNotification
       return;
     }
 
-    try {
-      if (isEnabled) {
+    if (isEnabled) {
+      try {
         await unsubscribe();
         toast({
           title: 'Notifications Disabled',
           description: 'You will no longer receive push notifications.',
         });
-      } else {
-        await subscribe();
+        setIsEnabled(false);
+      } catch (err) {
         toast({
-          title: 'Notifications Enabled',
-          description: 'You will now receive push notifications.',
+          title: 'Error',
+          description: 'Failed to disable notifications.',
+          variant: 'destructive',
         });
       }
-      setIsEnabled(!isEnabled);
-    } catch (err) {
-      toast({
-        title: 'Error',
-        description: error || 'Failed to update notification settings.',
-        variant: 'destructive',
-      });
+    } else {
+      // Subscribe might take time - let the hook handle loading state
+      try {
+        await subscribe();
+        if (!error) {
+          toast({
+            title: 'Notifications Enabled',
+            description: 'You will now receive push notifications.',
+          });
+          setIsEnabled(true);
+        }
+      } catch (err) {
+        // Error is already handled by the hook
+        console.error('Toggle subscription error:', err);
+      }
     }
   };
 
