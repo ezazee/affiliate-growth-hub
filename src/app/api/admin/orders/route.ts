@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { Order } from '@/types';
 import { ObjectId } from 'mongodb';
-import { sendNotification } from '@/lib/notifications';
+
 
 export async function GET(req: NextRequest) {
   try {
@@ -123,16 +123,7 @@ export async function PUT(req: NextRequest) {
 
           const result = await db.collection('commissions').insertOne(commissionToInsert);
 
-          // Send notification to affiliator
-          try {
-             const formattedCommission = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(commissionAmount);
-             await sendNotification(updatedOrder.affiliatorId, 'ORDER_PAID', { 
-               orderNumber: updatedOrder.orderNumber, 
-               commission: formattedCommission 
-             });
-          } catch (error) {
-             console.error('Failed to send ORDER_PAID notification', error);
-          }
+
         }
       } else {
 

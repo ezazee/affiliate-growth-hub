@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Commission, CommissionStatus } from '@/types';
-import { toast } from 'sonner';
+
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminCommissions() {
@@ -42,7 +42,7 @@ export default function AdminCommissions() {
         }
       } catch (error) {
         console.error('Gagal mengambil komisi:', error);
-        toast.error('Gagal memuat komisi.');
+        console.error('Gagal memuat komisi.');
       } finally {
         setLoading(false);
       }
@@ -71,12 +71,12 @@ export default function AdminCommissions() {
         setCommissions(prev => prev.map(c => 
           c.id === commissionId ? updatedCommission : c
         ));
-        toast.success(`Komisi ditandai sebagai ${newStatus}`);
+        console.log(`Komisi ditandai sebagai ${newStatus}`);
       } else {
-        toast.error(`Gagal memperbarui komisi: ${updatedCommission.error}`);
+        console.error(`Gagal memperbarui komisi: ${updatedCommission.error}`);
       }
     } catch (error) {
-      toast.error('Terjadi kesalahan saat memperbarui status komisi.');
+      console.error('Terjadi kesalahan saat memperbarui status komisi.');
     }
   };
 

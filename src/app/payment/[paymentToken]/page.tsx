@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Copy, Clock, ArrowLeft, AlertCircle, CheckCircle, Loader2, MessageCircle } from 'lucide-react';
-import { toast } from 'sonner';
+
 import { getAdminWhatsApp, createWhatsAppLink } from '@/lib/whatsapp';
 import { Order } from '@/types';
 import Link from 'next/link';

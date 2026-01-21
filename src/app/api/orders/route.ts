@@ -3,7 +3,7 @@ import clientPromise from '@/lib/mongodb';
 import { Order, OrderStatus } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectId } from 'mongodb';
-import { sendNotification, sendAdminNotification } from '@/lib/notifications';
+
 
 // Helper function to generate a unique order number
 const generateOrderNumber = async (db): Promise<string> => {
@@ -87,17 +87,7 @@ export async function POST(req: NextRequest) {
 
     const result = await db.collection('orders').insertOne(orderToInsert);
 
-    // Send Notifications
-    try {
-      const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(totalPrice);
-      await Promise.all([
-        sendNotification(affiliatorId, 'NEW_ORDER', { orderNumber, amount: formattedPrice }),
-        sendAdminNotification('ADMIN_NEW_ORDER', { orderNumber, affiliate: affiliateName })
-      ]);
-    } catch (notifyError) {
-      console.error('Failed to send notifications:', notifyError);
-      // Don't fail the request if notification fails
-    }
+
 
     // Return only necessary info for payment navigation
     return NextResponse.json({ 

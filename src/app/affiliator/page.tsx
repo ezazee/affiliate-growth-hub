@@ -30,7 +30,7 @@ import { StatCard } from '@/components/dashboard/StatCard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+
 import { Skeleton } from '@/components/ui/skeleton';
 import { 
   Table, 
@@ -42,8 +42,8 @@ import {
 } from '@/components/ui/table';
 import { AffiliateLink, Commission, Order, OrderStatus, CommissionStatus } from '@/types';
 import { cn } from '@/lib/utils';
-import { Wallet, Bell } from 'lucide-react';
-import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { Wallet } from 'lucide-react';
+
 
 interface AffiliatorStats {
   totalRevenue: number;
@@ -53,7 +53,7 @@ interface AffiliatorStats {
 
 export default function AffiliatorDashboard() {
   const { user } = useAuth();
-  const { isSubscribed, subscribeToNotifications, permission } = usePushNotifications();
+
   const [stats, setStats] = useState<AffiliatorStats | null>(null);
   const [affiliateLinks, setAffiliateLinks] = useState<AffiliateLink[]>([]);
   const [recentCommissions, setRecentCommissions] = useState<Commission[]>([]);
@@ -140,11 +140,11 @@ export default function AffiliatorDashboard() {
             processChartData(data, affiliateLinks);
           }
         } else {
-          if (isMounted) toast.error('Gagal memuat data chart.');
+
         }
       } catch (error) {
         console.error('Gagal mengambil data chart:', error);
-        if (isMounted) toast.error('Terjadi kesalahan saat memuat data chart.');
+
       }
     };
 
@@ -192,11 +192,11 @@ export default function AffiliatorDashboard() {
           setRecentCommissions(commissionsData.slice(0, 5));
           setRecentOrders(ordersData.slice(0, 5));
         } else {
-          toast.error("Gagal memuat data dasbor.");
+
         }
       } catch (error) {
         console.error("Gagal mengambil data awal:", error);
-        toast.error("Terjadi kesalahan saat memuat data.");
+
       } finally {
         setLoading(false);
       }
@@ -250,12 +250,7 @@ export default function AffiliatorDashboard() {
             Berikut adalah ringkasan performa afiliasi Anda
           </p>
         </div>
-        {!isSubscribed && permission !== 'denied' && (
-            <Button onClick={subscribeToNotifications} className="gap-2">
-                <Bell className="w-4 h-4" />
-                Aktifkan Notifikasi
-            </Button>
-        )}
+
       </div>
 
       {/* Stats Grid */}

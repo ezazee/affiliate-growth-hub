@@ -3,7 +3,7 @@ import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
 import { UserStatus, AffiliateLink } from '@/types';
 import { v4 as uuidv4 } from 'uuid';
-import { sendNotification } from '@/lib/notifications';
+
 
 // Function to generate a unique link code
 const generateLinkCode = (productName: string, affiliatorName: string): string => {
@@ -80,14 +80,7 @@ export async function PUT(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Send notification if approved
-    if (status === 'approved' && currentUser.status !== 'approved') {
-       try {
-         await sendNotification(id, 'AFFILIATOR_APPROVED', {});
-       } catch (error) {
-         console.error('Failed to send AFFILIATOR_APPROVED notification', error);
-       }
-    }
+
 
     // Note: Affiliate links will be created manually by the affiliator when needed
     // This prevents automatic link creation on approval

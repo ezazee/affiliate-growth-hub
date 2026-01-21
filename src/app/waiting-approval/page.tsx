@@ -7,7 +7,8 @@ import { motion } from 'framer-motion';
 import { Clock, ArrowLeft, CheckCircle, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
+
 import { getAdminWhatsApp, createWhatsAppLink } from '@/lib/whatsapp';
 
 export default function WaitingApproval() {

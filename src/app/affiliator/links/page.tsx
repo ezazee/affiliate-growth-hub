@@ -9,10 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+
 import { useAuth } from '@/contexts/AuthContext';
 import { AffiliateLink, Product } from '@/types';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
+
 
 export default function AffiliatorLinks() {
   const { user, isAuthenticated, loading: authLoading } = useAuth();
@@ -50,7 +51,7 @@ export default function AffiliatorLinks() {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      toast.error('Gagal mengambil data');
+      console.error('Gagal mengambil data');
     } finally {
       setLoading(false);
     }
@@ -62,7 +63,7 @@ export default function AffiliatorLinks() {
 
   const handleCreateLinks = async () => {
     if (selectedProducts.length === 0) {
-      toast.error("Pilih minimal satu produk");
+      console.error("Pilih minimal satu produk");
       return;
     }
 
@@ -148,23 +149,21 @@ export default function AffiliatorLinks() {
 
     if (user.status === 'pending') {
       return (
-        <Alert className="mb-6 border-amber-200 bg-amber-50">
-          <Clock className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
+        <div className="mb-6 p-4 border border-amber-200 bg-amber-50 rounded-lg">
+          <div className="text-amber-800">
             Akun Anda menunggu persetujuan dari admin. Anda dapat membuat link afiliasi tetapi tidak dapat dibagikan sampai disetujui.
-          </AlertDescription>
-        </Alert>
+          </div>
+        </div>
       );
     }
 
     if (user.status === 'rejected') {
       return (
-        <Alert className="mb-6 border-red-200 bg-red-50">
-          <XCircle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
+        <div className="mb-6 p-4 border border-red-200 bg-red-50 rounded-lg">
+          <div className="text-red-800">
             Akun Anda ditolak. Silakan hubungi admin untuk informasi lebih lanjut.
-          </AlertDescription>
-        </Alert>
+          </div>
+        </div>
       );
     }
 

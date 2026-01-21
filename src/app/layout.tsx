@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "@/index.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Toaster } from "@/components/ui/sonner";
+import { ForceNotificationPopup } from "@/components/ui/force-notification-popup";
+import { ServiceWorkerRegister } from "@/components/ui/service-worker-register";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -45,8 +47,10 @@ export default function RootLayout({
     <html lang="id">
       <body className={inter.className}>
         <AuthProvider>
+          <ServiceWorkerRegister />
           {children}
           <Toaster />
+          <ForceNotificationPopup />
         </AuthProvider>
       </body>
     </html>

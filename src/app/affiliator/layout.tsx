@@ -13,7 +13,8 @@ import {
   LogOut,
   Menu,
   X,
-  Banknote
+  Banknote,
+  Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
@@ -28,6 +29,7 @@ const affiliatorNavItems = [
   { path: '/affiliator/links', label: 'Link Saya', icon: LinkIcon },
   { path: '/affiliator/commissions', label: 'Komisi', icon: Landmark },
   { path: '/affiliator/customers', label: 'Pelanggan', icon: Users },
+  { path: '/affiliator/settings', label: 'Pengaturan', icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {

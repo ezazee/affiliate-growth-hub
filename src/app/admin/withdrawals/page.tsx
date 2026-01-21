@@ -23,7 +23,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Withdrawal, WithdrawalStatus } from '@/types/withdrawal';
 import { User as UserType } from '@/types/user';
-import { toast } from 'sonner';
+
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminWithdrawals() {
@@ -46,7 +46,7 @@ export default function AdminWithdrawals() {
           const withdrawalsData = await withdrawalsResponse.json();
           setWithdrawals(withdrawalsData);
         } else {
-          toast.error('Failed to load withdrawals.');
+          console.error('Failed to load withdrawals.');
         }
 
         // Fetch affiliators for user info
@@ -56,7 +56,7 @@ export default function AdminWithdrawals() {
           setAffiliators(affiliatorsData);
         }
       } catch (error) {
-        toast.error('Failed to load data.');
+        console.error('Failed to load data.');
       } finally {
         setLoading(false);
       }
@@ -83,16 +83,16 @@ export default function AdminWithdrawals() {
         setWithdrawals(prev => prev.map(w => 
           w.id === withdrawalId ? { ...w, status: newStatus, processedAt: new Date() } : w
         ));
-        toast.success(`Status penarikan diperbarui menjadi ${newStatus}`);
+        console.log(`Status penarikan diperbarui menjadi ${newStatus}`);
         if (newStatus === 'rejected') {
           setIsRejectDialogOpen(false);
           setRejectionReason('');
         }
       } else {
-        toast.error('Gagal memperbarui status penarikan.');
+        console.error('Gagal memperbarui status penarikan.');
       }
     } catch (error) {
-      toast.error('Terjadi kesalahan saat memperbarui status.');
+      console.error('Terjadi kesalahan saat memperbarui status.');
     }
   };
 

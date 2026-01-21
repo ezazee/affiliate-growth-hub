@@ -10,7 +10,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Commission, CommissionStatus } from '@/types';
 import { BankDetails } from '@/types/withdrawal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
+
 import { Button } from '@/components/ui/button';
 import { getAdminWhatsApp, createWhatsAppLink } from '@/lib/whatsapp';
 import {
@@ -69,9 +70,9 @@ export default function AffiliatorCommissions() {
            setWithdrawals(Array.isArray(withdrawalsResult) ? withdrawalsResult : []);
            setMinimumWithdrawal(settingsResult.minimumWithdrawal || 50000);
            setAdminWhatsApp(settingsResult.adminWhatsApp || '628123456789');
-         } else {
-           toast.error('Gagal memuat data komisi');
-         }
+          } else {
+            toast.error('Gagal memuat data komisi');
+          }
     } catch (error) {
       console.error('Fetch error:', error);
       toast.error('Terjadi kesalahan saat memuat data');

@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
+
 import { AddressAutocompleteInput } from "@/components/ui/address-autocomplete-input";
 import {
   DollarSign,
@@ -25,10 +25,6 @@ import {
   ShoppingBag,
   MessageCircle,
   Globe,
-  Bell,
-  Send,
-  User,
-  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -45,17 +41,7 @@ export default function SettingsPage() {
     long_flat_rate: 50000,
   });
 
-  // Notification Settings
-  const [notificationTemplates, setNotificationTemplates] = useState({
-    NEW_ORDER: { title: 'Pesanan Baru Masuk! 🎉', body: 'Pesanan #{orderNumber} senilai {amount} telah masuk melalui link Anda.' },
-    ORDER_PAID: { title: 'Komisi Diterima! 💰', body: 'Pesanan #{orderNumber} telah dibayar. Anda menerima komisi {commission}!' },
-    AFFILIATOR_APPROVED: { title: 'Akun Disetujui! ✅', body: 'Akun affiliate Anda telah disetujui. Mulai bagikan link sekarang!' },
-    WITHDRAWAL_APPROVED: { title: 'Penarikan Disetujui 💸', body: 'Penarikan dana sebesar {amount} telah disetujui dan diproses.' },
-    ADMIN_NEW_ORDER: { title: 'Order Baru (Admin)', body: 'Order #{orderNumber} dari {affiliate} baru saja masuk.' },
-    ADMIN_USER_REGISTER: { title: 'Pendaftaran Baru! 👤', body: 'Affiliator baru: {name} ({email}) menunggu persetujuan.' },
-  });
-  const [isSavingNotifications, setIsSavingNotifications] = useState(false);
-  const [isSendingTest, setIsSendingTest] = useState(false);
+
 
   // Landing Page Settings
   const [landingPageSettings, setLandingPageSettings] = useState({
@@ -96,7 +82,7 @@ export default function SettingsPage() {
           } catch {
             errorMessage = `Server error: ${response.status} ${response.statusText}`;
           }
-          toast.error(errorMessage);
+          console.error(errorMessage);
           return;
         }
 
@@ -140,28 +126,14 @@ export default function SettingsPage() {
         } catch (error) {
           console.error("Error fetching landing page settings:", error);
         }
-
-        // Notification Templates
-        try {
-          const notifyResponse = await fetch("/api/admin/notification-templates");
-          if (notifyResponse.ok) {
-            const notifyData = await notifyResponse.json();
-            if (Object.keys(notifyData).length > 0) {
-                setNotificationTemplates(prev => ({ ...prev, ...notifyData }));
-            }
-          }
         } catch (error) {
-          console.error("Error fetching notification templates:", error);
+          console.error("Settings fetch error:", error);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Settings fetch error:", error);
-        toast.error("Gagal memuat pengaturan karena kesalahan jaringan.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchSettings();
-  }, []);
+      };
+      fetchSettings();
+    }, []);
 
   const handleSaveAddress = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -181,15 +153,15 @@ export default function SettingsPage() {
         } catch {
           errorMessage = `Server error: ${response.status} ${response.statusText}`;
         }
-        toast.error(errorMessage);
+        console.error(errorMessage);
         return;
       }
 
       const data = await response.json();
-      toast.success("Alamat gudang berhasil diperbarui.");
+      console.log("Alamat gudang berhasil diperbarui.");
     } catch (error) {
       console.error("Address save error:", error);
-      toast.error("Gagal memperbarui alamat karena kesalahan jaringan.");
+      console.error("Gagal memperbarui alamat karena kesalahan jaringan.");
     } finally {
       setIsSavingAddress(false);
     }
@@ -201,12 +173,12 @@ export default function SettingsPage() {
     // Validasi nomor WhatsApp
     const cleanNumber = adminWhatsApp.replace(/\D/g, "");
     if (!cleanNumber) {
-      toast.error("Nomor WhatsApp tidak boleh kosong.");
+      console.error("Nomor WhatsApp tidak boleh kosong.");
       return;
     }
 
     if (cleanNumber.length < 9 || cleanNumber.length > 13) {
-      toast.error("Nomor WhatsApp harus antara 9-13 digit.");
+      console.error("Nomor WhatsApp harus antara 9-13 digit.");
       return;
     }
 
@@ -231,17 +203,17 @@ export default function SettingsPage() {
         } catch {
           errorMessage = `Server error: ${response.status} ${response.statusText}`;
         }
-        toast.error(errorMessage);
+        console.error(errorMessage);
         return;
       }
 
       const data = await response.json();
       setAdminWhatsApp(formattedNumber);
-      toast.success("Nomor WhatsApp admin berhasil diperbarui.");
+      console.log("Nomor WhatsApp admin berhasil diperbarui.");
     } catch (error) {
       console.error("WhatsApp save error:", error);
-      toast.error(
-        "Gagal memperbarui nomor WhatsApp karena kesalahan jaringan."
+      console.error(
+        "Gagal memperbarui nomor WhatsApp. Silakan periksa kembali nomor Anda."
       );
     } finally {
       setIsSavingWhatsApp(false);
@@ -254,12 +226,12 @@ export default function SettingsPage() {
     // Validasi minimal penarikan
     const amount = Number(minimumWithdrawal);
     if (!amount || amount < 10000) {
-      toast.error("Minimal penarikan harus minimal Rp 10.000.");
+      console.error("Minimal penarikan harus minimal Rp 10.000.");
       return;
     }
 
     if (amount > 10000000) {
-      toast.error("Minimal penarikan tidak boleh lebih dari Rp 10.000.000.");
+      console.error("Minimal penarikan tidak boleh lebih dari Rp 10.000.000.");
       return;
     }
 
@@ -279,16 +251,16 @@ export default function SettingsPage() {
         } catch {
           errorMessage = `Server error: ${response.status} ${response.statusText}`;
         }
-        toast.error(errorMessage);
+        console.error(errorMessage);
         return;
       }
 
       const data = await response.json();
-      toast.success("Minimal penarikan berhasil diperbarui.");
+      console.log("Minimal penarikan berhasil diperbarui.");
     } catch (error) {
       console.error("Minimum withdrawal save error:", error);
-      toast.error(
-        "Gagal memperbarui minimal penarikan karena kesalahan jaringan."
+      console.error(
+        "Gagal memperbarui minimal penarikan. Silakan coba lagi."
       );
     } finally {
       setIsSavingWithdrawal(false);
@@ -326,14 +298,14 @@ export default function SettingsPage() {
         } catch {
           errorMessage = `Server error: ${failedResponses[0].status} ${failedResponses[0].statusText}`;
         }
-        toast.error(errorMessage);
+        console.error(errorMessage);
         return;
       }
 
-      toast.success("Biaya pengiriman berhasil diperbarui.");
+      console.log("Biaya pengiriman berhasil diperbarui.");
     } catch (error) {
       console.error("Shipping rates save error:", error);
-      toast.error("Gagal memperbarui satu atau lebih biaya pengiriman.");
+      console.error("Gagal memperbarui satu atau lebih biaya pengiriman.");
     } finally {
       setIsSavingRates(false);
     }
@@ -358,7 +330,7 @@ export default function SettingsPage() {
 
     // Validate file type first
     if (!file.type.startsWith("image/")) {
-      toast.error("File harus berupa gambar (JPG, PNG, WebP, GIF)");
+      console.error("File harus berupa gambar (JPG, PNG, WebP, GIF)");
       e.target.value = ""; // Reset input
       return;
     }
@@ -371,30 +343,28 @@ export default function SettingsPage() {
 
     // Client-side validation for max size
     if (file.size > maxSizeKB * 1024) {
-      toast.error(`Ukuran file terlalu besar: ${fileSizeMB}MB. Maksimal: 2MB`, {
-        duration: 4000,
-      });
+      console.error(`Ukuran file terlalu besar: ${fileSizeMB}MB. Maksimal: 2MB`);
       e.target.value = ""; // Reset input
       return;
     }
 
     // Warning for large files
     if (fileSizeKB > recommendedKB) {
-      toast.info(
+      console.log(
         `Ukuran file: ${fileSizeKB}KB. Untuk loading optimal, disarankan < 500KB.`,
         {
           duration: 3000,
         }
       );
     } else {
-      toast.success(`Ukuran file optimal: ${fileSizeKB}KB`, {
+      console.log(`Ukuran file optimal: ${fileSizeKB}KB`, {
         duration: 2000,
       });
     }
 
     // Validate minimum size
     if (file.size < 1024) {
-      toast.error("Ukuran gambar terlalu kecil (minimal 1KB)");
+      console.error("Ukuran gambar terlalu kecil (minimal 1KB)");
       e.target.value = ""; // Reset input
       return;
     }
@@ -411,7 +381,7 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        toast.error(errorData.error || "Gagal mengupload gambar");
+        console.error(errorData.error || "Gagal mengupload gambar");
         return;
       }
 
@@ -420,14 +390,14 @@ export default function SettingsPage() {
 
       // Show success with size info
       const sizeInfo = ` (${data.sizeKB}KB)`;
-      toast.success(
+      console.log(
         `Gambar "${file.name}" berhasil diupload ke cloud storage${sizeInfo}`
       );
 
       // Show warning if file is large
       if (data.warning) {
         setTimeout(() => {
-          toast.warning(data.warning, {
+          console.log(data.warning, {
             duration: 6000,
           });
         }, 1000);
@@ -437,7 +407,7 @@ export default function SettingsPage() {
       e.target.value = "";
     } catch (error) {
       console.error("Image upload error:", error);
-      toast.error(
+      console.error(
         "Terjadi kesalahan saat mengupload gambar. Silakan coba lagi."
       );
     } finally {
@@ -464,87 +434,21 @@ export default function SettingsPage() {
         } catch {
           errorMessage = `Server error: ${response.status} ${response.statusText}`;
         }
-        toast.error(errorMessage);
+        console.error(errorMessage);
         return;
       }
 
       const data = await response.json();
-      toast.success("Pengaturan landing page berhasil diperbarui.");
+      console.log("Pengaturan landing page berhasil diperbarui.");
     } catch (error) {
       console.error("Landing page save error:", error);
-      toast.error("Gagal memperbarui pengaturan landing page.");
+      console.error("Gagal memperbarui pengaturan landing page.");
     } finally {
       setIsSavingLandingPage(false);
     }
   };
 
-  const handleNotificationChange = (type: string, field: 'title' | 'body', value: string) => {
-    setNotificationTemplates(prev => ({
-        ...prev,
-        [type as keyof typeof prev]: {
-            ...prev[type as keyof typeof prev],
-            [field]: value
-        }
-    }));
-  };
 
-  const handleSaveNotifications = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSavingNotifications(true);
-    try {
-        const response = await fetch("/api/admin/notification-templates", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(notificationTemplates),
-        });
-        if (response.ok) {
-            toast.success("Template notifikasi berhasil diperbarui.");
-        } else {
-            toast.error("Gagal memperbarui template.");
-        }
-    } catch (error) {
-        toast.error("Terjadi kesalahan jaringan.");
-    } finally {
-        setIsSavingNotifications(false);
-    }
-  };
-
-  const handleTestNotification = async (type: string) => {
-      if (!user?.id) {
-          toast.error("Anda harus login untuk test.");
-          return;
-      }
-      setIsSendingTest(true);
-      try {
-          // Dummy data for test
-          const dummyData = {
-              orderNumber: 'ORDER-TEST-123',
-              amount: 'Rp 150.000',
-              commission: 'Rp 15.000',
-              affiliate: 'Test Affiliate'
-          };
-          
-          const response = await fetch("/api/admin/test-notification", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                  userId: user.id,
-                  type,
-                  data: dummyData
-              }),
-          });
-          
-          if (response.ok) {
-              toast.success(`Notifikasi ${type} dikirim ke perangkat Anda!`);
-          } else {
-              toast.error("Gagal mengirim notifikasi test.");
-          }
-      } catch (error) {
-          toast.error("Gagal mengirim notifikasi.");
-      } finally {
-          setIsSendingTest(false);
-      }
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-4 px-3 sm:py-6 sm:px-6 lg:px-8">
@@ -790,210 +694,7 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Notification Settings */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="w-5 h-5" />
-                  Pengaturan Push Notification
-                </CardTitle>
-                <CardDescription>
-                  Atur template pesan notifikasi yang dikirim ke aplikasi PWA.
-                  Gunakan <code>{`{variable}`}</code> untuk data dinamis.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSaveNotifications} className="space-y-6">
-                   <Tabs defaultValue="affiliator" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="affiliator">
-                            <User className="w-4 h-4 mr-2" />
-                            Notifikasi Affiliator
-                        </TabsTrigger>
-                        <TabsTrigger value="admin">
-                            <ShieldCheck className="w-4 h-4 mr-2" />
-                            Notifikasi Admin
-                        </TabsTrigger>
-                      </TabsList>
-                      
-                      {/* AFFILIATOR NOTIFICATIONS TAB */}
-                      <TabsContent value="affiliator" className="space-y-6 mt-4">
-                        <div className="grid gap-6 md:grid-cols-2">
-                            {/* NEW_ORDER */}
-                            <div className="space-y-3 p-4 border rounded-lg">
-                                <div className="flex justify-between items-center">
-                                    <h4 className="font-semibold text-sm">Pesanan Baru (NEW_ORDER)</h4>
-                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('NEW_ORDER')} disabled={isSendingTest}>
-                                        <Send className="w-3 h-3 mr-2" /> Test
-                                    </Button>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Judul</Label>
-                                    <Input 
-                                        value={notificationTemplates.NEW_ORDER.title}
-                                        onChange={(e) => handleNotificationChange('NEW_ORDER', 'title', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Pesan</Label>
-                                    <Textarea 
-                                        value={notificationTemplates.NEW_ORDER.body}
-                                        onChange={(e) => handleNotificationChange('NEW_ORDER', 'body', e.target.value)}
-                                        rows={2}
-                                    />
-                                    <p className="text-xs text-muted-foreground">Vars: {`{orderNumber}, {amount}`} </p>
-                                </div>
-                            </div>
 
-                            {/* ORDER_PAID */}
-                            <div className="space-y-3 p-4 border rounded-lg">
-                                <div className="flex justify-between items-center">
-                                    <h4 className="font-semibold text-sm">Komisi Cair (ORDER_PAID)</h4>
-                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('ORDER_PAID')} disabled={isSendingTest}>
-                                        <Send className="w-3 h-3 mr-2" /> Test
-                                    </Button>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Judul</Label>
-                                    <Input 
-                                        value={notificationTemplates.ORDER_PAID.title}
-                                        onChange={(e) => handleNotificationChange('ORDER_PAID', 'title', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Pesan</Label>
-                                    <Textarea 
-                                        value={notificationTemplates.ORDER_PAID.body}
-                                        onChange={(e) => handleNotificationChange('ORDER_PAID', 'body', e.target.value)}
-                                        rows={2}
-                                    />
-                                    <p className="text-xs text-muted-foreground">Vars: {`{orderNumber}, {commission}`} </p>
-                                </div>
-                            </div>
-
-                            {/* AFFILIATOR_APPROVED */}
-                            <div className="space-y-3 p-4 border rounded-lg">
-                                <div className="flex justify-between items-center">
-                                    <h4 className="font-semibold text-sm">Akun Disetujui (APPROVED)</h4>
-                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('AFFILIATOR_APPROVED')} disabled={isSendingTest}>
-                                        <Send className="w-3 h-3 mr-2" /> Test
-                                    </Button>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Judul</Label>
-                                    <Input 
-                                        value={notificationTemplates.AFFILIATOR_APPROVED.title}
-                                        onChange={(e) => handleNotificationChange('AFFILIATOR_APPROVED', 'title', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Pesan</Label>
-                                    <Textarea 
-                                        value={notificationTemplates.AFFILIATOR_APPROVED.body}
-                                        onChange={(e) => handleNotificationChange('AFFILIATOR_APPROVED', 'body', e.target.value)}
-                                        rows={2}
-                                    />
-                                </div>
-                            </div>
-
-                            {/* WITHDRAWAL_APPROVED */}
-                            <div className="space-y-3 p-4 border rounded-lg">
-                                <div className="flex justify-between items-center">
-                                    <h4 className="font-semibold text-sm">Penarikan Disetujui</h4>
-                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('WITHDRAWAL_APPROVED')} disabled={isSendingTest}>
-                                        <Send className="w-3 h-3 mr-2" /> Test
-                                    </Button>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Judul</Label>
-                                    <Input 
-                                        value={notificationTemplates.WITHDRAWAL_APPROVED.title}
-                                        onChange={(e) => handleNotificationChange('WITHDRAWAL_APPROVED', 'title', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Pesan</Label>
-                                    <Textarea 
-                                        value={notificationTemplates.WITHDRAWAL_APPROVED.body}
-                                        onChange={(e) => handleNotificationChange('WITHDRAWAL_APPROVED', 'body', e.target.value)}
-                                        rows={2}
-                                    />
-                                    <p className="text-xs text-muted-foreground">Vars: {`{amount}`} </p>
-                                </div>
-                            </div>
-                        </div>
-                      </TabsContent>
-
-                      {/* ADMIN NOTIFICATIONS TAB */}
-                      <TabsContent value="admin" className="space-y-6 mt-4">
-                        <div className="grid gap-6 md:grid-cols-2">
-                            {/* ADMIN_NEW_ORDER */}
-                            <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
-                                <div className="flex justify-between items-center">
-                                    <h4 className="font-semibold text-sm">Order Baru (ADMIN)</h4>
-                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('ADMIN_NEW_ORDER')} disabled={isSendingTest}>
-                                        <Send className="w-3 h-3 mr-2" /> Test
-                                    </Button>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Judul</Label>
-                                    <Input 
-                                        value={notificationTemplates.ADMIN_NEW_ORDER.title}
-                                        onChange={(e) => handleNotificationChange('ADMIN_NEW_ORDER', 'title', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Pesan</Label>
-                                    <Textarea 
-                                        value={notificationTemplates.ADMIN_NEW_ORDER.body}
-                                        onChange={(e) => handleNotificationChange('ADMIN_NEW_ORDER', 'body', e.target.value)}
-                                        rows={2}
-                                    />
-                                    <p className="text-xs text-muted-foreground">Vars: {`{orderNumber}, {affiliate}`} </p>
-                                </div>
-                            </div>
-
-                            {/* ADMIN_USER_REGISTER */}
-                            <div className="space-y-3 p-4 border rounded-lg bg-muted/20">
-                                <div className="flex justify-between items-center">
-                                    <h4 className="font-semibold text-sm">Pendaftaran Baru (ADMIN)</h4>
-                                    <Button type="button" variant="outline" size="sm" onClick={() => handleTestNotification('ADMIN_USER_REGISTER')} disabled={isSendingTest}>
-                                        <Send className="w-3 h-3 mr-2" /> Test
-                                    </Button>
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Judul</Label>
-                                    <Input 
-                                        value={notificationTemplates.ADMIN_USER_REGISTER.title}
-                                        onChange={(e) => handleNotificationChange('ADMIN_USER_REGISTER', 'title', e.target.value)}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label>Pesan</Label>
-                                    <Textarea 
-                                        value={notificationTemplates.ADMIN_USER_REGISTER.body}
-                                        onChange={(e) => handleNotificationChange('ADMIN_USER_REGISTER', 'body', e.target.value)}
-                                        rows={2}
-                                    />
-                                    <p className="text-xs text-muted-foreground">Vars: {`{name}, {email}`} </p>
-                                </div>
-                            </div>
-                        </div>
-                      </TabsContent>
-                   </Tabs>
-
-                  <Button
-                    type="submit"
-                    disabled={isSavingNotifications}
-                    className="w-full md:w-auto mt-4"
-                  >
-                    {isSavingNotifications
-                      ? "Menyimpan..."
-                      : "Simpan Template Notifikasi"}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
 
             {/* Landing Page Settings */}
             <Card className="lg:col-span-2">
@@ -1108,7 +809,7 @@ export default function SettingsPage() {
                                   ...prev,
                                   aboutImage: "",
                                 }));
-                                toast.success("Gambar dihapus");
+                                console.log("Gambar dihapus");
                               }}
                             >
                               Hapus

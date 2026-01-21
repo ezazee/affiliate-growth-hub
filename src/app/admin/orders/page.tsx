@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Order, OrderStatus } from '@/types';
-import { toast } from 'sonner';
+
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminOrders() {
@@ -41,11 +41,11 @@ export default function AdminOrders() {
           const ordersData = await ordersResponse.json();
           setOrders(ordersData);
         } else {
-          toast.error('Gagal memuat pesanan.');
+          console.error('Gagal memuat pesanan.');
         }
       } catch (error) {
         console.error('Gagal mengambil pesanan:', error);
-        toast.error('Terjadi kesalahan saat memuat data.');
+        console.error('Terjadi kesalahan saat memuat data.');
       } finally {
         setLoading(false);
       }
@@ -67,15 +67,15 @@ export default function AdminOrders() {
 
       if (response.ok) {
         setOrders(prev => prev.map(o => (o.id === orderId ? updatedOrder : o)));
-        toast.success('Pesanan berhasil diperbarui.');
+        console.log('Pesanan berhasil diperbarui.');
         return updatedOrder;
       } else {
-        toast.error(`Gagal memperbarui pesanan: ${updatedOrder.error || 'Silakan coba lagi.'}`);
+        console.error(`Gagal memperbarui pesanan: ${updatedOrder.error || 'Silakan coba lagi.'}`);
         return null;
       }
     } catch (error) {
       console.error('Failed to update order:', error);
-      toast.error('Gagal memperbarui pesanan karena kesalahan jaringan.');
+      console.error('Gagal memperbarui pesanan karena kesalahan jaringan.');
       return null;
     }
   };

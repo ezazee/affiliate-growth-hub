@@ -10,7 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandInput, CommandEmpty, CommandGroup, CommandItem, CommandList } from '@/components/ui/command';
 import { Loader2, Search, MapPin as MapPinIcon, X } from 'lucide-react';
 import { useDebounce } from '@/hooks/use-debounce';
-import { toast } from 'sonner';
+
 import { Separator } from '@/components/ui/separator';
 
 // Dynamic import for MapWrapper
@@ -107,10 +107,10 @@ export function CheckoutAddressInput({ formData, setFormData, disabled }: Checko
           }));
           setSuggestions(mappedSuggestions);
         } else {
-          toast.error(data.error || 'Gagal memuat saran alamat.');
+          console.error(data.error || 'Gagal memuat saran alamat.');
         }
       } catch (error) {
-        toast.error('Gagal memuat saran alamat karena kesalahan jaringan.');
+        console.error('Gagal memuat saran alamat karena kesalahan jaringan.');
       } finally {
         setIsFetchingSuggestions(false);
       }
@@ -133,12 +133,12 @@ export function CheckoutAddressInput({ formData, setFormData, disabled }: Checko
           postalCode: data.postalCode,
         }));
         setInputValue(data.shippingAddress);
-        toast.success('Alamat diperbarui dari lokasi pin.');
+        console.log('Alamat diperbarui dari lokasi pin.');
       } else {
-        toast.error(data.error || 'Gagal memperbarui alamat dari lokasi pin.');
+        console.error(data.error || 'Gagal memperbarui alamat dari lokasi pin.');
       }
     } catch (error) {
-      toast.error('Gagal memperbarui alamat karena kesalahan jaringan.');
+      console.error('Gagal memperbarui alamat karena kesalahan jaringan.');
     } finally {
       setIsReverseGeocoding(false);
     }

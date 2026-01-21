@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Product, CommissionType } from '@/types';
-import { toast } from 'sonner';
+
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AdminProducts() {
@@ -56,7 +56,7 @@ export default function AdminProducts() {
         }
       } catch (error) {
         console.error('Failed to fetch products:', error);
-        toast.error('Failed to load products.');
+        console.error('Failed to load products.');
       } finally {
         setLoading(false);
       }
@@ -125,7 +125,7 @@ export default function AdminProducts() {
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      toast.error('File harus berupa gambar (JPG, PNG, WebP, GIF)');
+      console.error('File harus berupa gambar (JPG, PNG, WebP, GIF)');
       e.target.value = '';
       return;
     }
@@ -133,7 +133,7 @@ export default function AdminProducts() {
     // Validate file size (2MB max)
     const maxSize = 2 * 1024 * 1024; // 2MB
     if (file.size > maxSize) {
-      toast.error(`Ukuran file terlalu besar: ${(file.size / 1024 / 1024).toFixed(2)}MB. Maksimal: 2MB`);
+      console.error(`Ukuran file terlalu besar: ${(file.size / 1024 / 1024).toFixed(2)}MB. Maksimal: 2MB`);
       e.target.value = '';
       return;
     }
@@ -141,9 +141,9 @@ export default function AdminProducts() {
     // Show file size info
     const fileSizeKB = Math.round(file.size / 1024);
     if (fileSizeKB > 500) {
-      toast.info(`Ukuran file: ${fileSizeKB}KB. Untuk loading optimal, disarankan < 500KB.`);
+      console.log(`Ukuran file: ${fileSizeKB}KB. Untuk loading optimal, disarankan < 500KB.`);
     } else {
-      toast.success(`Ukuran file optimal: ${fileSizeKB}KB`);
+      console.log(`Ukuran file optimal: ${fileSizeKB}KB`);
     }
 
     setSelectedFile(file);
@@ -179,19 +179,19 @@ export default function AdminProducts() {
           
           if (blobData.warning) {
             setTimeout(() => {
-              toast.warning(blobData.warning, { duration: 6000 });
+              console.log(blobData.warning, { duration: 6000 });
             }, 1000);
           }
           
-          toast.success(`Gambar "${selectedFile.name}" berhasil diupload ke cloud storage (${blobData.sizeKB}KB)`);
+          console.log(`Gambar "${selectedFile.name}" berhasil diupload ke cloud storage (${blobData.sizeKB}KB)`);
         } else {
           const errorData = await uploadResponse.json();
-          toast.error(errorData.error || 'Failed to upload image.');
+          console.error(errorData.error || 'Failed to upload image.');
           return; // Stop submission if image upload fails
         }
       } catch (uploadError) {
         console.error('Image upload failed:', uploadError);
-        toast.error('Terjadi kesalahan saat mengupload gambar. Silakan coba lagi.');
+        console.error('Terjadi kesalahan saat mengupload gambar. Silakan coba lagi.');
         return; // Stop submission if image upload fails
       } finally {
         setIsUploading(false);
@@ -220,14 +220,14 @@ export default function AdminProducts() {
           setProducts(prev => prev.map(p => 
             p.id === updatedProduct.id ? updatedProduct : p
           ));
-          toast.success('Product updated successfully');
+          console.log('Product updated successfully');
         } else if (response.status === 409) {
           const errorData = await response.json();
-          toast.error(errorData.error || 'Product with this slug already exists.');
+          console.error(errorData.error || 'Product with this slug already exists.');
         }
         else {
           const errorData = await response.json();
-          toast.error(errorData.error || 'Failed to update product.');
+          console.error(errorData.error || 'Failed to update product.');
         }
       } else {
         // Create new product
@@ -248,18 +248,18 @@ export default function AdminProducts() {
         if (response.ok) {
           const createdProduct = await response.json();
           setProducts(prev => [...prev, createdProduct]);
-          toast.success('Product created successfully');
+          console.log('Product created successfully');
         } else if (response.status === 409) {
           const errorData = await response.json();
-          toast.error(errorData.error || 'Product with this slug already exists.');
+          console.error(errorData.error || 'Product with this slug already exists.');
         } else {
           const errorData = await response.json();
-          toast.error(errorData.error || 'Failed to create product.');
+          console.error(errorData.error || 'Failed to create product.');
         }
       }
     } catch (error) {
       console.error('Failed to submit product:', error);
-      toast.error('An error occurred while submitting product.');
+      console.error('An error occurred while submitting product.');
     } finally {
       setIsDialogOpen(false);
       resetForm();
@@ -274,13 +274,13 @@ export default function AdminProducts() {
 
       if (response.ok) {
         setProducts(prev => prev.filter(p => p.id !== id));
-        toast.success('Product deleted successfully');
+        console.log('Product deleted successfully');
       } else {
-        toast.error('Failed to delete product.');
+        console.error('Failed to delete product.');
       }
     } catch (error) {
       console.error('Failed to delete product:', error);
-      toast.error('An error occurred while deleting product.');
+      console.error('An error occurred while deleting product.');
     }
   };
 
@@ -303,13 +303,13 @@ export default function AdminProducts() {
         setProducts(prev => prev.map(p => 
           p.id === id ? { ...p, isActive: newIsActive } : p
         ));
-        toast.success(`Product marked as ${newIsActive ? 'active' : 'inactive'}`);
+        console.log(`Product marked as ${newIsActive ? 'active' : 'inactive'}`);
       } else {
-        toast.error('Failed to update product status.');
+        console.error('Failed to update product status.');
       }
     } catch (error) {
       console.error('Failed to toggle product status:', error);
-      toast.error('An error occurred while updating product status.');
+      console.error('An error occurred while updating product status.');
     }
   };
 

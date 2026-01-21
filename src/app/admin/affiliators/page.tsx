@@ -22,7 +22,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { User, UserStatus } from '@/types/user';
-import { toast } from 'sonner';
+
 import { Skeleton } from '@/components/ui/skeleton';
 
 import ClientOnly from '@/components/ClientOnly';
@@ -52,7 +52,7 @@ export default function AdminAffiliators() {
         }
       } catch (error) {
         console.error('Failed to fetch affiliators:', error);
-        toast.error('Failed to load affiliators.');
+        console.error('Failed to load affiliators.');
       } finally {
         setLoading(false);
       }
@@ -81,13 +81,13 @@ export default function AdminAffiliators() {
         setUsers(prev => prev.map(u => 
           u.id === userId ? { ...u, status: newStatus } : u
         ));
-        toast.success(`Status afiliasi diperbarui menjadi ${newStatus}`);
+        console.log(`Status afiliasi diperbarui menjadi ${newStatus}`);
       } else {
-        toast.error('Gagal memperbarui status afiliasi.');
+        console.error('Gagal memperbarui status afiliasi.');
       }
     } catch (error) {
       console.error('Gagal memperbarui status:', error);
-      toast.error('Terjadi kesalahan saat memperbarui status.');
+      console.error('Terjadi kesalahan saat memperbarui status.');
     }
   };
 
@@ -102,13 +102,13 @@ export default function AdminAffiliators() {
 
       if (response.ok) {
         setUsers(prev => prev.filter(u => u.id !== userId));
-        toast.success('Afiliasi berhasil dihapus');
+        console.log('Afiliasi berhasil dihapus');
       } else {
-        toast.error('Gagal menghapus afiliasi.');
+        console.error('Gagal menghapus afiliasi.');
       }
     } catch (error) {
       console.error('Gagal menghapus pengguna:', error);
-      toast.error('Terjadi kesalahan saat menghapus afiliasi.');
+      console.error('Terjadi kesalahan saat menghapus afiliasi.');
     }
   };
 
@@ -146,15 +146,15 @@ export default function AdminAffiliators() {
         setUsers(prev => prev.map(u => 
           u.id === updatedUser.id ? updatedUser : u
         ));
-        toast.success('Profil afiliasi berhasil diperbarui');
+        console.log('Profil afiliasi berhasil diperbarui');
         setIsEditDialogOpen(false);
         setEditingUser(null);
       } else {
-        toast.error('Gagal memperbarui profil afiliasi.');
+        console.error('Gagal memperbarui profil afiliasi.');
       }
     } catch (error) {
       console.error('Gagal memperbarui profil pengguna:', error);
-      toast.error('Terjadi kesalahan saat memperbarui profil.');
+      console.error('Terjadi kesalahan saat memperbarui profil.');
     }
   };
 
