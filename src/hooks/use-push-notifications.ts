@@ -113,27 +113,24 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
     setIsLoading(true);
     setError(null);
 
-    // Add timeout to prevent hanging
+    // Add timeout to prevent hanging (longer for mobile)
     const timeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Request timeout')), 10000)
+      setTimeout(() => reject(new Error('Request timeout')), 30000)
     );
 
     try {
-      // Fast permission check with timeout
-      const permissionPromise = Notification.permission === 'granted' ? 
+      // Permission check - don't use timeout for this
+      const currentPermission = Notification.permission === 'granted' ? 
         Promise.resolve('granted') : 
-        Notification.requestPermission();
-      
-      const currentPermission = await Promise.race([permissionPromise, timeout]) as NotificationPermission;
+        await Notification.requestPermission();
       
       if (currentPermission !== 'granted') {
         setError('Permission denied. Please allow notifications.');
         return;
       }
 
-      // Get service worker with timeout
-      const registrationPromise = navigator.serviceWorker.ready;
-      const registration = await Promise.race([registrationPromise, timeout]) as ServiceWorkerRegistration;
+      // Get service worker - no timeout needed
+      const registration = await navigator.serviceWorker.ready;
       
       // Check existing subscription
       const existingSubscription = await registration.pushManager.getSubscription();
@@ -150,26 +147,42 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       const vapidKey = 'BEDiXZ34k42Cp1Vd_AfbmpcUAnq5ZEdj8x-DbNilC6A6Khldz9LlLQFklsbVpXrWslG6qRrIEsEnLy-vlUtKi-w';
       const applicationServerKey = urlB64ToUint8Array(vapidKey);
       
-      const subscribePromise = registration.pushManager.subscribe({
+      const pushSubscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
       });
-      
-      const pushSubscription = await Promise.race([subscribePromise, timeout]) as any;
       const subscriptionData = pushSubscription.toJSON() as PushSubscription;
       
-      // Save to server with timeout
+      // Save to server with retry and timeout
       const userEmail = user?.email || localStorage.getItem('userEmail') || '';
-      const savePromise = fetch('/api/push/subscribe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-user-email': userEmail,
-        },
-        body: JSON.stringify(subscriptionData),
-      });
-
-      const response = await Promise.race([savePromise, timeout]) as Response;
+      
+      let response: Response;
+      let retries = 2;
+      
+      while (retries > 0) {
+        try {
+          const savePromise = fetch('/api/push/subscribe', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-email': userEmail,
+            },
+            body: JSON.stringify(subscriptionData),
+          });
+          
+          const timeoutPromise = new Promise<Response>((_, reject) => 
+            setTimeout(() => reject(new Error('Server timeout')), 15000)
+          );
+          
+          response = await Promise.race([savePromise, timeoutPromise]);
+          break; // Success, exit retry loop
+        } catch (error) {
+          retries--;
+          if (retries === 0) throw error;
+          console.log(`🔄 Retry subscription... (${2 - retries}/2)`);
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retry
+        }
+      }
 
       if (!response.ok) {
         // Still set local state even if server fails for better UX
@@ -182,8 +195,14 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
 
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Subscription failed';
+      console.error('❌ Subscribe error:', err);
+      
       if (errorMessage.includes('timeout')) {
-        setError('Connection timeout. Please try again.');
+        setError('Connection timeout. Please check your internet and try again.');
+      } else if (errorMessage.includes('Permission denied')) {
+        setError('Please allow notifications in your browser settings.');
+      } else if (errorMessage.includes('Failed to fetch')) {
+        setError('Network error. Please check your connection.');
       } else {
         setError(errorMessage);
       }
