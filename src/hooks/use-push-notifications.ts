@@ -159,11 +159,12 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       const subscriptionData = pushSubscription.toJSON() as PushSubscription;
       
       // Save to server with timeout
+      const userEmail = user?.email || localStorage.getItem('userEmail') || '';
       const savePromise = fetch('/api/push/subscribe', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-email': user?.email || '',
+          'x-user-email': userEmail,
         },
         body: JSON.stringify(subscriptionData),
       });

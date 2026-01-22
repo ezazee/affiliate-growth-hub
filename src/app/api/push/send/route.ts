@@ -35,7 +35,12 @@ export async function POST(request: NextRequest) {
 
     let query: any = { 
       pushSubscription: { $exists: true, $ne: null },
-      notificationsEnabled: true 
+      // Accept both true and undefined/null for notificationsEnabled
+      $or: [
+        { notificationsEnabled: true },
+        { notificationsEnabled: { $exists: false } },
+        { notificationsEnabled: null }
+      ]
     };
 
     // If targetEmail is specified, only send to that user
@@ -43,16 +48,25 @@ export async function POST(request: NextRequest) {
       query.email = targetEmail;
     }
 
+    console.log('🔍 Query for users with push subscriptions:', query);
     const users = await usersCollection.find(query).toArray();
+    console.log(`📊 Found ${users.length} users with push subscriptions`);
     
     if (users.length === 0) {
-      // Debug info - check all users
+      // Debug info - check all users and their push subscription status
       const allUsers = await db.collection('users').find({}).toArray();
-      console.log('All users:', allUsers.map(u => ({ 
+      console.log('🔍 All users in database:', allUsers.map(u => ({ 
         email: u.email, 
+        role: u.role,
         hasPushSubscription: !!u.pushSubscription, 
-        notificationsEnabled: u.notificationsEnabled 
+        pushSubscriptionKeys: u.pushSubscription ? Object.keys(u.pushSubscription) : [],
+        notificationsEnabled: u.notificationsEnabled,
+        pushSubscriptionEndpoint: u.pushSubscription?.endpoint?.substring(0, 50) + '...'
       })));
+      
+      // Check if any user has push subscription data but notificationsEnabled is missing/null
+      const usersWithPushButDisabled = allUsers.filter(u => u.pushSubscription && !u.notificationsEnabled);
+      console.log('⚠️ Users with push subscription but notifications disabled:', usersWithPushButDisabled.map(u => u.email));
       
       return NextResponse.json({
         success: true,
@@ -62,6 +76,8 @@ export async function POST(request: NextRequest) {
           totalUsers: allUsers.length,
           usersWithPush: allUsers.filter(u => u.pushSubscription).length,
           usersWithNotificationsEnabled: allUsers.filter(u => u.notificationsEnabled).length,
+          usersWithPushButDisabled: usersWithPushButDisabled.length,
+          queryUsed: query,
         }
       });
     }
