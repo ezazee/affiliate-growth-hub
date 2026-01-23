@@ -1,5 +1,7 @@
 
 
+import { WebNotification } from '@/types/notifications';
+
 class WebNotificationService {
   private baseUrl: string;
 

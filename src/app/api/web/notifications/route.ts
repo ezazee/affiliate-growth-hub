@@ -45,7 +45,7 @@ export async function GET() {
       body: {
         title: 'Notification Title',
         message: 'Notification message',
-        type: 'info' | 'success' | 'warning' | 'error',
+        type: "info", // atau "success", "warning", "error"
         url: '/optional-url',
         actionUrl: '/optional-action-url',
         targetUserEmail: 'user@example.com'
