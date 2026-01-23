@@ -1522,7 +1522,7 @@ return (
                     {/* Admin Notification Templates */}
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Template Notifikasi Admin</h3>
-                      <div className="grid md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="newAffiliateTitle">Judul - Affiliator Baru</Label>
                           <Input
@@ -1595,7 +1595,7 @@ return (
                     {/* Affiliator Notification Templates */}
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Template Notifikasi Affiliator</h3>
-                      <div className="grid md:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="newOrderAffiliateTitle">Judul - Pesanan Baru</Label>
                           <Input

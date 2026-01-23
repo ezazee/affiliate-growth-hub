@@ -139,7 +139,8 @@ Terima kasih.`;
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          <div className="overflow-x-auto">
+            <Table>
             <TableHeader>
               <TableRow>
                 <TableHead><ShoppingCart className="w-4 h-4 inline-block mr-1" /> No. Order</TableHead>
@@ -220,6 +221,7 @@ Terima kasih.`;
               )}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
     </div>

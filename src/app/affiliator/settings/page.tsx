@@ -25,7 +25,7 @@ export default function AffiliatorSettingsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         {/* User Profile Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -71,7 +71,7 @@ export default function AffiliatorSettingsPage() {
       <AndroidPermissionFix />
 
       {/* Additional Settings */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
         {/* Security Settings */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

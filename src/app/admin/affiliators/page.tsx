@@ -280,7 +280,7 @@ export default function AdminAffiliators() {
 
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           {[
             { label: 'Total', value: stats.total, color: 'bg-primary/10 text-primary' },
             { label: 'Tertunda', value: stats.pending, color: 'bg-accent/10 text-accent-foreground' },
@@ -339,28 +339,28 @@ export default function AdminAffiliators() {
               >
                 <Card className="shadow-card hover:shadow-card-hover transition-all duration-300">
                   <CardContent className="p-5">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div className="flex items-center gap-4">
+                    <div className="flex flex-col gap-4">
+                      <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                           <span className="font-semibold text-primary text-lg">
                             {user.name.charAt(0).toUpperCase()}
                           </span>
                         </div>
-                        <div>
-                          <h3 className="font-semibold text-foreground">{user.name}</h3>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-foreground break-words">{user.name}</h3>
+                          <p className="text-sm text-muted-foreground break-all">{user.email}</p>
                           <p className="text-xs text-muted-foreground mt-1">
                             Bergabung: {new Date(user.createdAt).toLocaleDateString()}
                           </p>
                           {user.referralCode && (
-                            <p className="text-xs text-primary font-medium mt-1">
+                            <p className="text-xs text-primary font-medium mt-1 break-words">
                               Kode Ref: {user.referralCode}
                             </p>
                           )}
                         </div>
                       </div>
                       
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                         <Badge className={`${getStatusBadge(user.status)} flex items-center gap-1`}>
                           {getStatusIcon(user.status)}
                           {user.status}

@@ -89,17 +89,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-card border-b border-border shadow-card">
-        <div className="flex items-center justify-between px-4 h-16">
-          <Link href='/admin' className="flex items-center">
-            <Logo />
-          </Link>
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
-            {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
-        </div>
-      </header>
 
       {/* Sidebar */}
       <aside className={cn(
@@ -160,11 +149,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               Keluar
             </Button>
           </div>
-
-          {/* Notification Panel */}
-          <div className="lg:hidden fixed top-16 right-4 z-50">
-            <NotificationPanel />
-          </div>
         </div>
       </aside>
 
@@ -182,6 +166,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <header className="hidden lg:block fixed top-0 right-0 left-64 z-30 bg-card border-b border-border">
           <div className="flex items-center justify-between px-6 h-16">
             <h1 className="text-xl font-semibold text-foreground">Admin Dashboard</h1>
+            <NotificationPanel />
+          </div>
+        </header>
+
+        {/* Mobile Header with Notification */}
+        <header className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-card border-b border-border">
+          <div className="flex items-center justify-between px-4 h-16">
+            <div className="flex items-center">
+              <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)}>
+                {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              </Button>
+              <span className="ml-3 font-semibold">Admin</span>
+            </div>
             <NotificationPanel />
           </div>
         </header>

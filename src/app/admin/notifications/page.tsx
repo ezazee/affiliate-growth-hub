@@ -260,67 +260,68 @@ export default function AdminNotificationsPage() {
                     }`}
                     onClick={() => handleNotificationClick(notification)}
                   >
-                    <div className="flex items-start gap-3">
-                      {/* Icon */}
-                      <div className="flex-shrink-0 mt-0.5">
-                        {getRelatedIcon(notification.title)}
-                      </div>
-                      
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className={`text-sm font-semibold truncate flex items-center gap-2 ${
-                            !notification.read ? 'text-blue-900' : 'text-gray-900'
-                          }`}>
-                            <span>{notification.title}</span>
-                            {!notification.read && (
-                              <Badge variant="secondary" className="text-xs">
-                                Baru
-                              </Badge>
-                            )}
-                          </h3>
-                          
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">
-                              {formatTime(notification.timestamp)}
-                            </span>
-                            
-                            <div className="flex items-center gap-1">
-                              {getNotificationIcon(notification.type)}
-                              
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  removeNotification(notification.id);
-                                }}
-                                className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
-                              >
-                                <X className="w-3 h-3" />
-                              </Button>
-                              
-                              {notification.url && (
-                                <Eye className="w-3 h-3 text-gray-400" />
-                              )}
-                            </div>
-                          </div>
+                    <div className="flex flex-col gap-3">
+                      {/* Header Row */}
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-0.5">
+                          {getRelatedIcon(notification.title)}
                         </div>
                         
-                        <p className="text-sm text-gray-600 mb-2 line-clamp-2">
-                          {notification.message}
-                        </p>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-400" title={getFullDateTime(notification.timestamp)}>
-                            {getFullDateTime(notification.timestamp)}
-                          </span>
-                          
-                          {notification.url && (
-                            <div className="text-xs text-blue-600">
-                              Klik untuk melihat detail →
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-1">
+                            <h3 className={`text-sm font-semibold truncate flex items-center gap-2 ${
+                              !notification.read ? 'text-blue-900' : 'text-gray-900'
+                            }`}>
+                              <span>{notification.title}</span>
+                              {!notification.read && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Baru
+                                </Badge>
+                              )}
+                            </h3>
+                            
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {formatTime(notification.timestamp)}
+                              </span>
+                              
+                              <div className="flex items-center gap-1">
+                                {getNotificationIcon(notification.type)}
+                                
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeNotification(notification.id);
+                                  }}
+                                  className="h-6 w-6 p-0 opacity-50 hover:opacity-100"
+                                >
+                                  <X className="w-3 h-3" />
+                                </Button>
+                                
+                                {notification.url && (
+                                  <Eye className="w-3 h-3 text-gray-400" />
+                                )}
+                              </div>
                             </div>
-                          )}
+                          </div>
+                          
+                          <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                            {notification.message}
+                          </p>
+                          
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <span className="text-xs text-gray-400 truncate" title={getFullDateTime(notification.timestamp)}>
+                              {getFullDateTime(notification.timestamp)}
+                            </span>
+                            
+                            {notification.url && (
+                              <div className="text-xs text-blue-600">
+                                Klik untuk melihat detail →
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

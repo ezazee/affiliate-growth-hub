@@ -228,7 +228,7 @@ export default function AffiliatorLinks() {
         </div>
 
         {/* Links Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
           {filteredLinks.map((link) => (
             <motion.div
               key={link.id}

@@ -254,7 +254,7 @@ export default function AffiliatorDashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         {loading ? (
           <>
             <Skeleton className="h-32" />
@@ -300,7 +300,7 @@ export default function AffiliatorDashboard() {
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-2">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -408,7 +408,7 @@ export default function AffiliatorDashboard() {
         </div>
         <div className="lg:col-span-1 flex flex-col gap-6">
             {/* Commission & Withdrawal Summary Cards */}
-            <div className="md:grid-cols-2 gap-6">
+            <div className="space-y-6">
               {/* Commission Summary */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -470,7 +470,7 @@ export default function AffiliatorDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1">
+      <div className="w-full">
         {/* Recent Customer History */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -98,7 +98,7 @@ export function NotificationPanel({ className }: NotificationPanelProps) {
           variant="ghost"
           size="sm"
           onClick={togglePanel}
-          className={state.unreadCount > 0 ? 'relative' : ''}
+          className="hidden md:flex relative"
         >
           {state.unreadCount > 0 ? (
             <BellRing className="w-5 h-5 animate-pulse" />
@@ -111,10 +111,38 @@ export function NotificationPanel({ className }: NotificationPanelProps) {
           )}
         </Button>
         
+        {/* Mobile Notification Button */}
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={togglePanel}
+          className="md:hidden relative p-2"
+        >
+          {state.unreadCount > 0 ? (
+            <BellRing className="w-6 h-6 animate-pulse" />
+          ) : (
+            <Bell className="w-6 h-6" />
+          )}
+          
+          {state.unreadCount > 0 && (
+            <span className="absolute top-1 right-1 h-3 w-3 bg-red-500 rounded-full animate-ping" />
+          )}
+        </Button>
+        
         {state.unreadCount > 0 && (
           <Badge 
             variant="destructive" 
-            className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs font-bold border-2 border-background"
+            className="hidden md:block absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center text-xs font-bold border-2 border-background"
+          >
+            {state.unreadCount > 99 ? '99+' : state.unreadCount}
+          </Badge>
+        )}
+        
+        {/* Mobile Badge */}
+        {state.unreadCount > 0 && (
+          <Badge 
+            variant="destructive" 
+            className="md:hidden absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-[10px] font-bold border-2 border-background"
           >
             {state.unreadCount > 99 ? '99+' : state.unreadCount}
           </Badge>
@@ -129,7 +157,7 @@ export function NotificationPanel({ className }: NotificationPanelProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-16 right-4 z-50 w-96 max-h-96 shadow-2xl"
+            className="fixed top-16 right-4 z-50 w-96 max-h-96 md:w-96 md:max-h-96 md:right-4 shadow-2xl left-4 right-4 md:left-auto max-w-[calc(100vw-2rem)] md:max-w-none"
           >
             <Card className="border-2">
               <CardContent className="p-0">

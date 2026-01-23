@@ -87,7 +87,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {loading ? (
             <>
               <Skeleton className="h-32" />
@@ -151,7 +151,7 @@ export default function AdminDashboard() {
                   <div key={i} className="p-4 border rounded-lg">
                     <Skeleton className="h-6 w-48 mb-2" />
                     <Skeleton className="h-4 w-64 mb-4" />
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                       <Skeleton className="h-8 w-20" />
                       <Skeleton className="h-8 w-20" />
                       <Skeleton className="h-8 w-20" />
@@ -170,7 +170,7 @@ export default function AdminDashboard() {
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                     className="border rounded-lg p-4 hover:bg-secondary/50 transition-colors"
                   >
-                    <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+                     <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                       {/* Affiliator Info */}
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
@@ -193,8 +193,8 @@ export default function AdminDashboard() {
                         </div>
                       </div>
 
-                      {/* Stats Grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 min-w-[320px]">
+                       {/* Stats Grid */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:min-w-[320px]">
                         <div className="text-center p-3 bg-muted/50 rounded-lg">
                           <Link className="w-4 h-4 mx-auto text-muted-foreground mb-1" />
                           <p className="text-xs text-muted-foreground">Link</p>

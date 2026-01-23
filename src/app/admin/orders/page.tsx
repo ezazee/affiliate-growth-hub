@@ -157,7 +157,7 @@ export default function AdminOrders() {
           <p className="text-muted-foreground">Kelola pesanan dan pembayaran pelanggan</p>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
           {[
             { label: 'Total Pesanan', value: stats.total, color: 'bg-primary/10 text-primary' },
             { label: 'Tertunda', value: stats.pending, color: 'bg-accent/10 text-accent-foreground' },
