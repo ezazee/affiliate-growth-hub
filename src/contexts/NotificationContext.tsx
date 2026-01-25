@@ -169,13 +169,42 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
   };
 
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     dispatch({ type: 'MARK_AS_READ', payload: id });
-    // TODO: Sync read status to backend
+
+    if (user?.email) {
+      try {
+        await fetch('/api/notifications/read', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-email': user.email
+          },
+          body: JSON.stringify({ id, userEmail: user.email })
+        });
+      } catch (error) {
+        console.error('Failed to sync read status:', error);
+      }
+    }
   };
 
-  const markAllAsRead = () => {
+  const markAllAsRead = async () => {
     dispatch({ type: 'MARK_ALL_AS_READ' });
+
+    if (user?.email) {
+      try {
+        await fetch('/api/notifications/read', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-user-email': user.email
+          },
+          body: JSON.stringify({ all: true, userEmail: user.email })
+        });
+      } catch (error) {
+        console.error('Failed to sync mark all read:', error);
+      }
+    }
   };
 
   const removeNotification = (id: string) => {
