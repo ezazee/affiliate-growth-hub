@@ -41,6 +41,16 @@ export const notificationTemplates: NotificationTemplate[] = [
     roles: ['admin'],
     category: 'withdrawal'
   },
+  {
+    id: 'new_product',
+    name: 'Produk Baru',
+    description: 'Notifikasi untuk affiliator ketika ada produk baru',
+    defaultTitle: '🔥 Produk Baru!',
+    defaultBody: 'Produk baru "{productName}" telah tersedia. Promosikan sekarang!',
+    defaultUrl: '/products/{slug}',
+    roles: ['affiliator'],
+    category: 'affiliate'
+  },
 
   // Affiliator Notifications
   {
@@ -144,12 +154,12 @@ export function getTemplateById(id: NotificationTemplateId): NotificationTemplat
 
 export function formatNotificationText(text: string, variables: NotificationVariables = {}): string {
   let formatted = text;
-  
+
   Object.entries(variables).forEach(([key, value]) => {
     const placeholder = `{${key}}`;
     formatted = formatted.replace(new RegExp(placeholder, 'g'), String(value));
   });
-  
+
   return formatted;
 }
 

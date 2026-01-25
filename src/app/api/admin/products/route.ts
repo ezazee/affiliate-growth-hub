@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { Product } from '@/types';
+import { sendTemplateNotification } from '@/lib/notification-service-server';
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,6 +33,21 @@ export async function POST(req: NextRequest) {
 
     const result = await db.collection<Product>('products').insertOne(newProduct as Product);
     const createdProduct = { ...newProduct, id: result.insertedId.toString() };
+
+    // Send notification to all affiliators
+    try {
+      await sendTemplateNotification(
+        'new_product',
+        {
+          productName: name,
+          slug: slug
+        },
+        { role: 'affiliator' }
+      );
+      console.log(`✅ Notification sent for new product: ${name}`);
+    } catch (notificationError) {
+      console.error('❌ Failed to send new product notification:', notificationError);
+    }
 
     return NextResponse.json(createdProduct, { status: 201 });
   } catch (error) {
