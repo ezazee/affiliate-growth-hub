@@ -35,7 +35,7 @@ export default function AffiliatorLinks() {
     try {
       const [linksResponse, productsResponse] = await Promise.all([
         fetch(`/api/affiliator/links?affiliatorId=${user.id}`, { cache: 'no-store' }),
-        fetch('/api/affiliator/products'),
+        fetch('/api/affiliator/products', { cache: 'no-store' }),
       ]);
 
       if (linksResponse.ok && productsResponse.ok) {
@@ -73,7 +73,7 @@ export default function AffiliatorLinks() {
         fetch("/api/affiliator/links", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
+          body: JSON.stringify({
             affiliatorId: user?.id,
             productId: productId,
             isActive: true
@@ -83,7 +83,7 @@ export default function AffiliatorLinks() {
 
       const responses = await Promise.all(promises);
       const results = await Promise.all(responses.map(res => res.json()));
-      
+
       const successful = results.filter(result => !result.error).length;
       const failed = results.length - successful;
 
@@ -242,7 +242,7 @@ export default function AffiliatorLinks() {
                     <CardTitle className="text-lg line-clamp-2">
                       {link.product?.name || `Product ${link.productId}`}
                     </CardTitle>
-                    <Badge 
+                    <Badge
                       variant={link.isActive ? "default" : "secondary"}
                       className="shrink-0"
                     >
@@ -261,7 +261,7 @@ export default function AffiliatorLinks() {
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-600">Komisi:</span>
                       <span className="font-medium text-green-600">
-                        {link.product?.commissionType === 'percentage' 
+                        {link.product?.commissionType === 'percentage'
                           ? `${link.product.commissionValue}%`
                           : `Rp ${link.product?.commissionValue.toLocaleString('id-ID') || '0'}`
                         }
@@ -328,8 +328,8 @@ export default function AffiliatorLinks() {
               {searchTerm ? 'Tidak ada link yang ditemukan' : 'Belum ada link afiliasi'}
             </h3>
             <p className="text-gray-600 mb-4">
-              {searchTerm 
-                ? 'Coba ubah kata kunci pencarian Anda' 
+              {searchTerm
+                ? 'Coba ubah kata kunci pencarian Anda'
                 : 'Buat link afiliasi pertama Anda untuk mulai berjualan'
               }
             </p>
@@ -353,7 +353,7 @@ export default function AffiliatorLinks() {
                 <h2 className="text-xl font-bold">Buat Link Afiliasi Baru</h2>
                 <p className="text-gray-600 mt-1">Pilih produk yang ingin Anda promosikan</p>
               </div>
-              
+
               <div className="flex-1 overflow-y-auto p-4 sm:p-6">
                 {availableProducts.length === 0 ? (
                   <div className="text-center py-8">
@@ -366,7 +366,7 @@ export default function AffiliatorLinks() {
                     {availableProducts.map((product) => {
                       const isSelected = selectedProducts.includes(product.id);
                       return (
-                        <div 
+                        <div
                           key={product.id}
                           onClick={() => {
                             if (isSelected) {
@@ -375,11 +375,10 @@ export default function AffiliatorLinks() {
                               setSelectedProducts([...selectedProducts, product.id]);
                             }
                           }}
-                          className={`flex items-start space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${
-                            isSelected 
-                              ? 'bg-blue-50 border-blue-300 hover:bg-blue-100' 
+                          className={`flex items-start space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${isSelected
+                              ? 'bg-blue-50 border-blue-300 hover:bg-blue-100'
                               : 'hover:bg-gray-50 border-gray-200'
-                          }`}
+                            }`}
                         >
                           <Checkbox
                             id={`product-${product.id}`}
@@ -394,8 +393,8 @@ export default function AffiliatorLinks() {
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div className="flex-1 select-none">
-                            <Label 
-                              htmlFor={`product-${product.id}`} 
+                            <Label
+                              htmlFor={`product-${product.id}`}
                               className="text-sm font-medium cursor-pointer"
                             >
                               {product.name}
@@ -403,7 +402,7 @@ export default function AffiliatorLinks() {
                             <div className="flex items-center space-x-4 mt-1 text-xs text-gray-600">
                               <span>Harga: Rp {product.price.toLocaleString('id-ID')}</span>
                               <span className="text-green-600 font-medium">
-                                Komisi: {product.commissionType === 'percentage' 
+                                Komisi: {product.commissionType === 'percentage'
                                   ? `${product.commissionValue}%`
                                   : `Rp ${product.commissionValue.toLocaleString('id-ID')}`
                                 }
