@@ -7,6 +7,93 @@ const withPWA = withPWAInit({
   skipWaiting: true,
   workboxOptions: {
     importScripts: ['/push-sw.js'],
+    skipWaiting: true,
+    clientsClaim: true,
+    cleanupOutdatedCaches: true,
+    runtimeCaching: [
+      {
+        urlPattern: /^https?.*/,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'https-calls',
+          networkTimeoutSeconds: 15,
+          expiration: {
+            maxEntries: 150,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 1 month
+          },
+          cacheableResponse: {
+            statuses: [0, 200],
+          },
+        },
+      },
+      {
+        urlPattern: /\/_next\/data\/.+\/.+\.json$/i,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'next-data',
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /\/api\/.*/i,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'apis',
+          expiration: {
+            maxEntries: 16,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+          networkTimeoutSeconds: 10, // Fallback to cache if API slow
+        },
+      },
+      {
+        urlPattern: /\.(?:json|xml|csv)$/i,
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'static-data-assets',
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: ({ request }) => request.destination === 'document',
+        handler: 'NetworkFirst',
+        options: {
+          cacheName: 'documents',
+          networkTimeoutSeconds: 10,
+        },
+      },
+      {
+        urlPattern: ({ request }) =>
+          request.destination === 'script' ||
+          request.destination === 'style' ||
+          request.destination === 'worker',
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'static-resources',
+          expiration: {
+            maxEntries: 32,
+            maxAgeSeconds: 24 * 60 * 60, // 24 hours
+          },
+        },
+      },
+      {
+        urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'static-image-assets',
+          expiration: {
+            maxEntries: 64,
+            maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+          },
+        },
+      },
+    ],
   },
 });
 
@@ -49,27 +136,27 @@ const nextConfig = {
       {
         source: '/api/public/:path*',
         headers: [
-          { 
-            key: 'Cache-Control', 
-            value: 'public, s-maxage=3600, stale-while-revalidate=86400' 
+          {
+            key: 'Cache-Control',
+            value: 'public, s-maxage=3600, stale-while-revalidate=86400'
           }
         ]
       },
       {
         source: '/_next/static/(.*)',
         headers: [
-          { 
-            key: 'Cache-Control', 
-            value: 'public, max-age=31536000, immutable' 
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
           }
         ]
       },
       {
         source: '/images/(.*)',
         headers: [
-          { 
-            key: 'Cache-Control', 
-            value: 'public, max-age=31536000, immutable' 
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable'
           }
         ]
       }

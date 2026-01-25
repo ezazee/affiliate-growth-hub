@@ -18,7 +18,7 @@ self.addEventListener('install', (event) => {
   console.log('🔧 Service Worker: Installing...');
   console.log('📱 User Agent:', navigator.userAgent);
   console.log('🌐 Origin:', self.location.origin);
-  
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -55,69 +55,16 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch event - serve from cache when offline
+// Fetch event - Custom handler removed to allow Workbox to handle caching strategies
+// or fallback to network for non-precached items.
 self.addEventListener('fetch', (event) => {
-  // Skip non-GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
-
-  // Skip external requests (API calls, etc.)
-  if (event.request.url.startsWith('http') && 
-      !event.request.url.includes(self.location.hostname)) {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          return response;
-        }
-
-        // Clone the request because it's a one-time use stream
-        const fetchRequest = event.request.clone();
-
-        return fetch(fetchRequest)
-          .then((response) => {
-            // Check if valid response
-            if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Clone the response because it's a one-time use stream
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          })
-          .catch((error) => {
-            console.error('Service Worker: Fetch failed:', error);
-            
-            // Return cached page for navigation requests when offline
-            if (event.request.mode === 'navigate') {
-              return caches.match('/');
-            }
-            
-            // Return a generic offline response for other requests
-            return new Response('Offline', {
-              status: 503,
-              statusText: 'Service Unavailable'
-            });
-          });
-      })
-  );
+  // Only handle if necessary or leave empty to let browser/Workbox handle it
 });
 
 // Push event - handle incoming push messages
 self.addEventListener('push', (event) => {
   console.log('Service Worker: Push event received');
-  
+
   if (!event.data) {
     console.log('Service Worker: Push event has no data');
     return;
@@ -160,7 +107,7 @@ self.addEventListener('push', (event) => {
 // Notification click event
 self.addEventListener('notificationclick', (event) => {
   console.log('Service Worker: Notification click received');
-  
+
   event.notification.close();
 
   if (event.action === 'explore' || !event.action) {
@@ -172,7 +119,7 @@ self.addEventListener('notificationclick', (event) => {
             return client.focus();
           }
         }
-        
+
         // Open new window if no existing window
         if (clients.openWindow) {
           return clients.openWindow(event.notification.data.url || '/affiliator');
@@ -185,7 +132,7 @@ self.addEventListener('notificationclick', (event) => {
 // Push subscription change event
 self.addEventListener('pushsubscriptionchange', (event) => {
   console.log('Service Worker: Push subscription changed');
-  
+
   // This event is called when the subscription expires or is invalidated
   if (event.oldSubscription) {
     // Remove old subscription from server
@@ -201,7 +148,7 @@ self.addEventListener('pushsubscriptionchange', (event) => {
       })
     );
   }
-  
+
   if (event.newSubscription) {
     // Add new subscription to server
     event.waitUntil(
@@ -221,7 +168,7 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
-  
+
   if (event.data && event.data.type === 'FORCE_UPDATE') {
     // Force update cache
     event.waitUntil(
@@ -230,10 +177,10 @@ self.addEventListener('message', (event) => {
       })
     );
   }
-  
+
   if (event.data && event.data.type === 'ANDROID_SETUP') {
     console.log('📱 Android setup message received:', event.data);
-    
+
     // Android-specific setup
     event.waitUntil(
       self.registration.pushManager.getSubscription()
