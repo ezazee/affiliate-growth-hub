@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
         },
         { role: 'affiliator' }
       );
-      console.log(`✅ Notification sent for new product: ${name}`);
+
     } catch (notificationError) {
       console.error('❌ Failed to send new product notification:', notificationError);
     }

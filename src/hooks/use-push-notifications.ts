@@ -36,17 +36,13 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       const isAndroid = /Android/i.test(userAgent);
       const isChrome = /Chrome/i.test(userAgent);
 
-      console.log('📱 Device info:', { userAgent, isAndroid, isChrome });
+
 
       const supported = 'serviceWorker' in navigator &&
         'PushManager' in window &&
         'Notification' in window;
 
-      console.log('🔧 Feature support:', {
-        serviceWorker: 'serviceWorker' in navigator,
-        pushManager: 'PushManager' in window,
-        notification: 'Notification' in window
-      });
+
 
       setIsSupported(supported);
 
@@ -73,7 +69,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
 
         // If no active service worker, register manually
         if (!registration.active) {
-          console.log('🔧 Registering service worker manually...');
+
           registration = await navigator.serviceWorker.register('/sw.js');
           await navigator.serviceWorker.ready;
         }
@@ -82,17 +78,12 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
 
         if (sub) {
           const subscriptionData = sub.toJSON() as PushSubscription;
-          console.log('📱 Found existing subscription:', {
-            endpoint: subscriptionData.endpoint?.substring(0, 50) + '...',
-            hasKeys: !!subscriptionData.keys,
-            authLength: subscriptionData.keys?.auth?.length,
-            p256dhLength: subscriptionData.keys?.p256dh?.length
-          });
+
 
           setSubscription(subscriptionData);
           setIsSubscribed(true);
         } else {
-          console.log('📱 No existing subscription found');
+
           setIsSubscribed(false);
         }
       } catch (err) {
@@ -116,11 +107,11 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       const isAndroid = /Android/i.test(userAgent);
       const isChrome = /Chrome/i.test(userAgent);
 
-      console.log('📱 Device detected:', { isAndroid, isChrome, userAgent });
+
 
       // Check current permission first
       const currentPermission = Notification.permission;
-      console.log('🔍 Current permission:', currentPermission);
+
 
       if (currentPermission === 'granted') {
         setPermission('granted');
@@ -138,16 +129,16 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
 
       // For Android, show user instructions before requesting
       if (isAndroid) {
-        console.log('📱 Preparing Android permission request...');
+
 
         // Try to get system permission status first
         if ('permissions' in navigator) {
           try {
             const systemPermission = await navigator.permissions.query({ name: 'notifications' });
-            console.log('🔍 System permission:', systemPermission.state);
+
 
             if (systemPermission.state === 'prompt') {
-              console.log('👋 Ready to show permission dialog to Android user');
+
             }
           } catch (permErr) {
             console.warn('Permissions API not available:', permErr);
@@ -156,7 +147,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       }
 
       // Request permission with better error handling
-      console.log('🔔 Requesting notification permission...');
+
 
       // Create a promise wrapper to handle timeout
       const permissionPromise = Notification.requestPermission();
@@ -165,13 +156,13 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       });
 
       const result = await Promise.race([permissionPromise, timeoutPromise]) as NotificationPermission;
-      console.log('📋 Permission result:', result);
+
 
       setPermission(result);
 
       // Handle different results
       if (result === 'granted') {
-        console.log('✅ Permission granted successfully');
+
       } else if (result === 'denied') {
         const userAgent = navigator.userAgent;
         const isAndroidDevice = /Android/i.test(userAgent);
@@ -214,21 +205,21 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
     setError(null);
 
     try {
-      console.log('🚀 Starting subscription process...');
+
 
       // Step 1: Ensure service worker is active
-      console.log('📋 Registering service worker...');
+
       // Register first, then wait for ready
       await navigator.serviceWorker.register('/sw.js');
       const registration = await navigator.serviceWorker.ready;
-      console.log('✅ Service worker registered and active');
+
 
       // Step 2: Request permission with better UX
-      console.log('🔔 Checking permission...');
+
       let currentPermission = Notification.permission;
 
       if (currentPermission === 'default') {
-        console.log('👋 Requesting permission from user...');
+
         currentPermission = await requestPermission();
       }
 
@@ -238,11 +229,11 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       }
 
       // Step 3: Check existing subscription
-      console.log('🔍 Checking existing subscription...');
+
       const existingSubscription = await registration.pushManager.getSubscription();
 
       if (existingSubscription) {
-        console.log('✅ Found existing subscription');
+
         const subscriptionData = existingSubscription.toJSON() as PushSubscription;
         setSubscription(subscriptionData);
         setIsSubscribed(true);
@@ -250,10 +241,10 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       }
 
       // Step 4: Create new subscription with retry
-      console.log('🔑 Creating new subscription...');
+
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BD7-XYAmgLZETcgTEzRWEPkGmXW0H0iPjGNl3vZvex-h_TFyGCvXifRZIX5mbPbk6HV7qkTs5VGJ-lvjonGoA1o';
 
-      console.log(`🔑 Using VAPID Public Key (starts with): ${vapidKey.substring(0, 10)}...`);
+
 
       const applicationServerKey = urlB64ToUint8Array(vapidKey);
 
@@ -273,7 +264,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
         throw new Error('Invalid subscription format received');
       }
 
-      console.log('📡 Subscription created, saving to server...');
+
 
       // Step 5: Save to server with better error handling
       const userEmail = user?.email || localStorage.getItem('userEmail') || '';
@@ -303,7 +294,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       }
 
       const result = await response.json();
-      console.log('✅ Subscription successful:', result);
+
 
       setSubscription(subscriptionData);
       setIsSubscribed(true);
@@ -419,6 +410,6 @@ function validateSubscription(subscription: any): boolean {
     return false;
   }
 
-  console.log('✅ Subscription format valid');
+
   return true;
 }

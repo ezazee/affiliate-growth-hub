@@ -117,12 +117,12 @@ export async function POST(req: NextRequest) {
               targetEmail
             );
           } else {
-            console.log(`ℹ️ Commission already exists for order ${orderNumber}, skipping creation.`);
+
           }
         }
       }
 
-      console.log(`✅ All notifications sent for order status update: ${orderNumber} -> ${status}`);
+
     } catch (notificationError) {
       console.error('❌ Failed to send notifications for order update:', notificationError);
     }

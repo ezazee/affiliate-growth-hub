@@ -19,7 +19,7 @@ export default function PushNotificationTestPage() {
       }
 
       const registration = await navigator.serviceWorker.register('/sw.js');
-      console.log('Service Worker registered:', registration);
+
 
       // Request permission
       const permission = await Notification.requestPermission();
@@ -33,7 +33,7 @@ export default function PushNotificationTestPage() {
         applicationServerKey: urlB64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BD7-XYAmgLZETcgTEzRWEPkGmXW0H0iPjGNl3vZvex-h_TFyGCvXifRZIX5mbPbk6HV7qkTs5VGJ-lvjonGoA1o')
       });
 
-      console.log('Subscription created:', subscription);
+
 
       // Save to server
       const response = await fetch('/api/push/subscribe', {
@@ -46,7 +46,7 @@ export default function PushNotificationTestPage() {
       });
 
       const result = await response.json();
-      console.log('Server response:', result);
+
 
       setResult(`Success! Subscription saved:\n${JSON.stringify(result, null, 2)}`);
 
@@ -84,14 +84,14 @@ export default function PushNotificationTestPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Button 
-            onClick={testSubscribe} 
+          <Button
+            onClick={testSubscribe}
             disabled={isLoading}
             className="w-full"
           >
             {isLoading ? 'Testing...' : 'Enable Push Notifications'}
           </Button>
-          
+
           {result && (
             <div className="p-4 bg-gray-100 rounded-lg">
               <h3 className="font-semibold mb-2">Result:</h3>

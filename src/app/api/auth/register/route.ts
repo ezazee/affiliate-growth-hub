@@ -57,8 +57,8 @@ export async function POST(req: NextRequest) {
     try {
       // Push notification & In-app to admins
       await adminNotifications.newAffiliator(name, email);
-      
-      console.log(`✅ Notifications sent to admins for new affiliator: ${email}`);
+
+
     } catch (notificationError) {
       console.error('❌ Failed to send notifications to admins:', notificationError);
       // Continue with registration even if notification fails

@@ -133,7 +133,7 @@ export function CheckoutAddressInput({ formData, setFormData, disabled }: Checko
           postalCode: data.postalCode,
         }));
         setInputValue(data.shippingAddress);
-        console.log('Alamat diperbarui dari lokasi pin.');
+
       } else {
         console.error(data.error || 'Gagal memperbarui alamat dari lokasi pin.');
       }
@@ -172,10 +172,10 @@ export function CheckoutAddressInput({ formData, setFormData, disabled }: Checko
   const geolocateControlRef = useRef<any>(null); // Use any type for GeolocateControl ref
 
   const handleGeolocate = useCallback((position: GeolocationPosition) => {
-      const { longitude, latitude } = position.coords;
-      setMarker({ longitude, latitude });
-      setViewState(prev => ({ ...prev, longitude, latitude, zoom: 14 }));
-      reverseGeocode(longitude, latitude);
+    const { longitude, latitude } = position.coords;
+    setMarker({ longitude, latitude });
+    setViewState(prev => ({ ...prev, longitude, latitude, zoom: 14 }));
+    reverseGeocode(longitude, latitude);
   }, [reverseGeocode]);
 
 

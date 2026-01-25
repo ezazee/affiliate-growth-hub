@@ -37,16 +37,16 @@ export default function PushTestPage() {
       currentPermission: Notification.permission,
       user: user?.email,
     };
-    
+
     setDebugInfo(info);
     return info;
   };
 
   const testSubscription = async () => {
     try {
-      console.log('🧪 Starting subscription test...');
+
       await subscribe();
-      console.log('✅ Subscription test completed');
+
     } catch (err) {
       console.error('❌ Subscription test failed:', err);
     }
@@ -54,9 +54,9 @@ export default function PushTestPage() {
 
   const testPermission = async () => {
     try {
-      console.log('🧪 Starting permission test...');
+
       const result = await requestPermission();
-      console.log('✅ Permission test result:', result);
+
     } catch (err) {
       console.error('❌ Permission test failed:', err);
     }
@@ -91,7 +91,7 @@ export default function PushTestPage() {
           <Button onClick={getDeviceInfo} className="mb-4">
             Get Device Info
           </Button>
-          
+
           {debugInfo && (
             <div className="space-y-2 text-sm font-mono bg-gray-50 p-4 rounded-lg">
               <div>User Agent: <span className="text-blue-600">{debugInfo.userAgent}</span></div>
@@ -165,7 +165,7 @@ export default function PushTestPage() {
               <li>Clear browser cache jika perlu</li>
             </ol>
           </div>
-          
+
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="font-semibold text-blue-800 mb-2">📱 Android Requirements:</p>
             <ul className="list-disc list-inside space-y-1 text-blue-700">

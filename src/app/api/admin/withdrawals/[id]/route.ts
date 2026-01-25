@@ -22,7 +22,7 @@ export async function PUT(
 
     // Get withdrawal details
     const withdrawal = await db.collection('withdrawals').findOne({ _id: new ObjectId(id) });
-    
+
     if (!withdrawal) {
       return NextResponse.json({ error: 'Withdrawal not found' }, { status: 404 });
     }
@@ -33,8 +33,8 @@ export async function PUT(
     // Update withdrawal status
     const result = await db.collection('withdrawals').findOneAndUpdate(
       { _id: new ObjectId(id) },
-      { 
-        $set: { 
+      {
+        $set: {
           status,
           processedAt: new Date(),
           updatedAt: new Date(),
@@ -46,13 +46,13 @@ export async function PUT(
 
     // Handle commission status based on withdrawal status
     const commissionsCollection = db.collection('commissions');
-    
+
     // Find all reserved commissions for this withdrawal
     const reservedCommissions = await commissionsCollection.find({
       withdrawalId: id,
       status: 'reserved'
     }).toArray();
-    
+
     if (status === 'approved' || status === 'completed') {
       // Mark reserved commissions as withdrawn (final)
       for (const reserved of reservedCommissions) {
@@ -61,14 +61,14 @@ export async function PUT(
           { $set: { status: 'withdrawn' } }
         );
       }
-       
+
     } else if (status === 'rejected') {
       // Kembalikan saldo
       for (const reserved of reservedCommissions) {
         if (reserved.isPartial && reserved.parentCommissionId) {
           // Delete reserved commission
           await commissionsCollection.deleteOne({ _id: reserved._id });
-          
+
           // Kembalikan usedAmount di parent commission
           await commissionsCollection.updateOne(
             { _id: new ObjectId(reserved.parentCommissionId) },
@@ -76,49 +76,49 @@ export async function PUT(
           );
         }
       }
-     }
+    }
 
-     // Send notifications
-     try {
-       if (affiliator && affiliator.email) {
-         if (status === 'approved' || status === 'completed') {
-           await affiliatorNotifications.withdrawalApproved(
-             withdrawal.amount.toLocaleString('id-ID'),
-             new Date().toLocaleString('id-ID'),
-             affiliator.email
-           );
+    // Send notifications
+    try {
+      if (affiliator && affiliator.email) {
+        if (status === 'approved' || status === 'completed') {
+          await affiliatorNotifications.withdrawalApproved(
+            withdrawal.amount.toLocaleString('id-ID'),
+            new Date().toLocaleString('id-ID'),
+            affiliator.email
+          );
 
-           // Update balance notification
-           const allCommissions = await db.collection('commissions').find({
-             affiliatorId: withdrawal.affiliatorId,
-             status: 'paid'
-           }).toArray();
+          // Update balance notification
+          const allCommissions = await db.collection('commissions').find({
+            affiliatorId: withdrawal.affiliatorId,
+            status: 'paid'
+          }).toArray();
 
-           const availableBalance = allCommissions.reduce((sum, commission) => {
-             const usedAmount = commission.usedAmount || 0;
-             return sum + (commission.amount - usedAmount);
-           }, 0);
+          const availableBalance = allCommissions.reduce((sum, commission) => {
+            const usedAmount = commission.usedAmount || 0;
+            return sum + (commission.amount - usedAmount);
+          }, 0);
 
-           await affiliatorNotifications.balanceUpdated(
-             availableBalance.toLocaleString('id-ID'),
-             affiliator.email
-           );
+          await affiliatorNotifications.balanceUpdated(
+            availableBalance.toLocaleString('id-ID'),
+            affiliator.email
+          );
 
-         } else if (status === 'rejected') {
-            await affiliatorNotifications.withdrawalRejected(
-              withdrawal.amount.toLocaleString('id-ID'),
-              rejectionReason || 'Admin rejection',
-              affiliator.email
-            );
-          }
+        } else if (status === 'rejected') {
+          await affiliatorNotifications.withdrawalRejected(
+            withdrawal.amount.toLocaleString('id-ID'),
+            rejectionReason || 'Admin rejection',
+            affiliator.email
+          );
         }
+      }
 
-        console.log(`✅ All notifications sent for withdrawal ${status}: ${id}`);
-     } catch (notificationError) {
-       console.error('❌ Failed to send notifications for withdrawal update:', notificationError);
-     }
 
-     return NextResponse.json(result);
+    } catch (notificationError) {
+      console.error('❌ Failed to send notifications for withdrawal update:', notificationError);
+    }
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error updating withdrawal:', error);
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });

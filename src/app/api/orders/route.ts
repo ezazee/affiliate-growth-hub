@@ -44,8 +44,8 @@ export async function POST(req: NextRequest) {
     } = await req.json();
 
     if (
-      !buyerName || !buyerPhone || !shippingAddress || !city || !province || !postalCode || 
-      !productId || !affiliatorId || !affiliateCode || !affiliateName || 
+      !buyerName || !buyerPhone || !shippingAddress || !city || !province || !postalCode ||
+      !productId || !affiliatorId || !affiliateCode || !affiliateName ||
       shippingCost === undefined || totalPrice === undefined
     ) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -87,43 +87,43 @@ export async function POST(req: NextRequest) {
       createdAt: new Date(),
     };
 
-     const result = await db.collection('orders').insertOne(orderToInsert);
+    const result = await db.collection('orders').insertOne(orderToInsert);
 
-     // Get affiliator info for notifications
-     const affiliator = await db.collection('users').findOne({ _id: new ObjectId(affiliatorId) });
+    // Get affiliator info for notifications
+    const affiliator = await db.collection('users').findOne({ _id: new ObjectId(affiliatorId) });
 
-     // Send notifications
-     try {
-       // Push notifications (now also saves in-app)
-       await adminNotifications.newOrder(
-         orderNumber, 
-         buyerName, 
-         totalPrice.toLocaleString('id-ID')
-       );
+    // Send notifications
+    try {
+      // Push notifications (now also saves in-app)
+      await adminNotifications.newOrder(
+        orderNumber,
+        buyerName,
+        totalPrice.toLocaleString('id-ID')
+      );
 
-       if (affiliator && affiliator.email) {
-         const commissionRate = 0.1; // 10% commission
-         const commissionAmount = Math.round(productPrice * commissionRate);
-         
-         await affiliatorNotifications.newOrder(
-           orderNumber,
-           commissionAmount.toLocaleString('id-ID'),
-           affiliator.email
-         );
-       }
+      if (affiliator && affiliator.email) {
+        const commissionRate = 0.1; // 10% commission
+        const commissionAmount = Math.round(productPrice * commissionRate);
 
-       console.log(`✅ All notifications sent for new order: ${orderNumber}`);
-     } catch (notificationError) {
-       console.error('❌ Failed to send notifications for order:', notificationError);
-       // Continue with order creation even if notification fails
-     }
+        await affiliatorNotifications.newOrder(
+          orderNumber,
+          commissionAmount.toLocaleString('id-ID'),
+          affiliator.email
+        );
+      }
 
-     // Return only necessary info for payment navigation
-     return NextResponse.json({ 
-       paymentToken: orderToInsert.paymentToken, 
-       orderNumber: orderToInsert.orderNumber,
-       status: orderToInsert.status
-     }, { status: 201 });
+
+    } catch (notificationError) {
+      console.error('❌ Failed to send notifications for order:', notificationError);
+      // Continue with order creation even if notification fails
+    }
+
+    // Return only necessary info for payment navigation
+    return NextResponse.json({
+      paymentToken: orderToInsert.paymentToken,
+      orderNumber: orderToInsert.orderNumber,
+      status: orderToInsert.status
+    }, { status: 201 });
   } catch (error) {
 
     return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });

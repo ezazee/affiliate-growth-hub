@@ -88,11 +88,10 @@ async function saveInAppNotification(
       }));
 
       await notificationsCollection.insertMany(notifications);
-      console.log(`💾 Saved ${notifications.length} in-app notifications`);
     }
 
   } catch (error) {
-    console.error('❌ Failed to save in-app notification:', error);
+    // Silent error
   }
 }
 
@@ -185,7 +184,6 @@ async function sendPushNotification(
     };
 
   } catch (error) {
-    console.error('❌ Notification service error:', error);
     return {
       success: false,
       sent: 0,
@@ -241,7 +239,7 @@ export async function sendTemplateNotification(
   const template = await getResolvedTemplate(templateId);
 
   if (!template) {
-    console.log(`🔕 Notification ${templateId} is disabled or invalid`);
+
     return;
   }
 

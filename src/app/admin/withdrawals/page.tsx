@@ -80,10 +80,10 @@ export default function AdminWithdrawals() {
       });
 
       if (response.ok) {
-        setWithdrawals(prev => prev.map(w => 
+        setWithdrawals(prev => prev.map(w =>
           w.id === withdrawalId ? { ...w, status: newStatus, processedAt: new Date() } : w
         ));
-        console.log(`Status penarikan diperbarui menjadi ${newStatus}`);
+
         if (newStatus === 'rejected') {
           setIsRejectDialogOpen(false);
           setRejectionReason('');
@@ -129,7 +129,7 @@ export default function AdminWithdrawals() {
   const filteredWithdrawals = withdrawals.filter(w => {
     const affiliatorName = getAffiliatorName(w.affiliatorId).toLowerCase();
     const matchesSearch = affiliatorName.includes(searchQuery.toLowerCase()) ||
-                          w.affiliatorId.toLowerCase().includes(searchQuery.toLowerCase());
+      w.affiliatorId.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || w.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -175,28 +175,28 @@ export default function AdminWithdrawals() {
                 <p className="text-sm">Pemilik: {selectedWithdrawal.bankDetails.accountHolderName}</p>
                 <p className="text-sm">No. Rekening: {selectedWithdrawal.bankDetails.accountNumber}</p>
               </div>
-               <div className="space-y-2">
-                 <p className="text-sm font-medium">Tanggal</p>
-                 <p className="text-sm">Diajukan: {new Date(selectedWithdrawal.requestedAt).toLocaleDateString('id-ID')}</p>
-                 {selectedWithdrawal.processedAt && (
-                   <p className="text-sm">Diproses: {new Date(selectedWithdrawal.processedAt).toLocaleDateString('id-ID')}</p>
-                 )}
-               </div>
-               <div className="space-y-2">
-                 <p className="text-sm font-medium">Status</p>
-                 <Badge className={`${getStatusBadge(selectedWithdrawal.status)} flex items-center gap-1`}>
-                   {getStatusIcon(selectedWithdrawal.status)}
-                   {selectedWithdrawal.status}
-                 </Badge>
-               </div>
-               {selectedWithdrawal.rejectionReason && (
-                 <div className="space-y-2">
-                   <p className="text-sm font-medium text-destructive">Alasan Penolakan</p>
-                   <p className="text-sm text-destructive bg-destructive/10 p-2 rounded">
-                     {selectedWithdrawal.rejectionReason}
-                   </p>
-                 </div>
-               )}
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Tanggal</p>
+                <p className="text-sm">Diajukan: {new Date(selectedWithdrawal.requestedAt).toLocaleDateString('id-ID')}</p>
+                {selectedWithdrawal.processedAt && (
+                  <p className="text-sm">Diproses: {new Date(selectedWithdrawal.processedAt).toLocaleDateString('id-ID')}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Status</p>
+                <Badge className={`${getStatusBadge(selectedWithdrawal.status)} flex items-center gap-1`}>
+                  {getStatusIcon(selectedWithdrawal.status)}
+                  {selectedWithdrawal.status}
+                </Badge>
+              </div>
+              {selectedWithdrawal.rejectionReason && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-destructive">Alasan Penolakan</p>
+                  <p className="text-sm text-destructive bg-destructive/10 p-2 rounded">
+                    {selectedWithdrawal.rejectionReason}
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
@@ -216,11 +216,11 @@ export default function AdminWithdrawals() {
               <div className="space-y-2">
                 <p className="text-sm font-medium">Detail Penarikan</p>
                 <p className="text-sm">
-                  {getAffiliatorName(selectedWithdrawal.affiliatorId)} - 
+                  {getAffiliatorName(selectedWithdrawal.affiliatorId)} -
                   {selectedWithdrawal.amount.toLocaleString('id-ID', { style: 'currency', currency: 'IDR' })}
                 </p>
               </div>
-              
+
               <div className="space-y-2">
                 <label htmlFor="rejectionReason" className="text-sm font-medium">
                   Alasan Penolakan
@@ -235,8 +235,8 @@ export default function AdminWithdrawals() {
               </div>
 
               <div className="flex gap-2 justify-end pt-4 border-t">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setIsRejectDialogOpen(false);
                     setRejectionReason('');
@@ -244,7 +244,7 @@ export default function AdminWithdrawals() {
                 >
                   Batal
                 </Button>
-                <Button 
+                <Button
                   variant="destructive"
                   onClick={() => updateWithdrawalStatus(selectedWithdrawal.id, 'rejected', rejectionReason)}
                   disabled={!rejectionReason.trim()}
@@ -327,22 +327,22 @@ export default function AdminWithdrawals() {
                       <div>
                         <h3 className="font-semibold text-foreground">{getAffiliatorName(withdrawal.affiliatorId)}</h3>
                         <p className="text-sm text-muted-foreground">{getAffiliatorEmail(withdrawal.affiliatorId)}</p>
-                         <p className="text-xs text-muted-foreground mt-1">
-                           Diajukan: {new Date(withdrawal.requestedAt).toLocaleDateString('id-ID')}
-                         </p>
-                         {withdrawal.processedAt && (
-                           <p className="text-xs text-muted-foreground">
-                             Diproses: {new Date(withdrawal.processedAt).toLocaleDateString('id-ID')}
-                           </p>
-                         )}
-                         {withdrawal.rejectionReason && (
-                           <p className="text-xs text-destructive mt-1">
-                             Alasan: {withdrawal.rejectionReason}
-                           </p>
-                         )}
-                       </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Diajukan: {new Date(withdrawal.requestedAt).toLocaleDateString('id-ID')}
+                        </p>
+                        {withdrawal.processedAt && (
+                          <p className="text-xs text-muted-foreground">
+                            Diproses: {new Date(withdrawal.processedAt).toLocaleDateString('id-ID')}
+                          </p>
+                        )}
+                        {withdrawal.rejectionReason && (
+                          <p className="text-xs text-destructive mt-1">
+                            Alasan: {withdrawal.rejectionReason}
+                          </p>
+                        )}
+                      </div>
                     </div>
-                    
+
                     <div className="flex flex-col sm:items-end gap-3">
                       <div className="text-right">
                         <p className="text-xl font-display font-bold text-primary">
@@ -353,7 +353,7 @@ export default function AdminWithdrawals() {
                           {withdrawal.status}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex gap-2">
                         <Button
                           size="sm"
@@ -365,12 +365,12 @@ export default function AdminWithdrawals() {
                         >
                           Detail
                         </Button>
-                        
+
                         {(withdrawal.status === 'pending' || withdrawal.status === 'approved') && (
                           <>
                             {withdrawal.status === 'pending' && (
-                              <Button 
-                                size="sm" 
+                              <Button
+                                size="sm"
                                 variant="default"
                                 onClick={() => updateWithdrawalStatus(withdrawal.id, 'approved')}
                               >
@@ -378,8 +378,8 @@ export default function AdminWithdrawals() {
                                 Setujui
                               </Button>
                             )}
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="outline"
                               className="text-destructive"
                               onClick={() => {
@@ -392,10 +392,10 @@ export default function AdminWithdrawals() {
                             </Button>
                           </>
                         )}
-                        
+
                         {withdrawal.status === 'approved' && (
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="default"
                             onClick={() => updateWithdrawalStatus(withdrawal.id, 'completed')}
                           >

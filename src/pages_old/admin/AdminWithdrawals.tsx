@@ -72,10 +72,10 @@ export default function AdminWithdrawals() {
       });
 
       if (response.ok) {
-        setWithdrawals(prev => prev.map(w => 
+        setWithdrawals(prev => prev.map(w =>
           w.id === withdrawalId ? { ...w, status: newStatus, processedAt: new Date() } : w
         ));
-        console.log(`Status penarikan diperbarui menjadi ${newStatus}`);
+
       } else {
         console.error('Gagal memperbarui status penarikan.');
       }
@@ -117,7 +117,7 @@ export default function AdminWithdrawals() {
   const filteredWithdrawals = withdrawals.filter(w => {
     const affiliatorName = getAffiliatorName(w.affiliatorId).toLowerCase();
     const matchesSearch = affiliatorName.includes(searchQuery.toLowerCase()) ||
-                          w.affiliatorId.toLowerCase().includes(searchQuery.toLowerCase());
+      w.affiliatorId.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === 'all' || w.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -261,7 +261,7 @@ export default function AdminWithdrawals() {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="flex flex-col sm:items-end gap-3">
                       <div className="text-right">
                         <p className="text-xl font-display font-bold text-primary">
@@ -272,7 +272,7 @@ export default function AdminWithdrawals() {
                           {withdrawal.status}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex gap-2">
                         <Button
                           size="sm"
@@ -284,19 +284,19 @@ export default function AdminWithdrawals() {
                         >
                           Detail
                         </Button>
-                        
+
                         {withdrawal.status === 'pending' && (
                           <>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="default"
                               onClick={() => updateWithdrawalStatus(withdrawal.id, 'approved')}
                             >
                               <Check className="w-4 h-4 mr-1" />
                               Setujui
                             </Button>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="outline"
                               className="text-destructive"
                               onClick={() => updateWithdrawalStatus(withdrawal.id, 'rejected')}
@@ -306,10 +306,10 @@ export default function AdminWithdrawals() {
                             </Button>
                           </>
                         )}
-                        
+
                         {withdrawal.status === 'approved' && (
-                          <Button 
-                            size="sm" 
+                          <Button
+                            size="sm"
                             variant="default"
                             onClick={() => updateWithdrawalStatus(withdrawal.id, 'completed')}
                           >

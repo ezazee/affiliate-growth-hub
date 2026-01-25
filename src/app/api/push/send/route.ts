@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const db = client.db();
     const usersCollection = db.collection('users');
 
-    let query: any = { 
+    let query: any = {
       pushSubscription: { $exists: true, $ne: null },
       // Accept both true and undefined/null for notificationsEnabled
       $or: [
@@ -48,26 +48,15 @@ export async function POST(request: NextRequest) {
       query.email = targetEmail;
     }
 
-    console.log('🔍 Query for users with push subscriptions:', query);
     const users = await usersCollection.find(query).toArray();
-    console.log(`📊 Found ${users.length} users with push subscriptions`);
-    
+
     if (users.length === 0) {
       // Debug info - check all users and their push subscription status
       const allUsers = await db.collection('users').find({}).toArray();
-      console.log('🔍 All users in database:', allUsers.map(u => ({ 
-        email: u.email, 
-        role: u.role,
-        hasPushSubscription: !!u.pushSubscription, 
-        pushSubscriptionKeys: u.pushSubscription ? Object.keys(u.pushSubscription) : [],
-        notificationsEnabled: u.notificationsEnabled,
-        pushSubscriptionEndpoint: u.pushSubscription?.endpoint?.substring(0, 50) + '...'
-      })));
-      
+
       // Check if any user has push subscription data but notificationsEnabled is missing/null
       const usersWithPushButDisabled = allUsers.filter(u => u.pushSubscription && !u.notificationsEnabled);
-      console.log('⚠️ Users with push subscription but notifications disabled:', usersWithPushButDisabled.map(u => u.email));
-      
+
       return NextResponse.json({
         success: true,
         message: 'No users with push subscriptions found',
@@ -95,13 +84,11 @@ export async function POST(request: NextRequest) {
         await webpush.sendNotification(user.pushSubscription, payload);
         return { success: true, userId: user.email };
       } catch (error: any) {
-        console.error(`❌ Failed to send to ${user.email}:`, error.message);
-        
+
         // If subscription is invalid or expired, remove it
-        if (error.statusCode === 410 || error.statusCode === 404 || 
-            error.message.includes('unexpected response code') ||
-            error.message.includes('registration')) {
-          console.log(`🗑️ Removing invalid subscription for ${user.email}`);
+        if (error.statusCode === 410 || error.statusCode === 404 ||
+          error.message.includes('unexpected response code') ||
+          error.message.includes('registration')) {
           await usersCollection.updateOne(
             { email: user.email },
             {
@@ -111,19 +98,19 @@ export async function POST(request: NextRequest) {
           );
           return { success: false, userId: user.email, error: 'Subscription expired and removed' };
         }
-        
+
         return { success: false, userId: user.email, error: error.message };
       }
     });
 
     const results = await Promise.allSettled(sendPromises);
-    
-    const successful = results.filter(r => 
+
+    const successful = results.filter(r =>
       r.status === 'fulfilled' && r.value.success
     ).length;
-    
+
     const failed = results.length - successful;
-    
+
     // Collect error details
     const errorDetails = results
       .map(r => r.status === 'fulfilled' ? r.value : { success: false, error: 'Unknown error' })
@@ -141,7 +128,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Send notification error:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to send notification',
         details: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined

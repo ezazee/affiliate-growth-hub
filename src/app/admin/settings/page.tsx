@@ -130,7 +130,7 @@ export default function SettingsPage() {
       }
 
       const data = await response.json();
-      console.log("Pengaturan notifikasi berhasil diperbarui.");
+
     } catch (error) {
       console.error("Notification settings save error:", error);
       console.error("Gagal memperbarui pengaturan notifikasi.");
@@ -230,7 +230,7 @@ export default function SettingsPage() {
       }
 
       const data = await response.json();
-      console.log("Alamat gudang berhasil diperbarui.");
+
     } catch (error) {
       console.error("Address save error:", error);
       console.error("Gagal memperbarui alamat karena kesalahan jaringan.");
@@ -281,7 +281,7 @@ export default function SettingsPage() {
 
       const data = await response.json();
       setAdminWhatsApp(formattedNumber);
-      console.log("Nomor WhatsApp admin berhasil diperbarui.");
+
     } catch (error) {
       console.error("WhatsApp save error:", error);
       console.error(
@@ -328,7 +328,7 @@ export default function SettingsPage() {
       }
 
       const data = await response.json();
-      console.log("Minimal penarikan berhasil diperbarui.");
+
     } catch (error) {
       console.error("Minimum withdrawal save error:", error);
       console.error(
@@ -374,7 +374,7 @@ export default function SettingsPage() {
         return;
       }
 
-      console.log("Biaya pengiriman berhasil diperbarui.");
+
     } catch (error) {
       console.error("Shipping rates save error:", error);
       console.error("Gagal memperbarui satu atau lebih biaya pengiriman.");
@@ -422,16 +422,7 @@ export default function SettingsPage() {
 
     // Warning for large files
     if (fileSizeKB > recommendedKB) {
-      console.log(
-        `Ukuran file: ${fileSizeKB}KB. Untuk loading optimal, disarankan < 500KB.`,
-        {
-          duration: 3000,
-        }
-      );
-    } else {
-      console.log(`Ukuran file optimal: ${fileSizeKB}KB`, {
-        duration: 2000,
-      });
+
     }
 
     // Validate minimum size
@@ -462,18 +453,7 @@ export default function SettingsPage() {
 
       // Show success with size info
       const sizeInfo = ` (${data.sizeKB}KB)`;
-      console.log(
-        `Gambar "${file.name}" berhasil diupload ke cloud storage${sizeInfo}`
-      );
 
-      // Show warning if file is large
-      if (data.warning) {
-        setTimeout(() => {
-          console.log(data.warning, {
-            duration: 6000,
-          });
-        }, 1000);
-      }
 
       // Reset file input
       e.target.value = "";
@@ -511,7 +491,7 @@ export default function SettingsPage() {
       }
 
       const data = await response.json();
-      console.log("Pengaturan landing page berhasil diperbarui.");
+
     } catch (error) {
       console.error("Landing page save error:", error);
       console.error("Gagal memperbarui pengaturan landing page.");
@@ -907,7 +887,7 @@ export default function SettingsPage() {
                                       ...prev,
                                       aboutImage: "",
                                     }));
-                                    console.log("Gambar dihapus");
+
                                   }}
                                 >
                                   Hapus
@@ -1243,7 +1223,7 @@ export default function SettingsPage() {
                                     ...prev,
                                     aboutImage: "",
                                   }));
-                                  console.log("Gambar dihapus");
+
                                 }}
                               >
                                 Hapus

@@ -35,7 +35,7 @@ export default function AdminProducts() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
@@ -77,7 +77,7 @@ export default function AdminProducts() {
     }
   }, [selectedFile, editingProduct]);
 
-  const filteredProducts = products.filter(p => 
+  const filteredProducts = products.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -141,13 +141,11 @@ export default function AdminProducts() {
     // Show file size info
     const fileSizeKB = Math.round(file.size / 1024);
     if (fileSizeKB > 500) {
-      console.log(`Ukuran file: ${fileSizeKB}KB. Untuk loading optimal, disarankan < 500KB.`);
-    } else {
-      console.log(`Ukuran file optimal: ${fileSizeKB}KB`);
+
     }
 
     setSelectedFile(file);
-    
+
     // Create preview
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -158,7 +156,7 @@ export default function AdminProducts() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     let uploadedImageUrl = formData.imageUrl; // Use existing image by default
 
     // If a new file is selected, upload it
@@ -176,14 +174,6 @@ export default function AdminProducts() {
         if (uploadResponse.ok) {
           const blobData = await uploadResponse.json();
           uploadedImageUrl = blobData.url;
-          
-          if (blobData.warning) {
-            setTimeout(() => {
-              console.log(blobData.warning, { duration: 6000 });
-            }, 1000);
-          }
-          
-          console.log(`Gambar "${selectedFile.name}" berhasil diupload ke cloud storage (${blobData.sizeKB}KB)`);
         } else {
           const errorData = await uploadResponse.json();
           console.error(errorData.error || 'Failed to upload image.');
@@ -217,10 +207,10 @@ export default function AdminProducts() {
 
         if (response.ok) {
           const updatedProduct = await response.json();
-          setProducts(prev => prev.map(p => 
+          setProducts(prev => prev.map(p =>
             p.id === updatedProduct.id ? updatedProduct : p
           ));
-          console.log('Product updated successfully');
+
         } else if (response.status === 409) {
           const errorData = await response.json();
           console.error(errorData.error || 'Product with this slug already exists.');
@@ -248,7 +238,7 @@ export default function AdminProducts() {
         if (response.ok) {
           const createdProduct = await response.json();
           setProducts(prev => [...prev, createdProduct]);
-          console.log('Product created successfully');
+
         } else if (response.status === 409) {
           const errorData = await response.json();
           console.error(errorData.error || 'Product with this slug already exists.');
@@ -274,7 +264,7 @@ export default function AdminProducts() {
 
       if (response.ok) {
         setProducts(prev => prev.filter(p => p.id !== id));
-        console.log('Product deleted successfully');
+
       } else {
         console.error('Failed to delete product.');
       }
@@ -300,10 +290,10 @@ export default function AdminProducts() {
       });
 
       if (response.ok) {
-        setProducts(prev => prev.map(p => 
+        setProducts(prev => prev.map(p =>
           p.id === id ? { ...p, isActive: newIsActive } : p
         ));
-        console.log(`Product marked as ${newIsActive ? 'active' : 'inactive'}`);
+
       } else {
         console.error('Failed to update product status.');
       }
@@ -315,288 +305,288 @@ export default function AdminProducts() {
 
 
   return (
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-display font-bold text-foreground mb-2">Produk</h1>
-            <p className="text-muted-foreground">Kelola produk afiliasi Anda</p>
-          </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="hero" onClick={() => handleOpenDialog()}>
-                <Plus className="w-4 h-4 mr-2" />
-                Tambah Produk
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-lg">
-              <DialogHeader>
-                <DialogTitle className="font-display">
-                  {editingProduct ? 'Ubah Produk' : 'Tambah Produk Baru'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4 mt-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name">Nama Produk</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Kursus Premium"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="slug">Slug</Label>
-                    <Input
-                      id="slug"
-                      value={formData.slug}
-                      onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                      placeholder="kursus-premium"
-                      required
-                    />
-                  </div>
-                </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-display font-bold text-foreground mb-2">Produk</h1>
+          <p className="text-muted-foreground">Kelola produk afiliasi Anda</p>
+        </div>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="hero" onClick={() => handleOpenDialog()}>
+              <Plus className="w-4 h-4 mr-2" />
+              Tambah Produk
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle className="font-display">
+                {editingProduct ? 'Ubah Produk' : 'Tambah Produk Baru'}
+              </DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="price">Harga (Rp)</Label>
+                  <Label htmlFor="name">Nama Produk</Label>
                   <Input
-                    id="price"
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
-                    placeholder="99000"
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Kursus Premium"
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="description">Deskripsi</Label>
+                  <Label htmlFor="slug">Slug</Label>
                   <Input
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Deskripsi produk..."
+                    id="slug"
+                    value={formData.slug}
+                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                    placeholder="kursus-premium"
+                    required
                   />
                 </div>
-                {/* Image Upload Field */}
-                <div className="space-y-4">
-                  <Label htmlFor="image">Gambar Produk</Label>
-                  
-                  {/* Upload Area */}
-                  <div className="border-2 border-dashed border-border rounded-lg p-6">
-                    {imagePreview ? (
-                      <div className="space-y-4">
-                        <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border">
-                          <img 
-                            src={imagePreview} 
-                            alt="Pratinjau Gambar" 
-                            className="w-full h-full object-contain bg-secondary/20"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                            }}
-                          />
-                          <div className="hidden w-full h-48 bg-secondary/50 flex items-center justify-center">
-                            <div className="text-center">
-                              <ImageIcon className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
-                              <p className="text-muted-foreground">Gambar tidak dapat dimuat</p>
-                            </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="price">Harga (Rp)</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={(e) => setFormData(prev => ({ ...prev, price: e.target.value }))}
+                  placeholder="99000"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Deskripsi</Label>
+                <Input
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Deskripsi produk..."
+                />
+              </div>
+              {/* Image Upload Field */}
+              <div className="space-y-4">
+                <Label htmlFor="image">Gambar Produk</Label>
+
+                {/* Upload Area */}
+                <div className="border-2 border-dashed border-border rounded-lg p-6">
+                  {imagePreview ? (
+                    <div className="space-y-4">
+                      <div className="relative w-full h-48 rounded-lg overflow-hidden border border-border">
+                        <img
+                          src={imagePreview}
+                          alt="Pratinjau Gambar"
+                          className="w-full h-full object-contain bg-secondary/20"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                        <div className="hidden w-full h-48 bg-secondary/50 flex items-center justify-center">
+                          <div className="text-center">
+                            <ImageIcon className="w-12 h-12 mx-auto mb-2 text-muted-foreground" />
+                            <p className="text-muted-foreground">Gambar tidak dapat dimuat</p>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">
-                            {selectedFile ? `${selectedFile.name} (${Math.round(selectedFile.size / 1024)}KB)` : 'Gambar saat ini'}
-                          </span>
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedFile(null);
-                              setImagePreview(editingProduct?.imageUrl || null);
-                            }}
-                          >
-                            Hapus
-                          </Button>
-                        </div>
                       </div>
-                    ) : (
-                      <div className="text-center py-6">
-                        <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Klik untuk upload gambar produk
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-4">
-                          Format: JPG, PNG, WebP, GIF (Maks: 2MB, Recommended: &lt;500KB)
-                        </p>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">
+                          {selectedFile ? `${selectedFile.name} (${Math.round(selectedFile.size / 1024)}KB)` : 'Gambar saat ini'}
+                        </span>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedFile(null);
+                            setImagePreview(editingProduct?.imageUrl || null);
+                          }}
+                        >
+                          Hapus
+                        </Button>
                       </div>
-                    )}
-                    
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="cursor-pointer"
-                      disabled={isUploading}
-                    />
-                  </div>
-                  
-                  {isUploading && (
-                    <div className="flex items-center justify-center gap-3 py-4">
-                      <div className="flex space-x-1">
-                        <div className="w-3 h-3 bg-primary rounded-full animate-bounce" />
-                        <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                        <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                      </div>
-                      <span className="text-sm text-primary">Mengupload...</span>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Klik untuk upload gambar produk
+                      </p>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        Format: JPG, PNG, WebP, GIF (Maks: 2MB, Recommended: &lt;500KB)
+                      </p>
                     </div>
                   )}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Tipe Komisi</Label>
-                    <Select
-                      value={formData.commissionType}
-                      onValueChange={(value: CommissionType) => setFormData(prev => ({ ...prev, commissionType: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="percentage">Persentase (%)</SelectItem>
-                        <SelectItem value="fixed">Tetap (Rp)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="commissionValue">
-                      Komisi {formData.commissionType === 'percentage' ? '(%)' : '(Rp)'}
-                    </Label>
-                    <Input
-                      id="commissionValue"
-                      type="number"
-                      value={formData.commissionValue}
-                      onChange={(e) => setFormData(prev => ({ ...prev, commissionValue: e.target.value }))}
-                      placeholder="20"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-3 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setIsDialogOpen(false)}
+
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="cursor-pointer"
                     disabled={isUploading}
-                  >
-                    Batal
-                  </Button>
-                  <Button type="submit" disabled={isUploading}>
-                    {isUploading ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-                        Mengupload...
-                      </>
-                    ) : (
-                      <>{editingProduct ? 'Perbarui' : 'Buat'} Produk</>
-                    )}
-                  </Button>
+                  />
                 </div>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
 
-        {/* Search */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Cari produk..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-
-        {/* Products Grid */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <Skeleton className="h-80" />
-            <Skeleton className="h-80" />
-            <Skeleton className="h-80" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredProducts.map((product, index) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.05 }}
-              >
-                <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden">
-                  {product.imageUrl && (
-                    <div className="h-40 overflow-hidden">
-                      <img 
-                        src={product.imageUrl} 
-                        alt={product.name}
-                        className="w-full h-full object-contain"
-                      />
+                {isUploading && (
+                  <div className="flex items-center justify-center gap-3 py-4">
+                    <div className="flex space-x-1">
+                      <div className="w-3 h-3 bg-primary rounded-full animate-bounce" />
+                      <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-3 h-3 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                     </div>
+                    <span className="text-sm text-primary">Mengupload...</span>
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Tipe Komisi</Label>
+                  <Select
+                    value={formData.commissionType}
+                    onValueChange={(value: CommissionType) => setFormData(prev => ({ ...prev, commissionType: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="percentage">Persentase (%)</SelectItem>
+                      <SelectItem value="fixed">Tetap (Rp)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="commissionValue">
+                    Komisi {formData.commissionType === 'percentage' ? '(%)' : '(Rp)'}
+                  </Label>
+                  <Input
+                    id="commissionValue"
+                    type="number"
+                    value={formData.commissionValue}
+                    onChange={(e) => setFormData(prev => ({ ...prev, commissionValue: e.target.value }))}
+                    placeholder="20"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                  disabled={isUploading}
+                >
+                  Batal
+                </Button>
+                <Button type="submit" disabled={isUploading}>
+                  {isUploading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                      Mengupload...
+                    </>
+                  ) : (
+                    <>{editingProduct ? 'Perbarui' : 'Buat'} Produk</>
                   )}
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between mb-3">
-                      <div>
-                        <h3 className="font-semibold text-foreground">{product.name}</h3>
-                        <p className="text-2xl font-display font-bold text-primary">
-  {product.price.toLocaleString('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  })}
-</p>
-                      </div>
-                      <Badge 
-                        variant={product.isActive ? 'default' : 'secondary'}
-                        className={product.isActive ? 'bg-success text-success-foreground' : ''}
-                        onClick={() => toggleActive(product.id)}
-                        style={{ cursor: 'pointer' }}
-                      >
-                        {product.isActive ? 'Aktif' : 'Tidak Aktif'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                      {product.description}
-                    </p>
-                    <div className="flex items-center justify-between pt-3 border-t border-border">
-                      <span className="text-sm text-muted-foreground">
-                        Komisi: {product.commissionValue}{product.commissionType === 'percentage' ? '%' : 'Rp'}
-                      </span>
-                      <div className="flex gap-2">
-                        <Button size="sm" variant="ghost" onClick={() => handleOpenDialog(product)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(product.id)}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
-        {!loading && filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-            <p className="text-muted-foreground">Tidak ada produk ditemukan</p>
-          </div>
-        )}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
+
+      {/* Search */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Cari produk..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      {/* Products Grid */}
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <Skeleton className="h-80" />
+          <Skeleton className="h-80" />
+          <Skeleton className="h-80" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {filteredProducts.map((product, index) => (
+            <motion.div
+              key={product.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.05 }}
+            >
+              <Card className="shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden">
+                {product.imageUrl && (
+                  <div className="h-40 overflow-hidden">
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="font-semibold text-foreground">{product.name}</h3>
+                      <p className="text-2xl font-display font-bold text-primary">
+                        {product.price.toLocaleString('id-ID', {
+                          style: 'currency',
+                          currency: 'IDR',
+                          minimumFractionDigits: 0,
+                          maximumFractionDigits: 0,
+                        })}
+                      </p>
+                    </div>
+                    <Badge
+                      variant={product.isActive ? 'default' : 'secondary'}
+                      className={product.isActive ? 'bg-success text-success-foreground' : ''}
+                      onClick={() => toggleActive(product.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      {product.isActive ? 'Aktif' : 'Tidak Aktif'}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                    {product.description}
+                  </p>
+                  <div className="flex items-center justify-between pt-3 border-t border-border">
+                    <span className="text-sm text-muted-foreground">
+                      Komisi: {product.commissionValue}{product.commissionType === 'percentage' ? '%' : 'Rp'}
+                    </span>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => handleOpenDialog(product)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleDelete(product.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {!loading && filteredProducts.length === 0 && (
+        <div className="text-center py-12">
+          <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
+          <p className="text-muted-foreground">Tidak ada produk ditemukan</p>
+        </div>
+      )}
+    </div>
   );
 }

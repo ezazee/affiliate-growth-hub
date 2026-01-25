@@ -79,7 +79,7 @@ export const PushNotificationSender = ({ className }: PushNotificationSenderProp
       }
 
       setLastResult(result);
-      
+
       toast({
         title: 'Notification Sent',
         description: result.message,
@@ -91,7 +91,6 @@ export const PushNotificationSender = ({ className }: PushNotificationSenderProp
       setUrl('/');
 
     } catch (error: any) {
-      console.error('Send notification error:', error);
       toast({
         title: 'Error',
         description: error.message || 'Failed to send notification',
@@ -178,7 +177,7 @@ export const PushNotificationSender = ({ className }: PushNotificationSenderProp
                 <SelectItem value="specific">Specific User</SelectItem>
               </SelectContent>
             </Select>
-            
+
             {targetType === 'specific' && (
               <Input
                 placeholder="User email address"
@@ -232,8 +231,8 @@ export const PushNotificationSender = ({ className }: PushNotificationSenderProp
           </div>
 
           {/* Send Button */}
-          <Button 
-            onClick={handleSend} 
+          <Button
+            onClick={handleSend}
             disabled={isLoading}
             className="w-full"
           >
@@ -261,7 +260,7 @@ export const PushNotificationSender = ({ className }: PushNotificationSenderProp
                       {lastResult.success ? 'Success' : 'Failed'}
                     </Badge>
                   </div>
-                  
+
                   {lastResult.sent !== undefined && (
                     <div className="text-xs space-y-1">
                       <p>Total users: {lastResult.total}</p>
@@ -269,7 +268,7 @@ export const PushNotificationSender = ({ className }: PushNotificationSenderProp
                       <p>Failed: {lastResult.failed}</p>
                     </div>
                   )}
-                  
+
                   <p className="text-xs text-muted-foreground">
                     {lastResult.message}
                   </p>
