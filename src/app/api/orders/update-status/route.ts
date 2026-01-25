@@ -44,62 +44,81 @@ export async function POST(req: NextRequest) {
       const targetEmail = affiliateEmail || (await db.collection('users').findOne({ _id: new ObjectId(order.affiliatorId) }))?.email;
 
       if (targetEmail) {
-        if (status === 'shipped') {
+        if (status === 'shipped' || status === 'shipping') {
           await affiliatorNotifications.orderShipped(
             orderNumber,
             order.buyerName,
             targetEmail
           );
 
-        } else if (status === 'completed') {
-          await affiliatorNotifications.orderCompleted(
+        } else if (status === 'paid' || status === 'completed') {
+          // Send Paid Notification
+          await affiliatorNotifications.orderPaid(
             orderNumber,
-            order.buyerName,
             targetEmail
           );
 
-          const commissionRate = 0.1; // 10% commission
-          const commissionAmount = Math.round(order.productPrice * commissionRate);
+          // Also send Completed notification if it was explicitly 'completed' (legacy)
+          if (status === 'completed') {
+            await affiliatorNotifications.orderCompleted(
+              orderNumber,
+              order.buyerName,
+              targetEmail
+            );
+          }
 
-          // Fetch product for name
-          const product = await db.collection('products').findOne({ _id: new ObjectId(order.productId) });
-
-          // Update commission in database
-          await db.collection('commissions').insertOne({
-            orderNumber,
-            orderId: orderNumber, // Consistency
-            affiliatorId: order.affiliatorId,
-            productId: order.productId,
-            productName: product?.name || 'Product',
-            amount: commissionAmount, // Correct field name
-            status: 'paid', // Mark as paid so it is withdrawable
-            createdAt: new Date(),
-            date: new Date(),
-            completedAt: new Date()
+          // COMMISSION LOGIC (Triggered on PAID)
+          // 1. Check if commission already exists to avoid duplicates
+          const existingCommission = await db.collection('commissions').findOne({
+            orderNumber: orderNumber
           });
 
-          // Calculate and send balance update notification
-          // Get updated balance
-          const allCommissions = await db.collection('commissions').find({
-            affiliatorId: order.affiliatorId,
-            status: 'paid'
-          }).toArray();
+          if (!existingCommission) {
+            const commissionRate = 0.1; // 10% commission
+            const commissionAmount = Math.round(order.productPrice * commissionRate);
 
-          const availableBalance = allCommissions.reduce((sum, commission) => {
-            const usedAmount = commission.usedAmount || 0;
-            return sum + (commission.amount - usedAmount);
-          }, 0);
+            // Fetch product for name
+            const product = await db.collection('products').findOne({ _id: new ObjectId(order.productId) });
 
-          await affiliatorNotifications.commissionEarned(
-            commissionAmount.toLocaleString('id-ID'),
-            orderNumber,
-            targetEmail
-          );
+            // Update commission in database
+            await db.collection('commissions').insertOne({
+              orderNumber,
+              orderId: orderNumber, // Consistency
+              affiliatorId: order.affiliatorId,
+              productId: order.productId,
+              productName: product?.name || 'Product',
+              amount: commissionAmount, // Correct field name
+              status: 'paid', // Mark as paid so it is withdrawable
+              createdAt: new Date(),
+              date: new Date(),
+              completedAt: new Date()
+            });
 
-          await affiliatorNotifications.balanceUpdated(
-            availableBalance.toLocaleString('id-ID'),
-            targetEmail
-          );
+            // Calculate and send balance update notification
+            // Get updated balance
+            const allCommissions = await db.collection('commissions').find({
+              affiliatorId: order.affiliatorId,
+              status: 'paid'
+            }).toArray();
+
+            const availableBalance = allCommissions.reduce((sum, commission) => {
+              const usedAmount = commission.usedAmount || 0;
+              return sum + (commission.amount - usedAmount);
+            }, 0);
+
+            await affiliatorNotifications.commissionEarned(
+              commissionAmount.toLocaleString('id-ID'),
+              orderNumber,
+              targetEmail
+            );
+
+            await affiliatorNotifications.balanceUpdated(
+              availableBalance.toLocaleString('id-ID'),
+              targetEmail
+            );
+          } else {
+            console.log(`ℹ️ Commission already exists for order ${orderNumber}, skipping creation.`);
+          }
         }
       }
 

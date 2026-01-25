@@ -2,17 +2,19 @@ import { NextRequest, NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
 import { getUserFromRequest } from '@/lib/auth-utils';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req: NextRequest) {
   try {
     const user = await getUserFromRequest(req);
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const client = await clientPromise;
     const db = client.db();
-    
+
     const notifications = await db.collection('notifications')
       .find({ userEmail: user.email })
       .sort({ timestamp: -1 })

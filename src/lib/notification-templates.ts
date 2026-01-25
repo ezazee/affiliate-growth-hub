@@ -64,6 +64,16 @@ export const notificationTemplates: NotificationTemplate[] = [
     category: 'order'
   },
   {
+    id: 'order_paid',
+    name: 'Pesanan Dibayar',
+    description: 'Notifikasi ketika pesanan telah dibayar',
+    defaultTitle: '💸 Pesanan Dibayar',
+    defaultBody: 'Pesanan #{orderId} telah dibayar oleh pembeli',
+    defaultUrl: '/affiliator/orders/{orderId}',
+    roles: ['affiliator'],
+    category: 'order'
+  },
+  {
     id: 'order_shipped',
     name: 'Pesanan Dikirim',
     description: 'Notifikasi ketika pesanan telah dikirim',
@@ -99,7 +109,7 @@ export const notificationTemplates: NotificationTemplate[] = [
     description: 'Notifikasi ketika saldo yang dapat ditarik bertambah',
     defaultTitle: '💵 Saldo Terupdate',
     defaultBody: 'Saldo yang dapat ditarik: Rp{balance}',
-    defaultUrl: '/affiliator/withdrawals',
+    defaultUrl: '/affiliator/commissions',
     roles: ['affiliator'],
     category: 'commission'
   },
@@ -109,7 +119,7 @@ export const notificationTemplates: NotificationTemplate[] = [
     description: 'Notifikasi ketika penarikan disetujui',
     defaultTitle: '✅ Penarikan Disetujui',
     defaultBody: 'Penarikan dana Rp{amount} telah disetujui dan diproses',
-    defaultUrl: '/affiliator/withdrawals',
+    defaultUrl: '/affiliator/commissions',
     roles: ['affiliator'],
     category: 'withdrawal'
   },
@@ -119,7 +129,7 @@ export const notificationTemplates: NotificationTemplate[] = [
     description: 'Notifikasi ketika penarikan ditolak',
     defaultTitle: '❌ Penarikan Ditolak',
     defaultBody: 'Penarikan dana Rp{amount} ditolak. Alasan: {reason}',
-    defaultUrl: '/affiliator/withdrawals',
+    defaultUrl: '/affiliator/commissions',
     roles: ['affiliator'],
     category: 'withdrawal'
   }

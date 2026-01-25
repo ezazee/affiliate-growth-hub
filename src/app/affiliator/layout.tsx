@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Users, 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Users,
   CreditCard,
   Menu,
   X,
@@ -32,7 +32,6 @@ const affiliatorNavItems = [
   { path: '/affiliator/links', label: 'Link Afiliasi', icon: Package },
   { path: '/affiliator/customers', label: 'Pelanggan', icon: ShoppingCart },
   { path: '/affiliator/commissions', label: 'Komisi', icon: CreditCard },
-  { path: '/affiliator/withdrawals', label: 'Penarikan', icon: ArrowUpDown },
   { path: '/affiliator/notifications', label: 'Notifikasi', icon: Bell },
   { path: '/affiliator/settings', label: 'Pengaturan', icon: Settings },
 ];
@@ -60,14 +59,14 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     logout();
     router.push('/login');
   };
-  
+
   const Logo = () => (
     <div className="flex items-center gap-2">
-      <Image 
-        src="/Logo.png" 
+      <Image
+        src="/Logo.png"
         alt="Affiliate PE Skinpro Logo"
-        width={32} 
-        height={32} 
+        width={32}
+        height={32}
         priority
       />
       <span className="font-display font-bold text-lg text-foreground">Affiliate</span>
@@ -150,7 +149,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Overlay for mobile */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-foreground/20 backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
@@ -178,9 +177,9 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <NotificationPanel />
           </div>
         </header>
-        
+
         <main className="pt-16 lg:pt-16">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}

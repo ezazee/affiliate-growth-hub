@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import webpush from 'web-push';
 import clientPromise from '@/lib/mongodb';
-import { 
-  notificationTemplates, 
-  NotificationTemplateId, 
+import {
+  notificationTemplates,
+  NotificationTemplateId,
   NotificationVariables,
   formatNotificationText
 } from './notification-templates';
@@ -59,7 +59,7 @@ async function saveInAppNotification(
 
     // If target is specific users, we might want to create individual records or handle it in query
     // For simplicity, we store the target criteria and filter on read
-    
+
     // However, for "read" status to work per user, we need individual records or a "readBy" array
     // Let's find the users and insert for each if it's a small group, or use a better schema.
     // Given the scale, finding users and inserting individual notifications is safer for "read" status.
@@ -78,7 +78,7 @@ async function saveInAppNotification(
     }
 
     const users = await usersCollection.find(query).toArray();
-    
+
     if (users.length > 0) {
       const notifications = users.map(user => ({
         ...notificationDoc,
@@ -86,7 +86,7 @@ async function saveInAppNotification(
         userId: user._id.toString(),
         target: undefined // Remove generic target
       }));
-      
+
       await notificationsCollection.insertMany(notifications);
       console.log(`💾 Saved ${notifications.length} in-app notifications`);
     }
@@ -129,7 +129,7 @@ async function sendPushNotification(
     }
 
     const users = await usersCollection.find(query).toArray();
-    
+
     if (users.length === 0) {
       return {
         success: true,
@@ -153,7 +153,7 @@ async function sendPushNotification(
         return { success: true, userId: user.email };
       } catch (error: any) {
         console.error(`❌ Failed to send to ${user.email}:`, error.message);
-        
+
         // Remove invalid subscription
         if (error.statusCode === 410 || error.statusCode === 404) {
           await usersCollection.updateOne(
@@ -164,17 +164,17 @@ async function sendPushNotification(
             }
           );
         }
-        
+
         return { success: false, userId: user.email, error: error.message };
       }
     });
 
     const results = await Promise.allSettled(sendPromises);
-    
-    const successful = results.filter(r => 
+
+    const successful = results.filter(r =>
       r.status === 'fulfilled' && r.value.success
     ).length;
-    
+
     const failed = results.length - successful;
 
     return {
@@ -204,7 +204,7 @@ async function getResolvedTemplate(templateId: NotificationTemplateId) {
     const client = await clientPromise;
     const db = client.db();
     const settings = await db.collection('settings').findOne({ key: 'notificationTemplates' });
-    
+
     const custom = settings?.templates?.find((t: any) => t.templateId === templateId);
 
     // If explicitly disabled
@@ -239,7 +239,7 @@ export async function sendTemplateNotification(
   targetOverride?: NotificationTarget
 ) {
   const template = await getResolvedTemplate(templateId);
-  
+
   if (!template) {
     console.log(`🔕 Notification ${templateId} is disabled or invalid`);
     return;
@@ -251,7 +251,7 @@ export async function sendTemplateNotification(
 
   // Determine target
   let target: NotificationTarget = {};
-  
+
   if (targetOverride) {
     target = targetOverride;
   } else {
@@ -299,6 +299,9 @@ export const affiliatorNotifications = {
 
   orderCompleted: (orderId: string, customerName: string, targetUserEmail: string) =>
     sendTemplateNotification('order_completed', { orderId, customerName }, { userEmail: targetUserEmail }),
+
+  orderPaid: (orderId: string, targetUserEmail: string) =>
+    sendTemplateNotification('order_paid', { orderId }, { userEmail: targetUserEmail }),
 
   commissionEarned: (amount: string, orderId: string, targetUserEmail: string) =>
     sendTemplateNotification('commission_earned', { amount, orderId }, { userEmail: targetUserEmail }),
