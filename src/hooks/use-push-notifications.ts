@@ -256,6 +256,9 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       // Step 4: Create new subscription with retry
       console.log('🔑 Creating new subscription...');
       const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BD7-XYAmgLZETcgTEzRWEPkGmXW0H0iPjGNl3vZvex-h_TFyGCvXifRZIX5mbPbk6HV7qkTs5VGJ-lvjonGoA1o';
+      
+      console.log(`🔑 Using VAPID Public Key (starts with): ${vapidKey.substring(0, 10)}...`);
+      
       const applicationServerKey = urlB64ToUint8Array(vapidKey);
       
       const pushSubscription = await Promise.race([

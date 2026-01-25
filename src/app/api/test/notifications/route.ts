@@ -72,7 +72,7 @@ async function testOrderNotification(data: any) {
   
   // Test affiliator notification
   if (affiliatorEmail) {
-    await affiliatorNotifications.newOrder(orderNumber, customerName, commission, affiliatorEmail);
+    await affiliatorNotifications.newOrder(orderNumber, commission, affiliatorEmail);
   }
   
   console.log(`✅ Order notification sent: ${orderNumber}`);
@@ -108,7 +108,7 @@ async function testAllNotifications(data: any) {
   await adminNotifications.withdrawalRequest('Alice Johnson', 'Rp 150,000');
 
   // 2. Affiliator Notifications
-  await affiliatorNotifications.newOrder('ORDER-ALL002', 'Bob Wilson', 'Rp 20,000', testEmail);
+  await affiliatorNotifications.newOrder('ORDER-ALL002', 'Rp 20,000', testEmail);
   await affiliatorNotifications.orderShipped('ORDER-ALL003', 'Charlie Brown', testEmail);
   await affiliatorNotifications.orderCompleted('ORDER-ALL004', 'Diana Prince', testEmail);
   await affiliatorNotifications.commissionEarned('Rp 25,000', 'ORDER-ALL005', testEmail);

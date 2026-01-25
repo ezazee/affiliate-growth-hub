@@ -94,11 +94,11 @@ export async function POST(req: NextRequest) {
 
      // Send notifications
      try {
-       // Push notifications
+       // Push notifications (now also saves in-app)
        await adminNotifications.newOrder(
          orderNumber, 
          buyerName, 
-         `Rp ${totalPrice.toLocaleString('id-ID')}`
+         totalPrice.toLocaleString('id-ID')
        );
 
        if (affiliator && affiliator.email) {
@@ -107,27 +107,7 @@ export async function POST(req: NextRequest) {
          
          await affiliatorNotifications.newOrder(
            orderNumber,
-           buyerName,
-           `Rp ${commissionAmount.toLocaleString('id-ID')}`,
-           affiliator.email
-         );
-       }
-
-       // Web notifications
-       await webNotificationService.notifyNewOrderAdmin(
-         orderNumber, 
-         `Rp ${totalPrice.toLocaleString('id-ID')}`,
-         buyerName
-       );
-
-       if (affiliator && affiliator.email) {
-         const commissionRate = 0.1; // 10% commission
-         const commissionAmount = Math.round(productPrice * commissionRate);
-         
-         await webNotificationService.notifyNewOrderAffiliate(
-           orderNumber,
-           buyerName,
-           `Rp ${commissionAmount.toLocaleString('id-ID')}`,
+           commissionAmount.toLocaleString('id-ID'),
            affiliator.email
          );
        }

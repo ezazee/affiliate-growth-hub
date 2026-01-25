@@ -9,8 +9,21 @@ const initialState: NotificationState = {
   isOpen: false,
 };
 
-function notificationReducer(state: NotificationState, action: NotificationAction): NotificationState {
+// Extended action type
+type ExtendedNotificationAction = 
+  | NotificationAction 
+  | { type: 'SET_NOTIFICATIONS'; payload: WebNotification[] };
+
+function notificationReducer(state: NotificationState, action: ExtendedNotificationAction): NotificationState {
   switch (action.type) {
+    case 'SET_NOTIFICATIONS': {
+      return {
+        ...state,
+        notifications: action.payload,
+        unreadCount: action.payload.filter(n => !n.read).length,
+      };
+    }
+
     case 'ADD_NOTIFICATION': {
       const newNotification: WebNotification = {
         ...action.payload,
@@ -99,13 +112,14 @@ function notificationReducer(state: NotificationState, action: NotificationActio
 
 interface NotificationContextType {
   state: NotificationState;
-  dispatch: React.Dispatch<NotificationAction>;
+  dispatch: React.Dispatch<ExtendedNotificationAction>;
   addNotification: (notification: Omit<WebNotification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
   removeNotification: (id: string) => void;
   clearAll: () => void;
   togglePanel: () => void;
+  refreshNotifications: () => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -113,12 +127,40 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(notificationReducer, initialState);
 
+  const fetchNotifications = async () => {
+    try {
+      const response = await fetch('/api/notifications');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && Array.isArray(data.notifications)) {
+          // Parse dates
+          const notifications = data.notifications.map((n: any) => ({
+            ...n,
+            timestamp: new Date(n.timestamp)
+          }));
+          dispatch({ type: 'SET_NOTIFICATIONS', payload: notifications });
+        }
+      }
+    } catch (error) {
+      console.error('Failed to fetch notifications:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
+    
+    // Poll every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const addNotification = (notification: Omit<WebNotification, 'id' | 'timestamp' | 'read'>) => {
     dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
   };
 
   const markAsRead = (id: string) => {
     dispatch({ type: 'MARK_AS_READ', payload: id });
+    // TODO: Sync read status to backend
   };
 
   const markAllAsRead = () => {
@@ -137,26 +179,6 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     dispatch({ type: 'TOGGLE_NOTIFICATIONS_PANEL' });
   };
 
-  // Auto-remove notifications after 30 seconds for info notifications
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = Date.now();
-      const thirtySecondsAgo = now - 30000;
-
-      state.notifications.forEach(notification => {
-        if (
-          notification.type === 'info' && 
-          !notification.read && 
-          notification.timestamp.getTime() < thirtySecondsAgo
-        ) {
-          dispatch({ type: 'REMOVE_NOTIFICATION', payload: notification.id });
-        }
-      });
-    }, 5000);
-
-    return () => clearInterval(timer);
-  }, [state.notifications]);
-
   return (
     <NotificationContext.Provider
       value={{
@@ -168,6 +190,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         removeNotification,
         clearAll,
         togglePanel,
+        refreshNotifications: fetchNotifications
       }}
     >
       {children}

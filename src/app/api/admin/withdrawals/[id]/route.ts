@@ -83,7 +83,7 @@ export async function PUT(
        if (affiliator && affiliator.email) {
          if (status === 'approved' || status === 'completed') {
            await affiliatorNotifications.withdrawalApproved(
-             `Rp ${withdrawal.amount.toLocaleString('id-ID')}`,
+             withdrawal.amount.toLocaleString('id-ID'),
              new Date().toLocaleString('id-ID'),
              affiliator.email
            );
@@ -100,46 +100,13 @@ export async function PUT(
            }, 0);
 
            await affiliatorNotifications.balanceUpdated(
-             `Rp ${availableBalance.toLocaleString('id-ID')}`,
+             availableBalance.toLocaleString('id-ID'),
              affiliator.email
            );
 
          } else if (status === 'rejected') {
             await affiliatorNotifications.withdrawalRejected(
-              `Rp ${withdrawal.amount.toLocaleString('id-ID')}`,
-              rejectionReason || 'Admin rejection',
-              affiliator.email
-            );
-          }
-        }
-
-        // Add web notifications for affiliator
-        if (affiliator && affiliator.email) {
-          if (status === 'approved' || status === 'completed') {
-            await webNotificationService.notifyWithdrawalApproved(
-              `Rp ${withdrawal.amount.toLocaleString('id-ID')}`,
-              new Date().toLocaleString('id-ID'),
-              affiliator.email
-            );
-
-            const allCommissions = await db.collection('commissions').find({
-              affiliatorId: withdrawal.affiliatorId,
-              status: 'paid'
-            }).toArray();
-
-            const availableBalance = allCommissions.reduce((sum, commission) => {
-              const usedAmount = commission.usedAmount || 0;
-              return sum + (commission.amount - usedAmount);
-            }, 0);
-
-            await webNotificationService.notifyBalanceUpdated(
-              `Rp ${availableBalance.toLocaleString('id-ID')}`,
-              affiliator.email
-            );
-
-          } else if (status === 'rejected') {
-            await webNotificationService.notifyWithdrawalRejected(
-              `Rp ${withdrawal.amount.toLocaleString('id-ID')}`,
+              withdrawal.amount.toLocaleString('id-ID'),
               rejectionReason || 'Admin rejection',
               affiliator.email
             );

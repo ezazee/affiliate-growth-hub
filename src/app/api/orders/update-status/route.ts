@@ -22,9 +22,9 @@ export async function POST(req: NextRequest) {
     }
 
     // Update order status
-    const updateData: any = { 
-      status, 
-      updatedAt: new Date() 
+    const updateData: any = {
+      status,
+      updatedAt: new Date()
     };
 
     // Add timestamps based on status
@@ -51,13 +51,6 @@ export async function POST(req: NextRequest) {
             targetEmail
           );
 
-          // Add web notification
-          await webNotificationService.notifyOrderShipped(
-            orderNumber,
-            order.buyerName,
-            targetEmail
-          );
-
         } else if (status === 'completed') {
           await affiliatorNotifications.orderCompleted(
             orderNumber,
@@ -67,38 +60,46 @@ export async function POST(req: NextRequest) {
 
           const commissionRate = 0.1; // 10% commission
           const commissionAmount = Math.round(order.productPrice * commissionRate);
-          
-          await affiliatorNotifications.commissionEarned(
-            `Rp ${commissionAmount.toLocaleString('id-ID')}`,
-            orderNumber,
-            targetEmail
-          );
 
-          // Add web notifications
-          await webNotificationService.notifyOrderCompleted(
-            orderNumber,
-            order.buyerName,
-            targetEmail
-          );
-
-          await webNotificationService.notifyCommissionEarned(
-            `Rp ${commissionAmount.toLocaleString('id-ID')}`,
-            orderNumber,
-            targetEmail
-          );
+          // Fetch product for name
+          const product = await db.collection('products').findOne({ _id: new ObjectId(order.productId) });
 
           // Update commission in database
           await db.collection('commissions').insertOne({
             orderNumber,
+            orderId: orderNumber, // Consistency
             affiliatorId: order.affiliatorId,
             productId: order.productId,
-            productPrice: order.productPrice,
-            commissionRate,
-            commissionAmount,
-            status: 'completed',
+            productName: product?.name || 'Product',
+            amount: commissionAmount, // Correct field name
+            status: 'paid', // Mark as paid so it is withdrawable
             createdAt: new Date(),
+            date: new Date(),
             completedAt: new Date()
           });
+
+          // Calculate and send balance update notification
+          // Get updated balance
+          const allCommissions = await db.collection('commissions').find({
+            affiliatorId: order.affiliatorId,
+            status: 'paid'
+          }).toArray();
+
+          const availableBalance = allCommissions.reduce((sum, commission) => {
+            const usedAmount = commission.usedAmount || 0;
+            return sum + (commission.amount - usedAmount);
+          }, 0);
+
+          await affiliatorNotifications.commissionEarned(
+            commissionAmount.toLocaleString('id-ID'),
+            orderNumber,
+            targetEmail
+          );
+
+          await affiliatorNotifications.balanceUpdated(
+            availableBalance.toLocaleString('id-ID'),
+            targetEmail
+          );
         }
       }
 
@@ -107,9 +108,9 @@ export async function POST(req: NextRequest) {
       console.error('❌ Failed to send notifications for order update:', notificationError);
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: `Order ${orderNumber} status updated to ${status}` 
+    return NextResponse.json({
+      success: true,
+      message: `Order ${orderNumber} status updated to ${status}`
     });
 
   } catch (error) {

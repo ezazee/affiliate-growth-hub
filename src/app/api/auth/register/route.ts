@@ -55,11 +55,8 @@ export async function POST(req: NextRequest) {
 
     // Send notifications about new affiliator registration
     try {
-      // Push notification to admins
+      // Push notification & In-app to admins
       await adminNotifications.newAffiliator(name, email);
-      
-      // Web notification to admins
-      await webNotificationService.notifyNewAffiliate(name, email);
       
       console.log(`✅ Notifications sent to admins for new affiliator: ${email}`);
     } catch (notificationError) {

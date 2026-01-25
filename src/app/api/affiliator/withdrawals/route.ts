@@ -152,38 +152,21 @@ export async function POST(req: NextRequest) {
      // Send notifications
      try {
        if (affiliator && affiliator.email) {
-         // Push notifications
+         // Push notifications & In-app
          await adminNotifications.withdrawalRequest(
            affiliator.name,
-           `Rp ${requestedAmount.toLocaleString('id-ID')}`
+           requestedAmount.toLocaleString('id-ID')
          );
 
          await affiliatorNotifications.withdrawalApproved(
-           `Rp ${requestedAmount.toLocaleString('id-ID')}`,
+           requestedAmount.toLocaleString('id-ID'),
            new Date().toLocaleString('id-ID'),
            affiliator.email
          );
 
          const remainingBalance = withdrawableBalance - requestedAmount;
          await affiliatorNotifications.balanceUpdated(
-           `Rp ${remainingBalance.toLocaleString('id-ID')}`,
-           affiliator.email
-         );
-
-         // Web notifications
-         await webNotificationService.notifyWithdrawalRequest(
-           affiliator.name,
-           `Rp ${requestedAmount.toLocaleString('id-ID')}`
-         );
-
-         await webNotificationService.notifyWithdrawalApproved(
-           `Rp ${requestedAmount.toLocaleString('id-ID')}`,
-           new Date().toLocaleString('id-ID'),
-           affiliator.email
-         );
-
-         await webNotificationService.notifyBalanceUpdated(
-           `Rp ${remainingBalance.toLocaleString('id-ID')}`,
+           remainingBalance.toLocaleString('id-ID'),
            affiliator.email
          );
        }
