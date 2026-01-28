@@ -1,6 +1,8 @@
 require('dotenv').config({ path: '.env.local' });
 const { MongoClient } = require('mongodb');
+const bcrypt = require('bcryptjs');
 const { products, users } = require('./data.cjs');
+
 
 const uri = process.env.MONGODB_URI;
 
@@ -31,7 +33,7 @@ const seed = async () => {
     await db.collection('orders').deleteMany({});
     await db.collection('commissions').deleteMany({});
     await db.collection('affiliateLinks').deleteMany({});
-    
+
     // Drop the problematic index if it exists
     try {
       await db.collection('products').dropIndex('sku_1');
@@ -41,8 +43,18 @@ const seed = async () => {
       }
     }
 
-    // Seed users
-    await db.collection('users').insertMany(users);
+
+
+
+    // Seed users with hashed passwords
+    const usersWithHashedPasswords = await Promise.all(users.map(async (user) => {
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      return {
+        ...user,
+        password: hashedPassword,
+      };
+    }));
+    await db.collection('users').insertMany(usersWithHashedPasswords);
 
     // Seed products
     await db.collection('products').insertMany(products);
