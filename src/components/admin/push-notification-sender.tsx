@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Loader2, Send, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { getAuthHeaders } from '@/lib/api';
 
 interface PushNotificationSenderProps {
   className?: string;
@@ -68,6 +69,7 @@ export const PushNotificationSender = ({ className }: PushNotificationSenderProp
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
         },
         body: JSON.stringify(payload),
       });
