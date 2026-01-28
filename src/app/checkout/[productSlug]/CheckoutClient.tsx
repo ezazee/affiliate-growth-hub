@@ -198,6 +198,10 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
         setShippingCost(data.shippingCost);
         setDistanceInKm(data.distanceInKm);
         setAppliedRateDetails(data.appliedRateDetails);
+
+        // Store debug info
+        (window as any).debugShipping = data.debug;
+
         toast.success('Biaya pengiriman berhasil dihitung.');
       } else {
         toast.error(`Gagal menghitung pengiriman: ${data.error || 'Silakan periksa alamat Anda.'}`);
@@ -460,6 +464,17 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
                         <p className="text-xs text-muted-foreground">
                           {appliedRateDetails}
                         </p>
+
+                        {/* Debug Info */}
+                        {(isCalculatingShipping === false && (distanceInKm || 0) > 0) && (
+                          <div className="mt-4 pt-4 border-t border-border/50 text-left">
+                            <p className="text-[10px] font-mono text-muted-foreground mb-1 uppercase tracking-wider">Rute Pengiriman</p>
+                            <div className="text-xs text-muted-foreground space-y-1">
+                              <p><span className="font-semibold">Dari (Gudang):</span> <span className="opacity-80">{(window as any).debugShipping?.origin || '...'}</span></p>
+                              <p><span className="font-semibold">Ke (Tujuan):</span> <span className="opacity-80">{(window as any).debugShipping?.destination || '...'}</span></p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                       <Button onClick={handlePlaceOrder} size="lg" className="w-full" disabled={isPlacingOrder}>
                         {isPlacingOrder ? (
