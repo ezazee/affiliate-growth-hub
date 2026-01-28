@@ -2,17 +2,17 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  Bell, 
-  Check, 
-  X, 
-  ShoppingCart, 
-  Package, 
-  CheckCircle, 
-  AlertCircle, 
+import {
+  Bell,
+  Check,
+  X,
+  ShoppingCart,
+  Package,
+  CheckCircle,
+  AlertCircle,
   XCircle,
   Trash2,
-  Eye,
+
   DollarSign,
   Send,
   Info
@@ -84,14 +84,14 @@ const getFullDateTime = (date: Date) => {
 };
 
 export default function AffiliatorNotificationsPage() {
-  const { 
-    state, 
-    markAsRead, 
-    markAllAsRead, 
-    removeNotification, 
-    clearAll 
+  const {
+    state,
+    markAsRead,
+    markAllAsRead,
+    removeNotification,
+    clearAll
   } = useNotifications();
-  
+
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
 
   // Filter notifications
@@ -118,12 +118,6 @@ export default function AffiliatorNotificationsPage() {
     if (!notification.read) {
       await markAsRead(notification.id);
     }
-    
-    if (notification.actionUrl) {
-      window.location.href = notification.actionUrl;
-    } else if (notification.url) {
-      window.location.href = notification.url;
-    }
   };
 
   return (
@@ -141,7 +135,7 @@ export default function AffiliatorNotificationsPage() {
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {stats.unread > 0 && (
             <Button onClick={markAllAsRead} variant="outline">
@@ -149,8 +143,8 @@ export default function AffiliatorNotificationsPage() {
               Tandai semua dibaca
             </Button>
           )}
-          <Button 
-            onClick={clearAll} 
+          <Button
+            onClick={clearAll}
             variant="destructive"
             disabled={state.notifications.length === 0}
           >
@@ -168,35 +162,35 @@ export default function AffiliatorNotificationsPage() {
             <div className="text-sm font-medium text-purple-600">Total Notifikasi</div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-orange-700">{stats.unread}</div>
             <div className="text-sm font-medium text-orange-600">Belum Dibaca</div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-green-700">{stats.success}</div>
             <div className="text-sm font-medium text-green-600">✅ Sukses</div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-yellow-700">{stats.warning}</div>
             <div className="text-sm font-medium text-yellow-600">⚠️ Peringatan</div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-red-50 to-red-100 border-red-200">
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-red-700">{stats.error}</div>
             <div className="text-sm font-medium text-red-600">❌ Error</div>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-blue-700">{stats.info}</div>
@@ -214,8 +208,8 @@ export default function AffiliatorNotificationsPage() {
             </div>
             <h3 className="font-bold text-blue-900 text-lg">🛒 Pesanan</h3>
             <p className="text-sm text-blue-700 font-medium mt-2">
-              {state.notifications.filter(n => 
-                n.title.toLowerCase().includes('pesanan') || 
+              {state.notifications.filter(n =>
+                n.title.toLowerCase().includes('pesanan') ||
                 n.title.toLowerCase().includes('order')
               ).length} notifikasi
             </p>
@@ -229,8 +223,8 @@ export default function AffiliatorNotificationsPage() {
             </div>
             <h3 className="font-bold text-green-900 text-lg">💰 Komisi</h3>
             <p className="text-sm text-green-700 font-medium mt-2">
-              {state.notifications.filter(n => 
-                n.title.toLowerCase().includes('komisi') || 
+              {state.notifications.filter(n =>
+                n.title.toLowerCase().includes('komisi') ||
                 n.title.toLowerCase().includes('commission')
               ).length} notifikasi
             </p>
@@ -244,8 +238,8 @@ export default function AffiliatorNotificationsPage() {
             </div>
             <h3 className="font-bold text-purple-900 text-lg">✅ Selesai</h3>
             <p className="text-sm text-purple-700 font-medium mt-2">
-              {state.notifications.filter(n => 
-                n.title.toLowerCase().includes('selesai') || 
+              {state.notifications.filter(n =>
+                n.title.toLowerCase().includes('selesai') ||
                 n.title.toLowerCase().includes('completed')
               ).length} notifikasi
             </p>
@@ -259,8 +253,8 @@ export default function AffiliatorNotificationsPage() {
             </div>
             <h3 className="font-bold text-red-900 text-lg">❌ Ditolak</h3>
             <p className="text-sm text-red-700 font-medium mt-2">
-              {state.notifications.filter(n => 
-                n.title.toLowerCase().includes('ditolak') || 
+              {state.notifications.filter(n =>
+                n.title.toLowerCase().includes('ditolak') ||
                 n.title.toLowerCase().includes('rejected')
               ).length} notifikasi
             </p>
@@ -305,16 +299,16 @@ export default function AffiliatorNotificationsPage() {
             {filteredNotifications.length} notifikasi {filter === 'all' ? 'total' : filter === 'unread' ? 'belum dibaca' : 'sudah dibaca'}
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent className="p-0">
           <ScrollArea className="h-[600px]">
             {filteredNotifications.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
                 <Bell className="w-12 h-12 mb-2 opacity-50" />
                 <p className="text-lg font-medium">
-                  {filter === 'unread' ? 'Tidak ada notifikasi yang belum dibaca' : 
-                   filter === 'read' ? 'Tidak ada notifikasi yang sudah dibaca' : 
-                   'Belum ada notifikasi'}
+                  {filter === 'unread' ? 'Tidak ada notifikasi yang belum dibaca' :
+                    filter === 'read' ? 'Tidak ada notifikasi yang sudah dibaca' :
+                      'Belum ada notifikasi'}
                 </p>
                 <p className="text-sm mt-1">
                   {filter !== 'all' && 'Coba ubah filter untuk melihat notifikasi lainnya'}
@@ -334,105 +328,80 @@ export default function AffiliatorNotificationsPage() {
             ) : (
               <div className="divide-y">
                 {filteredNotifications.map((notification, index) => (
-<motion.div
-                     key={notification.id}
-                     initial={{ opacity: 0, x: 20 }}
-                     animate={{ opacity: 1, x: 0 }}
-                     transition={{ delay: index * 0.05 }}
-                     className={`p-6 hover:bg-gray-50 cursor-pointer transition-all duration-200 border-l-4 ${
-                       !notification.read 
-                         ? 'bg-purple-50 border-purple-500' 
-                         : 'bg-white border-gray-200'
-                     }`}
-                     onClick={() => handleNotificationClick(notification)}
-                   >
-                     <div className="flex items-start gap-4">
-                       {/* Main Icon */}
-                       <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${
-                         !notification.read ? 'bg-purple-100' : 'bg-gray-100'
-                       }`}>
-                         {getRelatedIcon(notification.title)}
-                       </div>
-                       
-                       {/* Content */}
-                       <div className="flex-1 min-w-0">
-                         {/* Title Row */}
-                         <div className="flex items-start justify-between mb-2">
-                           <div className="flex-1">
-                             <h3 className={`text-base font-bold mb-1 ${
-                               !notification.read ? 'text-purple-900' : 'text-gray-900'
-                             }`}>
-                               {notification.title}
-                               {!notification.read && (
-                                 <Badge variant="destructive" className="ml-2 text-xs px-2 py-0.5">
-                                   BARU
-                                 </Badge>
-                               )}
-                             </h3>
-                             <p className={`text-sm ${
-                               !notification.read ? 'text-purple-700' : 'text-gray-600'
-                             }`}>
-                               {notification.message}
-                             </p>
-                           </div>
-                           
-                           {/* Type Icon & Actions */}
-                           <div className="flex items-center gap-2 ml-4">
-                             <div className="flex flex-col items-end gap-1">
-                               {getNotificationIcon(notification.type)}
-                               <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                 {formatTime(notification.timestamp)}
-                               </span>
-                             </div>
-                             
-                             <div className="flex flex-col gap-1">
-                               <Button
-                                 variant="ghost"
-                                 size="sm"
-                                 onClick={(e) => {
-                                   e.stopPropagation();
-                                   removeNotification(notification.id);
-                                 }}
-                                 className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
-                               >
-                                 <X className="w-4 h-4" />
-                               </Button>
-                               
-                               {notification.url && (
-                                 <Button
-                                   variant="ghost"
-                                   size="sm"
-                                   onClick={(e) => {
-                                     e.stopPropagation();
-                                     window.location.href = notification.url;
-                                   }}
-                                   className="h-8 w-8 p-0 text-blue-500 hover:bg-blue-50"
-                                 >
-                                   <Eye className="w-4 h-4" />
-                                 </Button>
-                               )}
-                             </div>
-                           </div>
-                         </div>
-                         
-                         {/* Bottom Row */}
-                         <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                           <span className="text-xs text-gray-400">
-                             📅 {getFullDateTime(notification.timestamp)}
-                           </span>
-                           
-                           {notification.url && (
-                             <div className="text-xs text-purple-600 font-medium flex items-center gap-1">
-                               Lihat detail
-                               <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                               </svg>
-                             </div>
-                           )}
-                         </div>
-                       </div>
-                     </div>
-                   </motion.div>
+                  <motion.div
+                    key={notification.id}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className={`p-6 hover:bg-gray-50 transition-all duration-200 border-l-4 ${!notification.read
+                        ? 'bg-purple-50 border-purple-500'
+                        : 'bg-white border-gray-200'
+                      }`}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Main Icon */}
+                      <div className={`flex-shrink-0 w-12 h-12 rounded-lg flex items-center justify-center ${!notification.read ? 'bg-purple-100' : 'bg-gray-100'
+                        }`}>
+                        {getRelatedIcon(notification.title)}
+                      </div>
+
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        {/* Title Row */}
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1">
+                            <h3 className={`text-base font-bold mb-1 ${!notification.read ? 'text-purple-900' : 'text-gray-900'
+                              }`}>
+                              {notification.title}
+                              {!notification.read && (
+                                <Badge variant="destructive" className="ml-2 text-xs px-2 py-0.5">
+                                  BARU
+                                </Badge>
+                              )}
+                            </h3>
+                            <p className={`text-sm ${!notification.read ? 'text-purple-700' : 'text-gray-600'
+                              }`}>
+                              {notification.message}
+                            </p>
+                          </div>
+
+                          {/* Type Icon & Actions */}
+                          <div className="flex items-center gap-2 ml-4">
+                            <div className="flex flex-col items-end gap-1">
+                              {getNotificationIcon(notification.type)}
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {formatTime(notification.timestamp)}
+                              </span>
+                            </div>
+
+                            <div className="flex flex-col gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeNotification(notification.id);
+                                }}
+                                className="h-8 w-8 p-0 text-red-500 hover:bg-red-50"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
+
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bottom Row */}
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                          <span className="text-xs text-gray-400">
+                            📅 {getFullDateTime(notification.timestamp)}
+                          </span>
+
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             )}
