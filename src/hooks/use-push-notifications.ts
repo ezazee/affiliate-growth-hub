@@ -123,22 +123,21 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
         return;
       }
 
-      const existingSubscription = await registration.pushManager.getSubscription();
-      if (existingSubscription) {
-        const subscriptionData = existingSubscription.toJSON() as PushSubscription;
-        setSubscription(subscriptionData);
-        setIsSubscribed(true);
-        return;
+      // Check for existing subscription
+      let pushSubscription = await registration.pushManager.getSubscription();
+
+      // If no subscription, create one
+      if (!pushSubscription) {
+        const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BD7-XYAmgLZETcgTEzRWEPkGmXW0H0iPjGNl3vZvex-h_TFyGCvXifRZIX5mbPbk6HV7qkTs5VGJ-lvjonGoA1o';
+        const applicationServerKey = urlB64ToUint8Array(vapidKey);
+
+        pushSubscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
+        });
       }
 
-      const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || 'BD7-XYAmgLZETcgTEzRWEPkGmXW0H0iPjGNl3vZvex-h_TFyGCvXifRZIX5mbPbk6HV7qkTs5VGJ-lvjonGoA1o';
-      const applicationServerKey = urlB64ToUint8Array(vapidKey);
-
-      const pushSubscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: applicationServerKey.buffer as ArrayBuffer,
-      });
-
+      // Proceed to send to backend (do not return early)
       const subscriptionData = pushSubscription.toJSON() as PushSubscription;
 
       // Use getAuthHeaders for authentication
