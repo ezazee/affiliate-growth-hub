@@ -25,6 +25,8 @@ import { Order, OrderStatus } from '@/types';
 
 import { Skeleton } from '@/components/ui/skeleton';
 
+import { getAuthHeaders } from '@/lib/api';
+
 export default function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +38,9 @@ export default function AdminOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const ordersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders`);
+        const ordersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders`, {
+          headers: getAuthHeaders(),
+        });
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json();
           setOrders(ordersData);
@@ -59,6 +63,7 @@ export default function AdminOrders() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({ orderId, ...updateData }),
       });
