@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Product, CommissionType } from '@/types';
+import { getAuthHeaders } from '@/lib/api';
 
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -49,7 +50,9 @@ export default function AdminProducts() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products`, {
+          headers: getAuthHeaders(),
+        });
         if (response.ok) {
           const data = await response.json();
           setProducts(data);
@@ -168,6 +171,9 @@ export default function AdminProducts() {
 
         const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
           method: 'POST',
+          headers: {
+            Authorization: getAuthHeaders()['Authorization'],
+          },
           body: formDataUpload,
         });
 
@@ -193,9 +199,7 @@ export default function AdminProducts() {
         // Update existing product
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products/${editingProduct.id}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             ...formData,
             price: Number(formData.price),
@@ -223,9 +227,7 @@ export default function AdminProducts() {
         // Create new product
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: getAuthHeaders(),
           body: JSON.stringify({
             ...formData,
             price: Number(formData.price),
@@ -260,6 +262,7 @@ export default function AdminProducts() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       });
 
       if (response.ok) {
@@ -283,9 +286,7 @@ export default function AdminProducts() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products/${id}`, {
         method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ ...productToToggle, isActive: newIsActive }),
       });
 
