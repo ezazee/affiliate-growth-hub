@@ -122,7 +122,7 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['framer-motion', 'lucide-react', '@radix-ui/react-icons'],
-    optimizeCss: true,
+    optimizeCss: false,
     scrollRestoration: true,
     largePageDataBytes: 128 * 1000, // 128KB
   },
@@ -160,6 +160,16 @@ const nextConfig = {
           }
         ]
       }
+    ]
+  },
+
+  // Rewrites to proxy API requests to NEW_BACKEND
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3001/api/:path*', // Proxy to Express Backend
+      },
     ]
   },
 

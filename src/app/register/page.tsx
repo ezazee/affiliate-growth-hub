@@ -23,101 +23,7 @@ import { toast } from "@/hooks/use-toast";
 
 import Image from "next/image";
 
-// List of valid email providers for Indonesia
-const VALID_EMAIL_PROVIDERS = [
-  'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com',
-  'icloud.com', 'ymail.com', 'rocketmail.com',
-  // Indonesia-specific providers
-  'plasa.com', 'telkom.net', 'indo.net.id', 'cbn.net.id',
-  'rad.net.id', 'centrin.net.id', 'klikbca.com', 'bni.co.id',
-  'mandiri.co.id', 'bri.co.id'
-];
-
-// Blocked domains (examples, testing, etc)
-const BLOCKED_DOMAINS = [
-  'example.com', 'test.com', 'demo.com', 'fake.com',
-  'temp.com', 'throwaway.email', '10minutemail.com',
-  'guerrillamail.com', 'mailinator.com', 'yopmail.com'
-];
-
-function validateEmail(email: string): { isValid: boolean; message?: string } {
-  // Basic email format check
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return { isValid: false, message: 'Format email tidak valid' };
-  }
-
-  const domain = email.toLowerCase().split('@')[1];
-
-  // Check for blocked domains
-  if (BLOCKED_DOMAINS.some(blocked => domain.includes(blocked))) {
-    return { isValid: false, message: 'Domain email tidak diizinkan. Gunakan email pribadi yang valid.' };
-  }
-
-  // Check for valid providers
-  const isValidProvider = VALID_EMAIL_PROVIDERS.some(provider => domain === provider);
-  
-  if (!isValidProvider) {
-    return { 
-      isValid: false, 
-      message: 'Hanya email dari provider terpercaya yang diizinkan (Gmail, Yahoo, Outlook, dll)' 
-    };
-  }
-
-  return { isValid: true };
-}
-
-function validatePhone(phone: string): { isValid: boolean; message?: string; formatted?: string } {
-  // Remove all non-digit characters
-  const cleanPhone = phone.replace(/\D/g, '');
-  
-  // Check if empty
-  if (!cleanPhone) {
-    return { isValid: false, message: 'Nomor telepon wajib diisi' };
-  }
-
-  // Check minimum length (Indonesia phone numbers: 9-13 digits after 62)
-  if (cleanPhone.length < 9 || cleanPhone.length > 13) {
-    return { isValid: false, message: 'Nomor telepon harus 9-13 digit' };
-  }
-
-  // Format with 62 prefix
-  let formattedPhone = cleanPhone;
-  if (!cleanPhone.startsWith('62')) {
-    if (cleanPhone.startsWith('0')) {
-      formattedPhone = '62' + cleanPhone.substring(1);
-    } else {
-      formattedPhone = '62' + cleanPhone;
-    }
-  }
-
-  return { isValid: true, formatted: formattedPhone };
-}
-
-function validatePassword(password: string): { isValid: boolean; message?: string } {
-  if (!password) {
-    return { isValid: false, message: 'Kata sandi wajib diisi' };
-  }
-
-  if (password.length < 6) {
-    return { isValid: false, message: 'Kata sandi minimal 6 karakter' };
-  }
-
-  // Check for at least one letter
-  const hasLetter = /[a-zA-Z]/.test(password);
-  // Check for at least one number
-  const hasNumber = /\d/.test(password);
-
-  if (!hasLetter) {
-    return { isValid: false, message: 'Kata sandi harus mengandung minimal 1 huruf' };
-  }
-
-  if (!hasNumber) {
-    return { isValid: false, message: 'Kata sandi harus mengandung minimal 1 angka' };
-  }
-
-  return { isValid: true };
-}
+import { validateEmail, validatePhone, validatePassword } from "@/lib/validation";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -135,10 +41,10 @@ export default function Register() {
   const { register } = useAuth();
   const router = useRouter();
 
-const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setName(value);
-    
+
     if (errors.name) {
       setErrors(prev => ({ ...prev, name: '' }));
     }
@@ -147,12 +53,12 @@ const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
-    
+
     if (errors.email) {
       setErrors(prev => ({ ...prev, email: '' }));
     }
-    
-    // Validate email on blur
+
+
     if (value.includes('@')) {
       const validation = validateEmail(value);
       if (!validation.isValid) {
@@ -171,14 +77,14 @@ const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Only allow numbers
+
     let value = e.target.value.replace(/\D/g, '');
-    
+
     if (errors.phone) {
       setErrors(prev => ({ ...prev, phone: '' }));
     }
-    
-    // Auto-format phone number
+
+
     if (value) {
       let formatted = value;
       if (!value.startsWith('62')) {
@@ -206,12 +112,12 @@ const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setPassword(value);
-    
+
     if (errors.password) {
       setErrors(prev => ({ ...prev, password: '' }));
     }
-    
-    // Validate password if user has typed something
+
+
     if (value.length >= 6) {
       const validation = validatePassword(value);
       if (!validation.isValid) {
@@ -237,24 +143,24 @@ const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       password: ''
     };
 
-    // Validate name
+
     if (!name.trim()) {
       newErrors.name = 'Nama lengkap wajib diisi';
     }
 
-    // Validate email
+
     const emailValidation = validateEmail(email);
     if (!emailValidation.isValid) {
       newErrors.email = emailValidation.message || 'Email tidak valid';
     }
 
-    // Validate phone
+
     const phoneValidation = validatePhone(phone);
     if (!phoneValidation.isValid) {
       newErrors.phone = phoneValidation.message || 'Nomor telepon tidak valid';
     }
 
-    // Validate password
+
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
       newErrors.password = passwordValidation.message || 'Password tidak valid';
@@ -266,8 +172,8 @@ const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Validate all fields
+
+
     if (!validateForm()) {
       toast.error('Periksa kembali form Anda');
       return;
@@ -276,7 +182,7 @@ const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsLoading(true);
 
     try {
-      // Format phone before sending
+
       const phoneValidation = validatePhone(phone);
       const formattedPhone = phoneValidation.formatted || phone;
 
@@ -368,7 +274,7 @@ const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-<div className="space-y-2">
+            <div className="space-y-2">
               <Label htmlFor="name">Nama Lengkap</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
@@ -428,7 +334,7 @@ const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
                   onChange={handlePhoneChange}
                   onBlur={handlePhoneBlur}
                   onKeyPress={(e) => {
-                    // Prevent non-numeric input
+
                     const char = String.fromCharCode(e.which || e.keyCode);
                     if (!/[0-9]/.test(char)) {
                       e.preventDefault();

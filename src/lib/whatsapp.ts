@@ -4,7 +4,8 @@
  */
 export async function getAdminWhatsApp(): Promise<string> {
   try {
-    const response = await fetch('/api/admin/settings');
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || '';
+    const response = await fetch(`${baseUrl}/api/admin/settings`);
     if (!response.ok) {
       // Fallback ke nomor default jika API gagal
       return '6281313711180';

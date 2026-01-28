@@ -96,7 +96,7 @@ export function CheckoutAddressInput({ formData, setFormData, disabled }: Checko
     const fetchSuggestions = async () => {
       setIsFetchingSuggestions(true);
       try {
-        const response = await fetch(`/api/autocomplete-address?text=${debouncedInputValue}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/autocomplete-address?text=${debouncedInputValue}`);
         const data = await response.json();
         if (response.ok) {
           // Mapbox Geocoding API returns center as [lon, lat] and place_name
@@ -122,7 +122,7 @@ export function CheckoutAddressInput({ formData, setFormData, disabled }: Checko
   const reverseGeocode = useCallback(async (lon: number, lat: number) => {
     setIsReverseGeocoding(true);
     try {
-      const response = await fetch(`/api/reverse-geocode?longitude=${lon}&latitude=${lat}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/reverse-geocode?longitude=${lon}&latitude=${lat}`);
       const data = await response.json();
       if (response.ok) {
         setFormData(prev => ({

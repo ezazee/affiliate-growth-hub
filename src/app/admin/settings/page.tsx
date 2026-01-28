@@ -111,7 +111,7 @@ export default function SettingsPage() {
     setIsSavingNotificationSettings(true);
 
     try {
-      const response = await fetch("/api/admin/notification-settings", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/notification-settings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(notificationSettings),
@@ -143,7 +143,7 @@ export default function SettingsPage() {
     const fetchSettings = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("/api/admin/settings");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/settings`);
 
         if (!response.ok) {
           // Try to get error message, fallback to status text
@@ -171,7 +171,7 @@ export default function SettingsPage() {
 
         // Landing Page Settings
         try {
-          const landingResponse = await fetch("/api/admin/landing-settings");
+          const landingResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/landing-settings`);
           if (landingResponse.ok) {
             const landingData = await landingResponse.json();
             setLandingPageSettings({
@@ -211,7 +211,7 @@ export default function SettingsPage() {
     e.preventDefault();
     setIsSavingAddress(true);
     try {
-      const response = await fetch("/api/admin/settings", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/settings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "warehouseAddress", value: address }),
@@ -261,7 +261,7 @@ export default function SettingsPage() {
         ? cleanNumber
         : `62${cleanNumber}`;
 
-      const response = await fetch("/api/admin/settings", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/settings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "adminWhatsApp", value: formattedNumber }),
@@ -309,7 +309,7 @@ export default function SettingsPage() {
 
     setIsSavingWithdrawal(true);
     try {
-      const response = await fetch("/api/admin/settings", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/settings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: "minimumWithdrawal", value: amount }),
@@ -351,7 +351,7 @@ export default function SettingsPage() {
     try {
       const responses = await Promise.all(
         ratesToSave.map((rate) =>
-          fetch("/api/admin/settings", {
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/settings`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(rate),
@@ -437,7 +437,7 @@ export default function SettingsPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("/api/upload", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
         method: "POST",
         body: formData,
       });
@@ -472,7 +472,7 @@ export default function SettingsPage() {
     setIsSavingLandingPage(true);
 
     try {
-      const response = await fetch("/api/admin/landing-settings", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/landing-settings`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(landingPageSettings),

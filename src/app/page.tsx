@@ -57,11 +57,11 @@ export default function Index() {
       try {
         // Add cache-busting for both development and production to ensure fresh settings
         const timestamp = `?t=${Date.now()}`;
-        
+
         // Use Promise.all for parallel fetching (faster)
         const [productsResponse, settingsResponse] = await Promise.all([
-          fetch(`/api/public/products${timestamp}`),
-          fetch(`/api/public/landing-settings${timestamp}`)
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/products${timestamp}`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/public/landing-settings${timestamp}`)
         ]);
 
         // Optimize: Process responses concurrently
@@ -88,7 +88,7 @@ export default function Index() {
 
     // Optimized: Add loading delay for better UX
     const timeoutId = setTimeout(fetchData, 100);
-    
+
     return () => clearTimeout(timeoutId);
   }, []);
 
@@ -138,7 +138,7 @@ export default function Index() {
             <img src="/Logo.png" alt="PE Skinpro" className="w-10 h-10 rounded-xl" />
             <span className="font-display font-bold text-xl text-foreground">Affiliate</span>
           </Link>
-          
+
           <div className="flex items-center gap-4">
             {isAuthenticated && user ? (
               <div className="flex items-center gap-4">
@@ -162,8 +162,8 @@ export default function Index() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
-                      onClick={logout} 
+                    <DropdownMenuItem
+                      onClick={logout}
                       disabled={isLoggingOut}
                       className="flex items-center gap-2 text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -190,7 +190,7 @@ export default function Index() {
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-6 bg-gradient-to-br from-primary/5 to-secondary/5">
         <div className="container mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
@@ -200,11 +200,11 @@ export default function Index() {
               <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
               Program Affiliate PE Skinpro Sekarang Dibuka!
             </div>
-            
+
             <h1 className="text-5xl lg:text-7xl font-display font-bold text-foreground mb-6 leading-tight">
               {landingSettings.heroTitle || `Dapatkan Penghasilan Hingga ${getCommissionRate(products)}`}
             </h1>
-            
+
             <p className="text-xl text-muted-foreground mb-10 max-w-3xl mx-auto">
               {landingSettings.heroDescription || 'Bergabunglah dengan program affiliate PE Skinpro dan dapatkan komisi menarik dari setiap penjualan.'}
               {!loading && ` Promosikan ${products.length} produk skincare berkualitas dengan bahan alami dan teknologi Jerman.`}
@@ -259,7 +259,7 @@ export default function Index() {
       {/* About PE Skinpro Section */}
       <section className="py-20 px-6">
         <div className="container mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -290,8 +290,8 @@ export default function Index() {
             </div>
             <div className="relative">
               {landingSettings.aboutImage ? (
-                <img 
-                  src={landingSettings.aboutImage} 
+                <img
+                  src={landingSettings.aboutImage}
                   alt="Tentang PE Skinpro"
                   className="aspect-square w-full rounded-2xl object-cover"
                   onError={(e) => {
@@ -317,7 +317,7 @@ export default function Index() {
       {/* Benefits Section */}
       <section className="py-20 px-6 bg-secondary/30">
         <div className="container mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -360,7 +360,7 @@ export default function Index() {
       {/* Certifications Section */}
       <section className="py-20 px-6">
         <div className="container mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -398,7 +398,7 @@ export default function Index() {
       {/* Products Section */}
       <section id="products" className="py-20 px-6 bg-secondary/30">
         <div className="container mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -450,8 +450,8 @@ export default function Index() {
                     className="bg-card rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 flex flex-col h-full"
                   >
                     <div className="w-full h-40 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl mb-4 flex items-center justify-center overflow-hidden flex-shrink-0">
-                      <img 
-                        src={product.imageUrl} 
+                      <img
+                        src={product.imageUrl}
                         alt={product.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
@@ -493,7 +493,7 @@ export default function Index() {
       {/* CTA Section */}
       <section className="py-20 px-6">
         <div className="container mx-auto">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
@@ -504,7 +504,7 @@ export default function Index() {
               Siap Mulai Menghasilkan?
             </h2>
             <p className="text-primary-foreground/80 text-lg mb-8 max-w-xl mx-auto">
-              Bergabung dengan ribuan affiliate yang sudah mendapatkan penghasilan dari PE Skinpro. 
+              Bergabung dengan ribuan affiliate yang sudah mendapatkan penghasilan dari PE Skinpro.
               Hanya butuh 2 menit untuk mendaftar.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -566,7 +566,7 @@ export default function Index() {
                 </a>
               </div>
             </div>
-            
+
             <div>
               <h3 className="font-semibold text-foreground mb-4">Quick Links</h3>
               <ul className="space-y-2">
@@ -575,14 +575,14 @@ export default function Index() {
                 <li><Link href="#products" className="text-muted-foreground hover:text-primary transition-colors">Produk</Link></li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-semibold text-foreground mb-4">Kontak</h3>
               <ul className="space-y-2 text-muted-foreground">
                 <li className="break-words">
                   <span className="block sm:hidden font-medium">WA: </span>
                   <span className="hidden sm:inline font-medium">WhatsApp: </span>
-                  <a 
+                  <a
                     href={formatWhatsAppLink(landingSettings.whatsappNumber || '0821-2316-7895')}
                     target="_blank"
                     rel="noopener noreferrer"
@@ -594,7 +594,7 @@ export default function Index() {
                 <li className="break-words">
                   <span className="block sm:hidden font-medium">Email: </span>
                   <span className="hidden sm:inline font-medium">Email: </span>
-                  <a 
+                  <a
                     href={formatEmailLink(landingSettings.email || 'adm.peskinproid@gmail.com')}
                     className="hover:text-primary transition-colors underline decoration-dotted break-all"
                   >
@@ -604,7 +604,7 @@ export default function Index() {
               </ul>
             </div>
           </div>
-          
+
           <div className="border-t border-border pt-8">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-3">

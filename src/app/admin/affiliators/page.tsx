@@ -45,7 +45,7 @@ export default function AdminAffiliators() {
   useEffect(() => {
     const fetchAffiliators = async () => {
       try {
-        const response = await fetch('/api/admin/affiliators');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/affiliators`);
         if (response.ok) {
           const data = await response.json();
           setUsers(data);
@@ -69,7 +69,7 @@ export default function AdminAffiliators() {
 
   const updateStatus = async (userId: string, newStatus: UserStatus) => {
     try {
-      const response = await fetch(`/api/admin/affiliators/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/affiliators/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -96,13 +96,13 @@ export default function AdminAffiliators() {
       return;
     }
     try {
-      const response = await fetch(`/api/admin/affiliators/${userId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/affiliators/${userId}`, {
         method: 'DELETE',
       });
 
       if (response.ok) {
         setUsers(prev => prev.filter(u => u.id !== userId));
-        console.log('Afiliasi berhasil dihapus');
+
       } else {
         console.error('Gagal menghapus afiliasi.');
       }
@@ -133,7 +133,7 @@ export default function AdminAffiliators() {
     if (!editingUser) return;
 
     try {
-      const response = await fetch(`/api/admin/affiliators/${editingUser.id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/affiliators/${editingUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -146,7 +146,7 @@ export default function AdminAffiliators() {
         setUsers(prev => prev.map(u =>
           u.id === updatedUser.id ? updatedUser : u
         ));
-        console.log('Profil afiliasi berhasil diperbarui');
+
         setIsEditDialogOpen(false);
         setEditingUser(null);
       } else {

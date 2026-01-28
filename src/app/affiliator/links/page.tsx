@@ -34,8 +34,8 @@ export default function AffiliatorLinks() {
     setLoading(true);
     try {
       const [linksResponse, productsResponse] = await Promise.all([
-        fetch(`/api/affiliator/links?affiliatorId=${user.id}`, { cache: 'no-store' }),
-        fetch('/api/affiliator/products', { cache: 'no-store' }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/affiliator/links?affiliatorId=${user.id}`, { cache: 'no-store' }),
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/affiliator/products`, { cache: 'no-store' }),
       ]);
 
       if (linksResponse.ok && productsResponse.ok) {
@@ -70,7 +70,7 @@ export default function AffiliatorLinks() {
     setSubmitting(true);
     try {
       const promises = selectedProducts.map(productId =>
-        fetch("/api/affiliator/links", {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/affiliator/links`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -117,7 +117,7 @@ export default function AffiliatorLinks() {
     if (!confirm("Apakah Anda yakin ingin menghapus link ini?")) return;
 
     try {
-      const response = await fetch(`/api/affiliator/links/${linkId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/affiliator/links/${linkId}`, {
         method: "DELETE"
       });
 
@@ -376,8 +376,8 @@ export default function AffiliatorLinks() {
                             }
                           }}
                           className={`flex items-start space-x-3 p-3 border rounded-lg cursor-pointer transition-colors ${isSelected
-                              ? 'bg-blue-50 border-blue-300 hover:bg-blue-100'
-                              : 'hover:bg-gray-50 border-gray-200'
+                            ? 'bg-blue-50 border-blue-300 hover:bg-blue-100'
+                            : 'hover:bg-gray-50 border-gray-200'
                             }`}
                         >
                           <Checkbox

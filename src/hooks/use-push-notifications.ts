@@ -274,7 +274,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       }
 
       const response = await Promise.race([
-        fetch('/api/push/subscribe', {
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/push/subscribe`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -345,7 +345,7 @@ export const usePushNotifications = (): UsePushNotificationsReturn => {
       if (pushSubscription) {
         // Remove from server first
         if (subscription) {
-          await fetch('/api/push/unsubscribe', {
+          await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/push/unsubscribe`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

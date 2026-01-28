@@ -19,9 +19,9 @@ export const PushNotificationTester = () => {
 
   const handleTestNotification = async () => {
     setIsTestLoading(true);
-    
+
     try {
-      const response = await fetch('/api/push/send', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/push/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -99,8 +99,8 @@ export const PushNotificationTester = () => {
           />
         </div>
 
-        <Button 
-          onClick={handleTestNotification} 
+        <Button
+          onClick={handleTestNotification}
           disabled={isTestLoading}
           className="w-full"
           variant="outline"

@@ -36,7 +36,7 @@ export default function PushNotificationTestPage() {
 
 
       // Save to server
-      const response = await fetch('/api/push/subscribe', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/push/subscribe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

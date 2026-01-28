@@ -29,7 +29,7 @@ export default function PaymentPage() {
     const fetchOrderWithRetry = async (retries = 3, delay = 500) => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/payment-details/${paymentToken}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/payment-details/${paymentToken}`);
         if (response.ok) {
           const data = await response.json();
           setOrder(data);
@@ -44,8 +44,8 @@ export default function PaymentPage() {
             const remaining = Math.max(0, Math.floor((expiryDate.getTime() - now.getTime()) / 1000));
             setTimeLeft(remaining);
             if (remaining === 0) {
-                setOrderStatus('cancelled'); // Mark as cancelled if already expired
-                setError('Payment link has expired.');
+              setOrderStatus('cancelled'); // Mark as cancelled if already expired
+              setError('Payment link has expired.');
             }
           }
           setIsLoading(false);
@@ -72,7 +72,7 @@ export default function PaymentPage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchOrderWithRetry();
   }, [paymentToken]); // This will be paymentToken now
 
@@ -123,7 +123,7 @@ Sumber          : Customer
 ----------------------------------------
 Mohon segera dilakukan pengecekan dan diproses melalui dashboard admin.
 Terima kasih.`;
-    
+
     const whatsappUrl = createWhatsAppLink(adminWhatsApp, message);
     window.open(whatsappUrl, '_blank');
   };
@@ -174,14 +174,13 @@ Terima kasih.`;
           <CardDescription>Pindai kode QRIS di bawah ini untuk membayar</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col items-center">
-          <div className={`font-bold text-xl p-3 rounded-lg mb-4 transition-all ${
-            timeLeft <= 10 
-              ? 'bg-red-500 text-white animate-pulse' 
+          <div className={`font-bold text-xl p-3 rounded-lg mb-4 transition-all ${timeLeft <= 10
+              ? 'bg-red-500 text-white animate-pulse'
               : 'bg-destructive text-destructive-foreground'
-          }`}>
+            }`}>
             ⏰ Sisa Waktu: {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
           </div>
-          
+
           <div className="p-4 border rounded-lg bg-white">
             <Image src="https://blsfkizrchqzahqa.public.blob.vercel-storage.com/qris.jpeg" alt="QRIS Payment Code" width={300} height={300} priority />
           </div>
@@ -203,7 +202,7 @@ Terima kasih.`;
             </div>
           </div>
 
-          <Button 
+          <Button
             onClick={handleWhatsAppAdmin}
             className="w-full bg-green-600 hover:bg-green-700 text-white mt-4"
             size="lg"
@@ -211,7 +210,7 @@ Terima kasih.`;
             <MessageCircle className="w-4 h-4 mr-2" />
             Hubungi Admin via WhatsApp
           </Button>
-          
+
           <div className="mt-6 text-center text-xs text-muted-foreground">
             <p>⚠️ Pembayaran harus diselesaikan dalam 1 menit.</p>
             <p>Setelah melakukan pembayaran, status akan diperbarui secara otomatis.</p>

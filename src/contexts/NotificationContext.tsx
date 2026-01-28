@@ -134,7 +134,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!user?.email) return;
 
     try {
-      const response = await fetch('/api/notifications', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications`, {
         headers: {
           'x-user-email': user.email
         }
@@ -174,7 +174,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     if (user?.email) {
       try {
-        await fetch('/api/notifications/read', {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/read`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -193,7 +193,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
     if (user?.email) {
       try {
-        await fetch('/api/notifications/read', {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/read`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

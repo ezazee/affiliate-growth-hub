@@ -16,21 +16,21 @@ import { toast } from '@/hooks/use-toast';
 
 
 const Logo = () => (
-    <div className="flex items-center gap-2">
-      <Image
-        src="/Logo.png"
-        alt="Affiliate PE Skinpro Logo"
-        width={32}
-        height={32}
-        priority
-      />
-      <span className="font-display font-bold text-lg text-foreground">Affiliate</span>
-    </div>
-  );
+  <div className="flex items-center gap-2">
+    <Image
+      src="/Logo.png"
+      alt="Affiliate PE Skinpro Logo"
+      width={32}
+      height={32}
+      priority
+    />
+    <span className="font-display font-bold text-lg text-foreground">Affiliate</span>
+  </div>
+);
 
-export default function CheckoutClient({ productSlug: propProductSlug, referralCode: propReferralCode }: { 
-  productSlug?: string; 
-  referralCode?: string; 
+export default function CheckoutClient({ productSlug: propProductSlug, referralCode: propReferralCode }: {
+  productSlug?: string;
+  referralCode?: string;
 }) {
   const params = useParams();
   const searchParams = useSearchParams();
@@ -68,7 +68,7 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
       }
 
       try {
-        const response = await fetch(`/api/checkout/${productSlug}?ref=${refCode}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/checkout/${productSlug}?ref=${refCode}`);
         const data = await response.json();
 
         if (!response.ok) {
@@ -93,7 +93,7 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
 
   useEffect(() => {
     if (refCode && productSlug) {
-      fetch('/api/track-click', {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/track-click`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -113,7 +113,7 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
     setAppliedRateDetails(null);
 
     try {
-      const response = await fetch('/api/calculate-shipping', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/calculate-shipping`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
     };
 
     try {
-      const response = await fetch('/api/orders', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/orders`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -194,7 +194,7 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
     <div className="min-h-screen bg-background py-8 px-6">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-8"
@@ -208,7 +208,7 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
 
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Order Form */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
@@ -376,7 +376,7 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
           </motion.div>
 
           {/* Order Summary */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 }}
@@ -389,8 +389,8 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
                 {/* Product */}
                 <div className="flex gap-4">
                   {product.imageUrl && (
-                    <img 
-                      src={product.imageUrl} 
+                    <img
+                      src={product.imageUrl}
                       alt={product.name}
                       className="w-20 h-20 rounded-lg object-cover"
                     />
@@ -421,10 +421,10 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
                       {shippingCost === null
                         ? 'Menunggu...'
                         : shippingCost.toLocaleString('id-ID', {
-                            style: 'currency',
-                            currency: 'IDR',
-                            minimumFractionDigits: 0,
-                          })}
+                          style: 'currency',
+                          currency: 'IDR',
+                          minimumFractionDigits: 0,
+                        })}
                     </span>
                   </div>
                   <div className="flex justify-between text-lg pt-3 border-t border-border">

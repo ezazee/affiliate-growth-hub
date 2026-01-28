@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 import { Badge } from '@/components/ui/badge';
-import { 
-  Smartphone, 
-  Chrome, 
-  Settings, 
-  Check, 
-  X, 
-  AlertCircle, 
+import {
+  Smartphone,
+  Chrome,
+  Settings,
+  Check,
+  X,
+  AlertCircle,
   RefreshCw,
   Info
 } from 'lucide-react';
@@ -30,11 +30,11 @@ export default function AndroidPermissionFix() {
 
   const checkPermissionStatus = async () => {
     setIsChecking(true);
-    
+
     try {
       const permission = Notification.permission;
       const isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
-      
+
       let serviceWorkerStatus = 'Not checked';
       if (isSupported) {
         try {
@@ -70,7 +70,7 @@ export default function AndroidPermissionFix() {
       set检测结果(result);
 
       // Send debug info to server
-      await fetch('/api/push/debug', {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/push/debug`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -111,7 +111,7 @@ export default function AndroidPermissionFix() {
       ]
     },
     {
-      title: "Android Settings Fix", 
+      title: "Android Settings Fix",
       steps: [
         "Go to Android Settings",
         "Apps → Chrome",
@@ -123,7 +123,7 @@ export default function AndroidPermissionFix() {
       title: "Quick Fix",
       steps: [
         "Clear Chrome cache",
-        "Restart Chrome browser", 
+        "Restart Chrome browser",
         "Try enabling notifications again",
         "Accept permission prompt immediately"
       ]
@@ -153,11 +153,11 @@ export default function AndroidPermissionFix() {
             </Badge>
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* Check Status Button */}
           <div className="flex gap-2">
-            <Button 
+            <Button
               onClick={checkPermissionStatus}
               disabled={isChecking}
               variant="outline"
@@ -203,7 +203,7 @@ export default function AndroidPermissionFix() {
               </div>
             </div>
           )}
-          
+
           {isOpen && (
             <div className="space-y-3">
               {fixInstructions.map((fix, index) => (
@@ -219,7 +219,7 @@ export default function AndroidPermissionFix() {
                   </ol>
                 </div>
               ))}
-              
+
               <Button
                 size="sm"
                 onClick={() => window.open('chrome://settings/content/notifications', '_blank')}
@@ -251,8 +251,8 @@ export default function AndroidPermissionFix() {
 
           {/* Quick Test */}
           <div className="text-center">
-            <Button 
-              size="sm" 
+            <Button
+              size="sm"
               variant="outline"
               onClick={() => window.open('/admin/notifications/test', '_blank')}
               className="text-xs"

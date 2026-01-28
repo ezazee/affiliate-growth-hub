@@ -49,7 +49,7 @@ export default function AdminProducts() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('/api/admin/products');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products`);
         if (response.ok) {
           const data = await response.json();
           setProducts(data);
@@ -166,7 +166,7 @@ export default function AdminProducts() {
         const formDataUpload = new FormData();
         formDataUpload.append('file', selectedFile);
 
-        const uploadResponse = await fetch('/api/upload', {
+        const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
           method: 'POST',
           body: formDataUpload,
         });
@@ -191,7 +191,7 @@ export default function AdminProducts() {
     try {
       if (editingProduct) {
         // Update existing product
-        const response = await fetch(`/api/products/${editingProduct.id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products/${editingProduct.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -221,7 +221,7 @@ export default function AdminProducts() {
         }
       } else {
         // Create new product
-        const response = await fetch('/api/admin/products', {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -258,7 +258,7 @@ export default function AdminProducts() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`/api/products/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products/${id}`, {
         method: 'DELETE',
       });
 
@@ -281,7 +281,7 @@ export default function AdminProducts() {
     const newIsActive = !productToToggle.isActive;
 
     try {
-      const response = await fetch(`/api/products/${id}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/products/${id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

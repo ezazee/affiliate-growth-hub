@@ -32,7 +32,7 @@ export function AddressAutocompleteInput({ value, onValueChange, placeholder }: 
     const fetchSuggestions = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`/api/autocomplete-address?text=${debouncedSearchTerm}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/autocomplete-address?text=${debouncedSearchTerm}`);
         const data = await response.json();
         if (response.ok) {
           setSuggestions(data || []);
@@ -50,7 +50,7 @@ export function AddressAutocompleteInput({ value, onValueChange, placeholder }: 
 
     fetchSuggestions();
   }, [debouncedSearchTerm]);
-  
+
   const handleSelect = (suggestion: Suggestion) => {
     onValueChange(suggestion.address);
     setOpen(false);

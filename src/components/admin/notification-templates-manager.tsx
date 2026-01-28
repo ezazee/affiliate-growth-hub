@@ -38,7 +38,7 @@ export default function NotificationTemplatesManager() {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/notifications/templates');
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/templates`);
       const data = await response.json();
       if (data.success) {
         setTemplates(data.templates);
@@ -56,19 +56,19 @@ export default function NotificationTemplatesManager() {
   };
 
   const updateTemplate = (id: string, field: keyof NotificationTemplate, value: any) => {
-    setTemplates(prev => prev.map(template => 
+    setTemplates(prev => prev.map(template =>
       template.id === id ? { ...template, [field]: value } : template
     ));
   };
 
   const resetToDefault = (id: string) => {
-    setTemplates(prev => prev.map(template => 
-      template.id === id ? { 
-        ...template, 
-        customTitle: '', 
-        customBody: '', 
+    setTemplates(prev => prev.map(template =>
+      template.id === id ? {
+        ...template,
+        customTitle: '',
+        customBody: '',
         customUrl: '',
-        isCustomized: false 
+        isCustomized: false
       } : template
     ));
   };
@@ -76,7 +76,7 @@ export default function NotificationTemplatesManager() {
   const saveTemplates = async () => {
     setSaving(true);
     try {
-      const response = await fetch('/api/notifications/templates', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/templates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -167,7 +167,7 @@ export default function NotificationTemplatesManager() {
             />
           </div>
         </div>
-        
+
         <div>
           <label className="text-sm font-medium mb-1 block">Isi Notifikasi</label>
           <div className="space-y-2">
@@ -180,7 +180,7 @@ export default function NotificationTemplatesManager() {
             />
           </div>
         </div>
-        
+
         <div>
           <label className="text-sm font-medium mb-1 block">URL Redirect</label>
           <div className="space-y-2">

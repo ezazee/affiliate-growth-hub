@@ -41,7 +41,7 @@ export default function AdminWithdrawals() {
     const fetchData = async () => {
       try {
         // Fetch withdrawals
-        const withdrawalsResponse = await fetch('/api/admin/withdrawals');
+        const withdrawalsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/withdrawals`);
         if (withdrawalsResponse.ok) {
           const withdrawalsData = await withdrawalsResponse.json();
           setWithdrawals(withdrawalsData);
@@ -50,7 +50,7 @@ export default function AdminWithdrawals() {
         }
 
         // Fetch affiliators for user info
-        const affiliatorsResponse = await fetch('/api/admin/affiliators');
+        const affiliatorsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/affiliators`);
         if (affiliatorsResponse.ok) {
           const affiliatorsData = await affiliatorsResponse.json();
           setAffiliators(affiliatorsData);
@@ -71,7 +71,7 @@ export default function AdminWithdrawals() {
         body.rejectionReason = reason;
       }
 
-      const response = await fetch(`/api/admin/withdrawals/${withdrawalId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/withdrawals/${withdrawalId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -64,7 +64,7 @@ export const PushNotificationSender = ({ className }: PushNotificationSenderProp
         payload.targetEmail = targetUserId.trim(); // API expects targetEmail, not targetUserId
       }
 
-      const response = await fetch('/api/push/send', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/push/send`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

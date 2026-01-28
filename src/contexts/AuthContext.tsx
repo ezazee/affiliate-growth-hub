@@ -9,7 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   register: (name: string, email: string, password: string, phone: string) => Promise<boolean>;
-  logout: () => void;
+  logout: (shouldRedirect?: boolean) => void;
   loading: boolean; // Add loading state
   isLoggingOut: boolean; // Add logout loading state
 }
@@ -46,7 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
 
           // Verify user session against the backend
-          const verifyResponse = await fetch('/api/auth/verify', {
+          const verifyResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/verify`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: sessionData.user._id }),
@@ -64,19 +64,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             setUser(null);
             return;
           }
-          
+
           const parsedUser = processUser(sessionData.user);
 
           setUser(parsedUser);
 
           // Handle redirects
-          const publicPaths = ['/login', '/register', '/'];
-          if (parsedUser.status === 'pending' && pathname !== '/waiting-approval' && !publicPaths.includes(pathname)) {
+          const publicPaths = ['/login', '/register', '/', '/forgot-password', '/reset-password'];
+          const isPublicPath = publicPaths.some(path => pathname === path || pathname.startsWith(path + '/'));
+
+          console.log('[AuthContext] Path:', pathname, 'Status:', parsedUser.status, 'IsPublic:', isPublicPath);
+
+          if (parsedUser.status === 'pending' && pathname !== '/waiting-approval' && !isPublicPath) {
+            console.log('[AuthContext] Redirecting pending user to /waiting-approval');
             router.push('/waiting-approval');
           } else if ((parsedUser.status === 'rejected' || parsedUser.status === 'suspended') && pathname !== '/account-status') {
+            console.log('[AuthContext] Redirecting rejected/suspended user');
             router.push(`/account-status?status=${parsedUser.status}`);
           } else if (parsedUser.status === 'approved') {
             if (pathname === '/login' || pathname === '/register' || pathname === '/waiting-approval' || pathname === '/account-status') {
+              console.log('[AuthContext] Redirecting approved user to dashboard');
               router.push(parsedUser.role === 'admin' ? '/admin' : '/affiliator');
             }
           }
@@ -96,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -107,12 +114,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const { user: loggedInUser } = await response.json();
         const processedUser = processUser(loggedInUser);
-        
+
         const sessionData = {
-            user: processedUser,
-            timestamp: new Date().getTime(),
+          user: processedUser,
+          timestamp: new Date().getTime(),
         };
-        
+
         setUser(processedUser);
         localStorage.setItem('affiliate_user_session', JSON.stringify(sessionData));
 
@@ -137,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = useCallback(async (name: string, email: string, password: string, phone: string): Promise<boolean> => {
     setLoading(true);
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,8 +157,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const processedUser = processUser(registeredUser);
 
         const sessionData = {
-            user: processedUser,
-            timestamp: new Date().getTime(),
+          user: processedUser,
+          timestamp: new Date().getTime(),
         };
 
         setUser(processedUser);
@@ -168,11 +175,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const logout = useCallback(async () => {
+  const logout = useCallback(async (shouldRedirect = true) => {
     setIsLoggingOut(true);
     try {
       // Call logout API (for logging purposes)
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, { method: 'POST' });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -180,9 +187,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       localStorage.removeItem('affiliate_user_session');
       setIsLoggingOut(false);
-      
-      // Redirect to home page and refresh to clear any cached state
-      window.location.href = '/';
+
+      if (shouldRedirect) {
+        // Redirect to home page and refresh to clear any cached state
+        window.location.href = '/';
+      }
     }
   }, []);
 

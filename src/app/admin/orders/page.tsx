@@ -36,7 +36,7 @@ export default function AdminOrders() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const ordersResponse = await fetch('/api/admin/orders');
+        const ordersResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders`);
         if (ordersResponse.ok) {
           const ordersData = await ordersResponse.json();
           setOrders(ordersData);
@@ -55,7 +55,7 @@ export default function AdminOrders() {
 
   const handleUpdateOrder = async (orderId: string, updateData: { status?: OrderStatus; shippingCost?: number }) => {
     try {
-      const response = await fetch('/api/admin/orders', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

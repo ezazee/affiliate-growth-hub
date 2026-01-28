@@ -2,18 +2,18 @@ import { Metadata } from 'next';
 import CheckoutClient from './CheckoutClient';
 
 // Generate dynamic metadata for SEO and social sharing
-export async function generateMetadata({ params, searchParams }: { 
-  params: Promise<{ productSlug: string }>; 
-  searchParams: Promise<{ ref?: string }> 
+export async function generateMetadata({ params, searchParams }: {
+  params: Promise<{ productSlug: string }>;
+  searchParams: Promise<{ ref?: string }>
 }): Promise<Metadata> {
   try {
     const { productSlug } = await params;
     const { ref } = await searchParams;
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     const response = await fetch(`${baseUrl}/api/checkout/${productSlug}?ref=${ref}`, {
       cache: 'no-store'
     });
-    
+
     if (!response.ok) {
       return {
         title: 'Checkout - Affiliate PE Skinpro',
@@ -65,6 +65,6 @@ export default async function CheckoutPage({ params, searchParams }: {
 }) {
   const { productSlug } = await params;
   const { ref } = await searchParams;
-  
+
   return <CheckoutClient productSlug={productSlug} referralCode={ref} />;
 }

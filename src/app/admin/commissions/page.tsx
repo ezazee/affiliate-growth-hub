@@ -35,7 +35,7 @@ export default function AdminCommissions() {
   useEffect(() => {
     const fetchCommissions = async () => {
       try {
-        const response = await fetch('/api/admin/commissions');
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/commissions`);
         if (response.ok) {
           const data = await response.json();
           setCommissions(data);
@@ -59,7 +59,7 @@ export default function AdminCommissions() {
 
   const updateCommissionStatus = async (commissionId: string, newStatus: CommissionStatus) => {
     try {
-      const response = await fetch('/api/admin/commissions', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/commissions`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ commissionId, status: newStatus }),

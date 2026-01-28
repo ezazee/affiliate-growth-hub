@@ -54,7 +54,7 @@ export default function ClientOnlyAccountStatus() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-6 py-12">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -62,14 +62,11 @@ export default function ClientOnlyAccountStatus() {
       >
         {/* Logo */}
         <Link href="/" className="inline-flex items-center gap-3 mb-12">
-          <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center shadow-button">
-            <span className="text-primary-foreground font-bold text-xl">A</span>
-          </div>
-          <span className="font-display font-bold text-2xl text-foreground">AffiliateHub</span>
+          <span className="font-display font-bold text-2xl text-foreground">PE Skin Affiliate</span>
         </Link>
 
         {/* Main Icon */}
-        <motion.div 
+        <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ duration: 0.5, delay: 0.2, type: 'spring' }}
