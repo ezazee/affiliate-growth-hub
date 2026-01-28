@@ -1,12 +1,6 @@
 const CACHE_NAME = 'pe-skinpro-affiliate-v2';
 const urlsToCache = [
-  '/',
-  '/login',
-  '/register',
-  '/favicon/android-chrome-192x192.png',
-  '/favicon/android-chrome-512x512.png',
-  '/favicon/favicon-32x32.png',
-  '/favicon/icon-192x192.png'
+  // '/' // Commented out to be safe: caching root can be tricky with redirects
 ];
 
 // Install event - cache resources
@@ -19,14 +13,13 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Service Worker: Caching app shell');
-        return cache.addAll(urlsToCache);
+        return cache.addAll(urlsToCache).catch(err => {
+          console.warn('⚠️ Service Worker: Cache addAll failed, but continuing install:', err);
+        });
       })
       .then(() => {
         console.log('✅ Service Worker: Install complete');
         return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('❌ Service Worker: Install failed:', error);
       })
   );
 });
