@@ -266,23 +266,11 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
                     </h3>
                     <div className="space-y-2">
                       <Label htmlFor="shippingAddress">Alamat Lengkap *</Label>
-                      <Input
+                      <Textarea
                         id="shippingAddress"
                         value={formData.shippingAddress}
                         onChange={(e) => setFormData(prev => ({ ...prev, shippingAddress: e.target.value }))}
-                        placeholder="Alamat lengkap Anda"
-                        required
-                        disabled={shippingCost !== null}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="district">Kecamatan</Label>
-                      <Input
-                        id="district"
-                        value={formData.district}
-                        onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
-                        placeholder="Kecamatan"
+                        placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan..."
                         required
                         disabled={shippingCost !== null}
                       />
@@ -296,6 +284,17 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
                           value={formData.city}
                           onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                           placeholder="Kota"
+                          required
+                          disabled={shippingCost !== null}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="district">Kecamatan</Label>
+                        <Input
+                          id="district"
+                          value={formData.district}
+                          onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
+                          placeholder="Kecamatan"
                           required
                           disabled={shippingCost !== null}
                         />
