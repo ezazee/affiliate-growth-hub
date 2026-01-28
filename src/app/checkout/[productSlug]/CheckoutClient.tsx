@@ -11,9 +11,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Product, AffiliateLink, User as UserType } from '@/types';
 import { toast } from '@/hooks/use-toast';
-
+import { useIndonesiaArea, Area } from '@/hooks/useIndonesiaArea';
+import { AddressAutocomplete } from '@/components/ui/address-autocomplete';
 
 const Logo = () => (
   <div className="flex items-center gap-2">
@@ -48,16 +50,23 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
   const [appliedRateDetails, setAppliedRateDetails] = useState<string | null>(null);
   const [isCalculatingShipping, setIsCalculatingShipping] = useState(false);
 
+  // Address Hooks
+  const { provinces, cities, districts, fetchCities, fetchDistricts, isLoading: isAreaLoading } = useIndonesiaArea();
+
   const [formData, setFormData] = useState({
     buyerName: '',
     buyerPhone: '',
-    shippingAddress: '',
-    district: '',
-    city: '',
-    province: '',
+    shippingAddress: '', // Full address string
+    district: '',        // Name of district
+    city: '',            // Name of city
+    province: '',        // Name of province
     postalCode: '',
     orderNote: '',
   });
+
+  // Keep track of selected IDs for the cascading logic
+  const [selectedProvinceId, setSelectedProvinceId] = useState<string>('');
+  const [selectedCityId, setSelectedCityId] = useState<string>('');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -105,6 +114,67 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
       });
     }
   }, [refCode, productSlug]);
+
+  // Handle Autocomplete Selection
+  const handleAddressSelect = (feature: any) => {
+    // Mapbox feature context extraction
+    const context = feature.context || [];
+    let foundCity = '';
+    let foundProvince = '';
+    let foundDistrict = '';
+    let foundPostcode = '';
+
+    context.forEach((c: any) => {
+      if (c.id.startsWith('district')) foundDistrict = c.text;
+      if (c.id.startsWith('place')) foundCity = c.text;
+      if (c.id.startsWith('region')) foundProvince = c.text;
+      if (c.id.startsWith('postcode')) foundPostcode = c.text;
+    });
+
+    setFormData(prev => ({
+      ...prev,
+      shippingAddress: feature.place_name,
+      district: foundDistrict || prev.district,
+      city: foundCity || prev.city,
+      province: foundProvince || prev.province,
+      postalCode: foundPostcode || prev.postalCode,
+    }));
+
+    // Note: We can't easily auto-select the dropdown IDs from Mapbox strings without fuzzy matching.
+    // For now, we populate the text fields in formData.
+    // The user will still see the dropdowns. If they want to manually change, they can.
+    // But since the dropdowns drive the 'visual' selection, we might need to find the matching ID.
+    // Simple exact match attempt:
+    const matchedProvince = provinces.find(p => p.name.toLowerCase() === foundProvince?.toLowerCase());
+    if (matchedProvince) {
+      setSelectedProvinceId(matchedProvince.id);
+      fetchCities(matchedProvince.id);
+    }
+  };
+
+  // Handle Province Change
+  const handleProvinceChange = (provinceId: string) => {
+    const province = provinces.find(p => p.id === provinceId);
+    setSelectedProvinceId(provinceId);
+    setSelectedCityId(''); // Reset city
+    setFormData(prev => ({ ...prev, province: province?.name || '', city: '', district: '' }));
+    fetchCities(provinceId);
+  };
+
+  // Handle City Change
+  const handleCityChange = (cityId: string) => {
+    const city = cities.find(c => c.id === cityId);
+    setSelectedCityId(cityId);
+    setFormData(prev => ({ ...prev, city: city?.name || '', district: '' }));
+    fetchDistricts(cityId);
+  };
+
+  // Handle District Change
+  const handleDistrictChange = (districtId: string) => {
+    const district = districts.find(d => d.id === districtId);
+    setFormData(prev => ({ ...prev, district: district?.name || '' }));
+  };
+
 
   const handleCalculateShipping = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,50 +336,72 @@ export default function CheckoutClient({ productSlug: propProductSlug, referralC
                     </h3>
                     <div className="space-y-2">
                       <Label htmlFor="shippingAddress">Alamat Lengkap *</Label>
-                      <Textarea
-                        id="shippingAddress"
+                      <AddressAutocomplete
                         value={formData.shippingAddress}
-                        onChange={(e) => setFormData(prev => ({ ...prev, shippingAddress: e.target.value }))}
-                        placeholder="Nama jalan, nomor rumah, RT/RW, kelurahan..."
-                        required
+                        onChange={(val) => setFormData(prev => ({ ...prev, shippingAddress: val }))}
+                        onSelect={handleAddressSelect}
                         disabled={shippingCost !== null}
                       />
+                      <p className="text-xs text-muted-foreground">Cari alamat untuk mengisi otomatis kota, kecamatan, dll.</p>
                     </div>
 
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="city">Kota</Label>
-                        <Input
-                          id="city"
-                          value={formData.city}
-                          onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                          placeholder="Kota"
-                          required
-                          disabled={shippingCost !== null}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="district">Kecamatan</Label>
-                        <Input
-                          id="district"
-                          value={formData.district}
-                          onChange={(e) => setFormData(prev => ({ ...prev, district: e.target.value }))}
-                          placeholder="Kecamatan"
-                          required
-                          disabled={shippingCost !== null}
-                        />
-                      </div>
+                      {/* Province */}
                       <div className="space-y-2">
                         <Label htmlFor="province">Provinsi</Label>
-                        <Input
-                          id="province"
-                          value={formData.province}
-                          onChange={(e) => setFormData(prev => ({ ...prev, province: e.target.value }))}
-                          placeholder="Provinsi"
-                          required
-                          disabled={shippingCost !== null}
-                        />
+                        <Select
+                          disabled={shippingCost !== null || isAreaLoading}
+                          value={selectedProvinceId}
+                          onValueChange={handleProvinceChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih Provinsi" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {provinces.map(p => (
+                              <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
+
+                      {/* City */}
+                      <div className="space-y-2">
+                        <Label htmlFor="city">Kota/Kabupaten</Label>
+                        <Select
+                          disabled={shippingCost !== null || !selectedProvinceId || isAreaLoading}
+                          value={selectedCityId}
+                          onValueChange={handleCityChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Pilih Kota" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {cities.map(c => (
+                              <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* District */}
+                      <div className="space-y-2">
+                        <Label htmlFor="district">Kecamatan</Label>
+                        <Select
+                          disabled={shippingCost !== null || !selectedCityId || isAreaLoading}
+                          onValueChange={handleDistrictChange}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder={formData.district || "Pilih Kecamatan"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {districts.map(d => (
+                              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       <div className="space-y-2">
                         <Label htmlFor="postalCode">Kode Pos</Label>
                         <Input
